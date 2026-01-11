@@ -1,5 +1,8 @@
 (function() {
   const DEFAULT_TIMEOUT = 80000;
+
+
+  
   const API_ROUTES = {
     addBudgetRecord: { source: "auto", webhook: "prod" },
     addCacheRegisterRecord: { source: "auto", webhook: "prod" },
@@ -23,7 +26,7 @@
     getPnl: { source: "auto", webhook: "prod" },
     getSalesFilterOptions: { source: "auto", webhook: "prod" },
     getUserStoreByToken: { source: "auto", webhook: "prod" },
-    getVocabulary: { source: "auto", webhook: "prod" },
+    getVocabulary: { source: "auto", webhook: "prod" }, 
     setStatisticBrandName: { source: "auto", webhook: "prod" },
     setToken: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "Auth" },
     getToken: { source: "n8n", method: "GET", webhook: "prod" },
