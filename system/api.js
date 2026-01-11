@@ -1,8 +1,5 @@
 (function() {
   const DEFAULT_TIMEOUT = 80000;
-
-
-  
   const API_ROUTES = {
     addBudgetRecord: { source: "auto", webhook: "prod" },
     addCacheRegisterRecord: { source: "auto", webhook: "prod" },
