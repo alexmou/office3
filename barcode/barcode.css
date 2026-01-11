@@ -1,0 +1,130 @@
+<style>
+
+.tags {
+  gap: 4px;
+  padding: 65px;
+  display: flex;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 1s ease, transform 2s ease;
+}
+
+.tags.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.product-print {
+  position: relative;
+  padding: 1rem;
+  background-color: #fff;
+  border-radius: 0px;
+  box-shadow: 0.3px 0.5px 0.7px hsl(23deg 93% 31% / 0.36),
+              0.8px 1.6px 2px -0.8px hsl(23deg 93% 31% / 0.36),
+              2.1px 4.1px 5.2px -1.7px hsl(23deg 93% 31% / 0.36),
+              5px 10px 12.6px -2.5px hsl(23deg 93% 31% / 0.36);
+  padding: 0;
+  list-style-type: none;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+#products {
+  width: 100%;
+  height: auto;
+  display: ruby;
+  gap: 20px;
+}
+
+.print-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: none;
+  z-index: 10;
+}
+
+.print-btn img {
+  width: 24px;
+  height: 24px;
+}
+
+.product-print:hover .print-btn {
+  display: block;
+}
+
+
+.product-info h2 {
+  color: #333;
+  margin-top: 10px;
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.product-info p {
+  margin: 0 0;
+}
+
+.price {
+  font-weight: bold;
+  color: #e91e63;
+}
+
+#barcode {
+  width: 130px;
+}
+/* Базовые стили для всех ценников */
+.product-info {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* Стили для формата 40x80 */
+.label-40x80 .product-name.large-text {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+
+.label-40x80 .product-price.highlighted {
+  font-size: 1.4em;
+  color: #e91e63;
+  font-weight: bold;
+}
+
+/* Стили для формата 35x22 */
+.label-35x22 .product-name.compact {
+  font-size: 0.9em;
+  line-height: 1.2;
+}
+
+.label-35x22 .product-price.small {
+  font-size: 0.8em;
+}
+
+/* Общие стили для полей */
+.product-color {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.product-size {
+  font-weight: bold;
+}
+
+.spacer {
+  width: 100%;
+}
+
+
+
+  </style>
+

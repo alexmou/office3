@@ -1,0 +1,26 @@
+[
+  {
+    "pos": 0,
+    "name": "New sale",
+    "pageName": "newsale",
+    "text": "New sale"
+  },
+  {
+    "pos": 0,
+    "name": "Catalog",
+    "pageName": "catalog",
+    "text": "Catalog"
+  },
+  {
+    "pos": 0,
+    "name": "Sales",
+    "pageName": "sales",
+    "text": "Sales"
+  },
+  {
+    "pos": 0,
+    "name": "Statistic",
+    "pageName": "statistic",
+    "text": "Statistic"
+  }
+]

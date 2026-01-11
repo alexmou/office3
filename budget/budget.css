@@ -1,0 +1,70 @@
+
+<style>  :root{
+      --bg:#f6f7fb; --card:#fff; --muted:#6b7280; --text:#0f172a; --primary:#4f46e5; --primary-600:#4338ca; --ok:#059669; --bad:#dc2626; --warn:#b45309;
+      --border:#e5e7eb; --shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.06);
+      --radius:16px; --radius-sm:12px; --radius-lg:24px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji','Segoe UI Emoji'}
+    .container{max-width:1180px;margin:0 auto;padding:16px}
+    .header{position:sticky;top:0;background:rgba(255,255,255,.8);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--border);z-index:10}
+    .header-inner{display:flex;gap:12px;align-items:center;padding:12px 16px;max-width:1180px;margin:0 auto}
+    .title{font-weight:600;font-size:18px}
+    .note{color:#b45309;font-size:12px}
+    .btn{appearance:none;border:1px solid transparent;border-radius:999px;padding:10px 14px;font-weight:600;font-size:13px;cursor:pointer;transition:.15s box-shadow,.15s transform,.15s background,.15s color}
+    .btn[disabled]{opacity:.5;cursor:not-allowed}
+    .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary-600);box-shadow:var(--shadow)}
+    .btn-primary:hover{transform:translateY(-1px)}
+    .btn-ghost{background:#eef2ff;color:#3730a3;border-color:#c7d2fe}
+
+    .layout{display:grid;grid-template-columns:320px 1fr;gap:16px}
+    @media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .card-pad{padding:16px}
+
+    .monthsList{display:flex;flex-direction:column;gap:10px}
+    .monthBtn{width:100%;text-align:left;border:1px solid var(--border);background:#fff;border-radius:var(--radius-sm);padding:12px;box-shadow:var(--shadow);transition:.15s box-shadow,.15s border}
+    .monthBtn:hover{box-shadow:0 2px 8px rgba(16,24,40,.12)}
+    .monthBtn.active{border-color:#a5b4fc;outline:2px solid #e0e7ff;background:#f5f7ff}
+    .muted{color:var(--muted)}
+
+    .strip{display:flex;gap:10px;overflow:auto;padding-bottom:6px}
+    .pill{min-width:170px;border:1px solid var(--border);border-radius:999px;padding:8px 12px;background:#fff;display:flex;flex-direction:column;gap:2px}
+    .pill.active{background:var(--primary);color:#fff;border-color:var(--primary-600)}
+
+    .summary{display:flex;flex-wrap:wrap;gap:20px;align-items:center}
+    .stats{margin-left:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+    .stat .label{font-size:12px;color:var(--muted)}
+    .stat .value{font-weight:700}
+    .value.ok{color:var(--ok)}
+    .value.bad{color:var(--bad)}
+
+    .panels{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media (max-width:900px){.panels{grid-template-columns:1fr}}
+    .panel-title{font-weight:600;margin-bottom:8px}
+    .section{padding:10px 0;border-top:1px solid var(--border)}
+    .section:first-child{border-top:none}
+    .section-head{display:flex;align-items:center;gap:10px;width:100%;cursor:pointer}
+    .section-total{margin-left:auto;font-weight:600}
+    .section-total.income{color:var(--ok)}
+    .section-total.expense{color:var(--bad)}
+    .chev{width:18px;height:18px;transition:.15s transform}
+    .rotate90{transform:rotate(90deg)}
+
+    table{width:100%;border-collapse:separate;border-spacing:0}
+    thead{background:#f8fafc;color:#475569}
+    th,td{padding:10px 12px;border-top:1px solid var(--border)}
+    thead th{border-top:none;font-size:12px;text-align:left}
+    tbody tr:hover{background:#fafafa}
+    .input{width:180px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;outline:none}
+    .input:focus{border-color:#a5b4fc;box-shadow:0 0 0 3px rgba(165,180,252,.35)}
+    .input.dirty{border-color:#f59e0b;background:#fff7ed}
+    .chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:4px 8px;border-radius:999px}
+    .chip.ok{background:#ecfdf5;color:#047857}
+    .chip.warn{background:#fffbeb;color:#b45309}
+    .chip.lock{background:#f3f4f6;color:#6b7280}
+    .lock{width:16px;height:16px}
+    .footer{font-size:12px;color:var(--muted)}
+</style>

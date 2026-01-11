@@ -1,0 +1,38 @@
+<style>
+
+  #catalog-list {
+     width: 100%;
+    position: absolute;
+      width: -webkit-fill-available;
+    
+}
+
+  
+        .editable-cell {
+            background-color: #f9f9f9;
+        }
+        .filter-select {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        .remove-button {
+            color: red;
+            cursor: pointer;
+        }
+        .relative {
+            position: relative;
+        }
+        .overflow-x-auto {
+            overflow-x: auto;
+        }
+        .shadow-md {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .sm\:rounded-lg {
+            border-radius: 0.5rem;
+        }
+        /* Добавьте другие стили по необходимости */
+
+
+  </style>

@@ -1,0 +1,217 @@
+<style>
+
+.bigCard{
+  flex-direction: column; /* Чтобы содержимое внутри карточки располагалось вертикально */
+  width: auto; /* Ширина карточки зависит от содержимого */
+  min-width: 364px; /* Минимальная ширина карточки */
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  text-align: center;
+  min-width: 100%;
+
+}
+
+
+#SalesTab {
+  
+  flex-wrap: wrap; /* Позволяет карточкам переноситься на следующую строку */
+  gap: 20px; /* Расстояние между карточками */
+
+}
+
+
+
+  .sticker{
+min-width: 367px;
+max-height: 145px;
+  }
+
+
+.iframe-wrapper {
+  position: relative;
+  width: 100%; /* 100% ширины карточки */
+  height: 0;
+  padding-top: 56.25%; /* Пропорции для iframe (16:9) */
+
+}
+
+.card-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+
+.SalesTab-chart{
+margin-top: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    min-width: 200px;
+    width: 100%;
+    flex: 1;
+ }
+.chartIframe{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+}
+
+
+.split_left{
+position: fixed
+}
+
+.split_right{
+overflow: scroll;
+left: 300px;
+position: absolute;
+width: -webkit-fill-available;
+}
+
+
+.charts_block{
+
+    width: 18%;
+    height: auto;
+    position: absolute;
+    padding-top: 6px;
+}
+
+
+#charts{
+    height: auto;
+    width: 550px;
+}
+
+        header {
+            background-color: #3f51b5;
+            color: white;
+            padding: 16px;
+            font-size: 24px;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+        }
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+        .setting-group {
+            margin-bottom: 24px;
+        }
+        .setting-item {
+            margin-bottom: 8px;
+        }
+
+
+
+.tabs-container {
+    width: 100%;
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 2px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #555;
+    position: relative;
+}
+
+.tab-button.active {
+    color: #007BFF;
+    font-weight: bold;
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #007BFF;
+}
+
+.tab-content {
+    padding: 20px;
+   // display: none;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: flex;
+    gap: 20px;
+}
+
+
+
+.dashboard {
+    display: flex;
+    margin: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+
+
+.card h3 {
+    font-size: 1.2em;
+    margin: 0;
+    color: #333;
+}
+
+.card .value {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.card .label {
+    font-size: 0.9em;
+    color: #777;
+}
+
+.green {
+    color: #28a745;
+}
+
+.orange {
+    color: #ff9f00;
+}
+
+.chart-card {
+    flex: 2;
+    max-width: 600px;
+}
+
+#grade-salary-chart {
+    width: 100%;
+    height: 200px;
+}
+
+
+  </style>

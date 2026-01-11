@@ -1,0 +1,82 @@
+   <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        header {
+            background-color: #3f51b5;
+            color: white;
+            padding: 16px;
+            font-size: 24px;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+        }
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+        .setting-group {
+            margin-bottom: 24px;
+        }
+        .setting-item {
+            margin-bottom: 8px;
+        }
+
+
+
+.tabs-container {
+    width: 100%;
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 2px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #555;
+    position: relative;
+}
+
+.tab-button.active {
+    color: #007BFF;
+    font-weight: bold;
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #007BFF;
+}
+
+.tab-content {
+    padding: 20px;
+    display: none;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+
+
+    </style>

@@ -1,0 +1,214 @@
+<style>
+
+
+.event a {
+
+}
+
+
+.styled-box {
+    display: inline-block; /* Для корректной работы размеров */
+    background-color: orange; /* Оранжевая заливка */
+    color: white; /* Белый текст */
+    font-weight: bold; /* Жирный текст */
+    padding: 5px 10px; /* Внутренние отступы для размера прямоугольника */
+    border-radius: 10px; /* Закругленные края */
+    text-align: center; /* Центрирование текста */
+    font-size: 1em; /* Размер текста (адаптивный) */
+    min-width: 40px; /* Минимальная ширина */
+}
+
+.red {
+    color: #ff4d4f; /* Красный цвет */
+}
+
+.blue {
+    color: blue; /* Красный цвет */
+}
+
+.green {
+    color: #28a745; /* Зеленый цвет */
+}
+
+.split {
+  height: 100%;
+
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  overflow-x: hidden;
+  padding-top: 70px;
+     width: 100%;
+}
+
+/* Control the left side */
+.left {
+  left: 0;
+    width: 75%;
+border-right-width:5px;
+}
+
+/* Control the right side */
+.right {
+  right: 0;
+  width: 25%;
+}
+
+
+
+
+
+.calendar {
+  position: absolute;
+  //width: 280px;
+  //left: 50%;
+  //top: 50%;
+  margin-left: 50px;
+  background: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+}
+.ui-datepicker-header {
+  height: 50px;
+  line-height: 50px;
+  color: #f26a63;
+  margin-bottom: 10px;
+}
+.ui-datepicker-prev,
+.ui-datepicker-next {
+  width: 20px;
+  height: 20px;
+  text-indent: 9999px;
+  border-radius: 100%;
+  cursor: pointer;
+  overflow: hidden;
+  margin-top: 12px;
+}
+.ui-datepicker-prev {
+  float: left;
+  margin-left: 12px;
+}
+.ui-datepicker-prev:after {
+  transform: rotate(45deg);
+  margin: -43px 0px 0px 8px;
+}
+.ui-datepicker-next {
+  float: right;
+  margin-right: 12px;
+}
+.ui-datepicker-next:after {
+  transform: rotate(-135deg);
+  margin: -43px 0px 0px 6px;
+}
+.ui-datepicker-prev:after,
+.ui-datepicker-next:after {
+  content: '';
+  position: absolute;
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-left: 2px solid #b0aead;
+  border-bottom: 2px solid #b0aead;
+}
+.ui-datepicker-title {
+  text-align: center;
+}
+.ui-datepicker-calendar {
+  width: 100%;
+  text-align: center;
+}
+.ui-datepicker-calendar thead tr th span {
+  display: block;
+  width: 40px;
+  color: #f26a63;
+  margin-bottom: 5px;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+.ui-state-default {
+  display: block;
+  text-decoration: none;
+  color: #f26a63;
+  line-height: 40px;
+  font-size: 12px;
+}
+.ui-state-default:hover {
+  background: #dd4b39;
+  color: #fff;
+  border-radius: 20px;
+}
+.ui-state-highlight {
+  color: #4da036;
+  border-radius: 20px;
+  font-weight: bold;
+  background: #56b36a;
+}
+.ui-state-active {
+  background: #dd4b39;
+  color: #fff;
+  border-radius: 20px;
+}
+.ui-datepicker-unselectable .ui-state-default {
+  color: #eee;
+  border: 2px solid #808080;
+}
+
+
+.dashboard {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    margin: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+}
+
+.card h3 {
+    font-size: 1.2em;
+    margin: 0;
+    color: #333;
+}
+
+.card .value {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.card .label {
+    font-size: 0.9em;
+    color: #777;
+}
+
+.green {
+    color: #28a745;
+}
+
+.orange {
+    color: #ff9f00;
+}
+
+.chart-card {
+    flex: 2;
+    max-width: 600px;
+}
+
+#grade-salary-chart {
+    width: 100%;
+    height: 200px;
+}
+
+
+</style>
