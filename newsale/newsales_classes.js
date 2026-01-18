@@ -6,6 +6,9 @@ class CartUI {
 
 this.DISCOUNTGENERAL=discountGeneral
 this.DEFAULT_CURRENCY=currency
+this.DEFAULT_DISCOUNT_GENERAL = 0
+this.DEFAULT_PAYMENT_METHOD = "Cash"
+this.DEFAULT_CURRENCY_AFTER_SUBMIT = "VND"
         const container = document.getElementById('order-summary-container');
         var randomId;
         
@@ -203,6 +206,17 @@ setCurrencyChoiceToDefault(value) {
    
 }
 
+setSelectValue(selectId, desiredValue) {
+  const select = document.getElementById(selectId);
+  if (!select) return false;
+  const idx = Array.from(select.options).findIndex((opt) => opt.value === desiredValue);
+  if (idx >= 0) {
+    select.selectedIndex = idx;
+    return true;
+  }
+  return false;
+}
+
     valueChanged(el) {
         cartUI[el.name] = el.value;
          this.update()
@@ -264,7 +278,10 @@ setCurrencyChoiceToDefault(value) {
     setPaymentMethodToDefault(value)
     {
             const a = document.getElementById(this.paymentmethodId)
-            a.selectedIndex = 0; // Сбросить выбор к первому значению
+            if (!a) return;
+            if (!this.setSelectValue(this.paymentmethodId, this.DEFAULT_PAYMENT_METHOD)) {
+              a.selectedIndex = 0; // fallback
+            }
 
 
     }
@@ -272,10 +289,8 @@ setCurrencyChoiceToDefault(value) {
 
     clear(){
 
-            this.currency=this.DEFAULT_CURRENCY
-            this.setCurrencyChoiceToDefault()
-            this.discountGeneral=this.DISCOUNTGENERAL
-            this.setDiscountGeneral(this.DISCOUNTGENERAL)
+            this.discountGeneral=this.DEFAULT_DISCOUNT_GENERAL
+            this.setDiscountGeneral(this.DEFAULT_DISCOUNT_GENERAL)
  
             this.totalCoastGross = 0
             this.totalDiscount = 0
@@ -286,6 +301,12 @@ setCurrencyChoiceToDefault(value) {
             this.paymentmethod=document.getElementById(this.paymentmethodId).value
             this.setTooltipCurrency("")
             this.setFinalPrice(cartUI.finalPrice);
+
+            this.currency=this.DEFAULT_CURRENCY_AFTER_SUBMIT
+            const currencySet = this.setSelectValue(this.currencyId, this.DEFAULT_CURRENCY_AFTER_SUBMIT);
+            if (!currencySet) this.setCurrencyChoiceToDefault()
+            this.currency=document.getElementById(this.currencyId).value
+            this.setCurrency(this.currency)
             
        //   productTable.calculateTotalColumns()
 

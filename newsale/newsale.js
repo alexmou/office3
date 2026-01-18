@@ -1,8 +1,14 @@
 (function() {
   const PAGE_ID = "newsale";
+  const ARTICLE_INPUT_ID = "articleName";
 
   let productTable;
   let cartUI;
+
+  function focusArticleInput() {
+    const el = document.getElementById(ARTICLE_INPUT_ID);
+    if (el && typeof el.focus === "function") el.focus();
+  }
 
   function parseNumber(value) {
     if (value === null || value === undefined) return null;
@@ -58,7 +64,8 @@
   }
 
   function createNewCatalogItem(data) {
-    productTable.createNewCatalogItem(data);
+    const ok = productTable.createNewCatalogItem(data);
+    if (ok) focusArticleInput();
   }
 
   function getHeader(data) {
@@ -72,6 +79,7 @@
     if (!value) return;
     productTable.addArticle(value);
     inputEl.value = "";
+    focusArticleInput();
   }
 
   function makeOrder() {
@@ -89,11 +97,17 @@
     }
   }
 
+  /**
+   * Контракт ответа `sendSalesToSheet` (n8n webhook `newSale`):
+   * - Успех: JSON с любым из признаков успеха: `{ "success": true }`, `{ "ok": true }`, `{ "status": "success" }`, `"ok"`.
+   * - Ошибка: JSON с ошибкой: `{ "success": false, "error": "..." }` или `{ "error": "..." }` (или любая "ложная" строка типа `"error"`/`"failed"`).
+   */
   function sendSalesToSheet_done(res) {
     if (isSuccessfulServiceResult(res)) {
       showInformationalPopup(CONFIG.saleregistred);
       productTable.clear();
       cartUI.clear();
+      focusArticleInput();
     } else {
       console.error("sendSalesToSheet_done: unexpected response ->", res);
       systemError("ОШИБКА: Продажи не записались или записались частично");
@@ -155,7 +169,7 @@
 
   function initNewsalePage() {
     productTable = new SalesTableUI();
-    const inputName = "articleName";
+    const inputName = ARTICLE_INPUT_ID;
     const caption_h1 = "";
     const initValue = "";
     const action = "process_button";

@@ -365,6 +365,8 @@ function forceHideOverlay() {
   const overlay = getOverlay();
   overlay.setAttribute("data-blockedBy", "");
   overlay.style.display = "none";
+  const myDiv = document.getElementById("myDiv");
+  if (myDiv) myDiv.style.display = "grid";
 }
 
 function showPage(funcName) {
@@ -399,18 +401,25 @@ function getCurrentTime() {
 async function runGSfunctionPromise(request) {
   if (!request.callbackJSfunctionName) { request.callbackJSfunctionName = guidGenerator(); }
   hidePage(request.callbackJSfunctionName);
-  let returnToJsFuncName = "globalJSCallbackFunction";
-  const processedParams = processRequestParams(request.params);
-  const paramsWithToken = {
-    ...processedParams,
-    token: window.token
-  };
-  const response = await requestViaN8nOrMock(request.googleFuncName, paramsWithToken);
-  if (typeof window[returnToJsFuncName] === 'function') {
-    window[returnToJsFuncName](request.callbackJSfunctionName, response);
+  const returnToJsFuncName = "globalJSCallbackFunction";
+  try {
+    const processedParams = processRequestParams(request.params);
+    const paramsWithToken = {
+      ...processedParams,
+      token: window.token
+    };
+    const response = await requestViaN8nOrMock(request.googleFuncName, paramsWithToken);
+    if (typeof window[returnToJsFuncName] === 'function') {
+      window[returnToJsFuncName](request.callbackJSfunctionName, response);
+    }
+    return response;
+  } catch (error) {
+    console.error("runGSfunctionPromise failed:", request?.googleFuncName, error);
+    throw error;
+  } finally {
+    // Гарантированно снимаем блокировку UI (даже если overlay был перезаписан вложенным запросом)
+    forceHideOverlay();
   }
-  showPage(request.callbackJSfunctionName);
-  return response;
 }
 
 async function getDataFromServer(request) {
@@ -421,17 +430,24 @@ async function getDataFromServer(request) {
 async function runGSfunction(request) {
   if (!request.callbackJSfunctionName) { request.callbackJSfunctionName = guidGenerator(); }
   hidePage(request.callbackJSfunctionName);
-  let returnToJsFuncName = "globalJSCallbackFunction";
-  const processedParams = processRequestParams(request.params);
-  const paramsWithToken = {
-    ...processedParams,
-    token: window.token
-  };
-  const response = await requestViaN8nOrMock(request.googleFuncName, paramsWithToken);
-  if (typeof window[returnToJsFuncName] === 'function') {
-    window[returnToJsFuncName](request.callbackJSfunctionName, response);
+  const returnToJsFuncName = "globalJSCallbackFunction";
+  try {
+    const processedParams = processRequestParams(request.params);
+    const paramsWithToken = {
+      ...processedParams,
+      token: window.token
+    };
+    const response = await requestViaN8nOrMock(request.googleFuncName, paramsWithToken);
+    if (typeof window[returnToJsFuncName] === 'function') {
+      window[returnToJsFuncName](request.callbackJSfunctionName, response);
+    }
+  } catch (error) {
+    console.error("runGSfunction failed:", request?.googleFuncName, error);
+    showErrorPopup(error?.message || String(error));
+  } finally {
+    // Гарантированно снимаем блокировку UI
+    forceHideOverlay();
   }
-  showPage(request.callbackJSfunctionName);
 }
 
 function processRequestParams(params) {
@@ -456,10 +472,17 @@ function processRequestParams(params) {
 }
 
 function globalJSCallbackFunction(funcName, response) {
-  if (typeof window[funcName] === 'function') {
-    window[funcName](response);
+  try {
+    if (typeof window[funcName] === 'function') {
+      window[funcName](response);
+    }
+  } catch (error) {
+    console.error(`globalJSCallbackFunction handler failed: ${funcName}`, error);
+    showErrorPopup(error?.message || String(error));
+  } finally {
+    // На всякий случай: убираем overlay даже при ошибке обработчика
+    forceHideOverlay();
   }
-  showPage(funcName);
 }
 
 function guidGenerator() {

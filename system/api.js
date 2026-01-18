@@ -1,5 +1,7 @@
 (function() {
   const DEFAULT_TIMEOUT = 80000;
+
+  
   const API_ROUTES = {
     addBudgetRecord: { source: "auto", webhook: "prod" },
     addCacheRegisterRecord: { source: "auto", webhook: "prod" },
@@ -13,9 +15,9 @@
     getCatalogFilterOptions: { source: "auto", webhook: "prod" },
     getConfig: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "config" },
     getDistinctBrandNames: { source: "auto", webhook: "prod" },
-    getHeader:  { source: "n8n", method: "GET", webhook: "test", webhookAction: "getCatalogData" },
+    getHeader:  { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
     getItemByArticleName: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
-    sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "test", webhookAction: "newSale" },
+    sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "prod", webhookAction: "newSale" },
 
     getMenu: { source: "auto", webhook: "prod" },
     getMySalary: { source: "auto", webhook: "prod" },
