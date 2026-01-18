@@ -17,7 +17,7 @@
     getDistinctBrandNames: { source: "auto", webhook: "prod" },
     getHeader:  { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
     getItemByArticleName: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
-    sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "prod", webhookAction: "newSale" },
+    sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "test", webhookAction: "newSale" },
 
     getMenu: { source: "auto", webhook: "prod" },
     getMySalary: { source: "auto", webhook: "prod" },

@@ -1,6 +1,6 @@
 
   var printSRC = "https://img.icons8.com/?size=100&id=jSgeixVcdvbm&format=png&color=000000";
-WEBHOOK = 'https://buttonrouge.org/n8n/webhook/';
+//WEBHOOK = 'https://buttonrouge.org/n8n/webhook/';
 const endP = 'tags';
 
 // Глобальная конфигурация типов ценников
@@ -32,21 +32,25 @@ let selectedProduct = null;
 
 
 async function init() {
-  const elName = "articleName";
-  const caption_h1 = "Article:";
-  const initValue = "";
-  const action = "addArticle";
-  const target = "content";
+  try {
+    const elName = "articleName";
+    const caption_h1 = "Article:";
+    const initValue = "";
+    const action = "addArticle";
+    const target = "content";
 
+    const query = { action: "getConfig", visible: true, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING };
+    const params = { data: { query } };
+    const data = await getDataFromN8n(endP, params);
+    LABEL_TYPES = typeof data === "string" ? JSON.parse(data) : (data || {});
 
-  const query = { action: "getConfig", visible: true, TESTING:CONFIG.GLOBAL_EXECUTION_TESTING };
-  const params = { data: { query } };
-  const data = await getDataFromN8n(endP, params);
-  LABEL_TYPES=JSON.parse(data)
-
-
-  createNewInputWithButton(elName, caption_h1, initValue, action, target);
-  makeFocus(elName);
+    createNewInputWithButton(elName, caption_h1, initValue, action, target);
+    makeFocus(elName);
+  } catch (error) {
+    console.error("Barcode init error:", error);
+    showErrorPopup("Произошла ошибка. Перезагрузите страницу");
+    return;
+  }
 
 
 
@@ -90,8 +94,7 @@ async function init() {
 
       let productData=JSON.parse(selectedProduct.getAttribute('product-data'))
       productData.barcodeValue=productData.article
-//console.log("good",productData1)
-console.log("bad",productData)
+
 
       const demoRoot = document.getElementById('edit-root');
 
@@ -112,7 +115,7 @@ console.log("bad",productData)
     });
   }
 
-const saveBtn = document.getElementById('save');
+  const saveBtn = document.getElementById('save');
  if(saveBtn){
     saveBtn.addEventListener('click', async () => {  
      // const labelType = LABEL_TYPES; 
@@ -196,7 +199,7 @@ function generateLabel(article, container, labelType) {
 
     return brand;
   } catch (error) {
-    console.error(`Error generating ${labelType} label:`, error);
+    systemError(`Ошибка генерации ценника (${labelType})`, error);
   }
 }
 
@@ -214,7 +217,7 @@ function updateLabel(labelType) {
   
     brand.innerHTML = generateLabelContent(JSON.parse(data), config);
   } catch (error) {
-    console.error(`Error generating ${labelType} label:`, error);
+    systemError(`Ошибка обновления ценника (${labelType})`, error);
   }
 }
 
@@ -465,7 +468,7 @@ function printLabel(element, product, config) {
     };
     reader.readAsDataURL(blob);
   }).catch(error => {
-    console.error('Error generating image:', error);
+    systemError("Ошибка формирования изображения для печати", error);
   }).finally(() => {
     btn.style.visibility = 'visible';
   });
@@ -489,7 +492,7 @@ function addArticle() {
   getDataFromServer(request)
     .then((data) => {
       console.log(data)
-      const article = JSON.parse(data);
+      const article = data;
       if (!article || article.length <= 1) {
         showErrorPopup(CONFIG.articlenotfound);
         return false;
@@ -509,7 +512,7 @@ function addArticle() {
       });
     })
     .catch((error) => {
-      console.error("Ошибка получения данных с сервера:", error);
+      systemError("Ошибка получения данных с сервера", error);
     });
 }
 
@@ -1433,4 +1436,3 @@ function escapeSpaces(str) {
 
   return escaped;
 }
-

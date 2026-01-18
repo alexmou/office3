@@ -328,6 +328,7 @@ class SalesTableUI {
             this.finalPrice = 0;
             this.rawData = [];
             this.editableFieldNames = [];
+            this.tbody = null;
         } catch (error) {
             systemError("Error initializing SalesTableUI", error);
         }
@@ -583,7 +584,8 @@ class SalesTableUI {
                 }
             });
 
-            createTable(productTable.header);
+            const created = createTable(productTable.header);
+            productTable.tbody = created?.tbody || null;
         } catch (error) {
             systemError("Error getting header", error);
         }
@@ -611,28 +613,16 @@ class SalesTableUI {
 
     clear() {
         try {
-            const table = document.getElementById('flowTable');
-            const rows = Array.from(table.getElementsByTagName('tr'));
-
-            rows.forEach(row => {
-                var id = row.id;
-                if (id) {
-                    const index = productTable.rawData.findIndex(obj => obj.id === id);
-
-                    if (index !== -1) {
-                        productTable.rawData.splice(index, 1);
-                    }
-
-                    if (row && row.parentNode) {
-                        row.parentNode.removeChild(row);
-                    }
-
-                    const updatedRows = document.querySelectorAll('tbody tr');
-                    productTable.len = updatedRows.length;
-                }
-            });
-
-            productTable.update();
+            const table = document.getElementById("flowTable");
+            const tbodyEl = this.tbody || table?.querySelector("tbody");
+            if (tbodyEl) {
+              tbodyEl.innerHTML = "";
+            }
+            this.rawData = [];
+            this.len = 0;
+            this.totalPrice = 0;
+            this.totalDiscount = 0;
+            if (table) this.update();
         } catch (error) {
             systemError("Error clearing table", error);
         }
@@ -642,20 +632,20 @@ class SalesTableUI {
         try {
             const row = button.closest("tr");
             var id = row.id;
-            const index = productTable.rawData.findIndex(obj => obj.id === id);
+            const index = this.rawData.findIndex(obj => obj.id === id);
 
             if (index !== -1) {
-                productTable.rawData.splice(index, 1);
+                this.rawData.splice(index, 1);
             }
 
             if (row && row.parentNode) {
                 row.parentNode.removeChild(row);
             }
 
-            const rows = document.querySelectorAll('tbody tr');
-            productTable.len = rows.length;
+            const rows = document.querySelectorAll("#flowTable tbody tr");
+            this.len = rows.length;
 
-            productTable.update();
+            this.update();
         } catch (error) {
             systemError("Error removing article", error);
         }
@@ -801,7 +791,12 @@ class SalesTableUI {
 
             actionTd.appendChild(removeLink);
             row.appendChild(actionTd);
-            tbody.appendChild(row);
+            const tbodyEl = this.tbody || document.querySelector("#flowTable tbody");
+            if (!tbodyEl) {
+              console.error("tbody для flowTable не найден");
+              return;
+            }
+            tbodyEl.appendChild(row);
         } catch (error) {
             systemError("Error creating row", error);
         }
@@ -814,12 +809,6 @@ class SalesTableUI {
 function isEditable(columnNumber) {
   return (productTable.editableContext[columnNumber] == 1)
 }
-
-
-var tbody = document.createElement('tbody');
-
-
-
 
 function createTable(header) {
 
@@ -852,12 +841,19 @@ for (var k=0; k < header.length;k++) {
 
 thead.appendChild(headerRow);
 table.appendChild(thead);
+
+// Создаем tbody (важно: НЕ хранить глобально, иначе строки "живут" между переходами по вкладкам)
+var tbody = document.createElement('tbody');
 table.appendChild(tbody);
 container.appendChild(table);
 var productlist=document.getElementById('product-list')
+if (!productlist) {
+  console.error("Не найден контейнер #product-list для таблицы продаж");
+  return { table, tbody, container };
+}
+productlist.textContent = "";
 productlist.appendChild(container);
-
-
+return { table, tbody, container };
 
 }
 
@@ -954,7 +950,7 @@ class SalesManager {
 
     getCartItems() {
         try {
-            const rows = document.querySelectorAll('tbody tr'); // Получаем все строки товаров, которые находятся на странице
+            const rows = document.querySelectorAll('#flowTable tbody tr'); // Получаем все строки товаров, которые находятся на странице
             var items = [];
 
             rows.forEach(row => {
