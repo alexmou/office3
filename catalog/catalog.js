@@ -5,55 +5,65 @@ registerPageInit(PAGE_ID, initCatalogPage);
 
 async function initCatalogPage() {
 
-	var inputName = "articleName";
-	var caption_h1 = "";
-	var initValue = "BUTTON ROUGE" 
-	var action = "process_button";
-	//var addArticle = createNewInputWithButton(inputName, caption_h1, initValue, action, "inputForm");
-	const focusFieldId = inputName
-
-	const TOTALCOAST = 0.0;
-	const DISCOUNTGENERAL = CONFIG.discountGeneral;
-	const DELIVERYCOST = 0;
-	const FINALTOTAL = 0;
-	const DISCOUNT = 0;
-	const CURRENCY = CONFIG.currency;
-
 
   const INITIAL_QUERY = "All"; //{type:"someFilter"}
   const DATA_FUNCTION_NAME="getAllItemsFromCatalogByQuery"
   const FILTER_FUNCTION_NAME="getCatalogFilterOptions"
   const TABLEID="catalog-list"
-  const COLUMNS_TO_KEEP = ["article", "Brand", "Name", "price", "quantity","type", "subtype", "color", "size", "производитель", "description"];
-  const catalogData = new TableData();
-  await catalogData.initWithServerQuery(INITIAL_QUERY, DATA_FUNCTION_NAME, FILTER_FUNCTION_NAME);
+	  const COLUMNS_TO_KEEP = ["article", "Brand", "Name", "price", "quantity","type", "subtype", "color", "size", "производитель", "description"];
+	  const catalogData = new TableData();
+	  await catalogData.initWithServerQuery(INITIAL_QUERY, DATA_FUNCTION_NAME, FILTER_FUNCTION_NAME);
+	  normalizeCatalogResponse(catalogData, COLUMNS_TO_KEEP);
+	  reInitFilterOptions(catalogData); // Пересоздаем filterOptions и currentQuery под новую структуру
 
-       
-filterCatalogDataByColumns(catalogData, COLUMNS_TO_KEEP)
-reInitFilterOptions(catalogData); // Пересоздаем filterOptions и currentQuery под новую структуру
+	  function normalizeCatalogResponse(catalogData, columnsToKeep) {
+	    const raw = catalogData.values;
+	    if (!Array.isArray(raw) || raw.length === 0) {
+	      throw new Error("Некорректные данные или пустой массив.");
+	    }
 
-function filterCatalogDataByColumns(catalogData, columnsToKeep) {
-  const data = catalogData.values;
-  if (!Array.isArray(data) || data.length === 0) {
-    throw new Error("Некорректные данные или пустой массив.");
-  }
-  const headers = data[0];
-  const indices = columnsToKeep.map(col => headers.indexOf(col)).filter(index => index !== -1);
-  const filteredData = data.map(row => indices.map(i => row[i]));
-  catalogData.values = filteredData;
-  catalogData.header = filteredData[0]; // Первая строка теперь обновлённый заголовок
-}
+	    // Новый формат: массив объектов [{...}, {...}]
+	    if (raw[0] && typeof raw[0] === "object" && !Array.isArray(raw[0])) {
+	      const present = new Set();
+	      raw.forEach((row) => {
+	        Object.keys(row || {}).forEach((k) => present.add(k));
+	      });
+	      // Строгое соответствие разрешенным заголовкам и порядок из columnsToKeep
+	      const headers = columnsToKeep.filter((h) => present.has(h));
+	      catalogData.header = headers;
+	      catalogData.values = raw.map((row) => headers.map((h) => (row?.[h] ?? "")));
+	      return;
+	    }
 
-function reInitFilterOptions(catalogData) {
-     catalogData.filterOptions = catalogData.header.map((h, i) => ({header: h, index: i}));
-    catalogData.currentQuery = {};
-    catalogData.filterOptions.forEach(opt => {
-        catalogData.currentQuery[opt.header] = "All";
-    });
-}
+	    // Старый формат: матрица [headers, visibleContext, editableContext, ...data]
+	    if (!Array.isArray(raw[0])) {
+	      throw new Error("Неизвестный формат данных каталога.");
+	    }
 
-        catalogData.values=catalogData.values.slice(2)
-        const catalogUI = new TableUI(TABLEID, catalogData);
+	    const headersRow = raw[0];
+	    const indices = columnsToKeep
+	      .map((col) => headersRow.indexOf(col))
+	      .filter((idx) => idx !== -1);
+
+	    const filteredHeaders = indices.map((i) => headersRow[i]);
+	    const dataStartIndex = raw.length >= 3 ? 3 : 1; // headers + 2 context rows
+	    const filteredRows = raw
+	      .slice(dataStartIndex)
+	      .map((row) => indices.map((i) => (row && row[i] !== undefined ? row[i] : "")));
+
+	    catalogData.header = filteredHeaders;
+	    catalogData.values = filteredRows;
+	  }
+
+	  function reInitFilterOptions(catalogData) {
+	    catalogData.filterOptions = catalogData.header.map((h, i) => ({header: h, index: i}));
+	    catalogData.currentQuery = {};
+	    catalogData.filterOptions.forEach(opt => {
+	      catalogData.currentQuery[opt.header] = "All";
+	    });
+	  }
+
+	  const catalogUI = new TableUI(TABLEID, catalogData);
 
       
         catalogUI.drawAll();
@@ -101,7 +111,6 @@ catalogUI.colorizeRows();
 }
 
 })();
-
 
 
 

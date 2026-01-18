@@ -5,7 +5,7 @@
   const API_ROUTES = {
     addBudgetRecord: { source: "auto", webhook: "prod" },
     addCacheRegisterRecord: { source: "auto", webhook: "prod" },
-    getAllItemsFromCatalogByQuery: { source: "auto", webhook: "prod" },
+    getAllItemsFromCatalogByQuery: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
     getAllItemsFromSalesByQuery: { source: "auto", webhook: "prod" },
     getAllSalesStatistic: { source: "auto", webhook: "prod" },
     getBudget: { source: "auto", webhook: "prod" },
@@ -138,7 +138,7 @@
     );
     const targetAction = opts.webhookAction || route.webhookAction || action;
     // Автодобавление контекста склада/магазина для каталогов/поиска товара
-    if (action === "getItemByArticleName" || action === "getHeader") {
+    if (action === "getItemByArticleName" || action === "getHeader" || action === "getAllItemsFromCatalogByQuery") {
       const storeIdFromParams = paramsWithToken.store || paramsWithToken.storeId || window?.USER_STORE?.storeId;
       const storeNameFromParams = paramsWithToken.storeName || window?.USER_STORE?.storeName;
       const storeContext = resolveStoreContext(storeIdFromParams, storeNameFromParams);
@@ -154,6 +154,8 @@
         console.log("getItemByArticleName payload ->", paramsWithToken);
       } else if (action === "getHeader") {
         console.log("getHeader payload ->", paramsWithToken);
+      } else if (action === "getAllItemsFromCatalogByQuery") {
+        console.log("getAllItemsFromCatalogByQuery payload ->", paramsWithToken);
       }
     }
 
