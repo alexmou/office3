@@ -562,6 +562,9 @@ function renderLabel(template, data, mountEl, forEditor=true){
   const {width, height} = template.dimensions;
   const labelEl = document.createElement('div');
   labelEl.className = 'product-print';
+  // В editor режиме `.product-print` должен быть containing block для абсолютных полей.
+  // Ставим инлайном, чтобы не зависеть от каскада/кэша CSS.
+  labelEl.style.position = 'relative';
   labelEl.style.width = width;
   labelEl.style.height = height;
   labelEl.style.minWidth = width;

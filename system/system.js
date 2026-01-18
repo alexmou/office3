@@ -272,9 +272,93 @@ console.error = function (...args) {
   logError(args);
 };
 
+const GLOBAL_ERROR_POPUP_TEXT = "Произошла ошибка. Перезагрузите страницу";
+let lastGlobalErrorPopupAt = 0;
+let lastGlobalErrorPopupMessage = "";
+let pendingGlobalErrorPopupMessage = null;
+let globalErrorDomReadyHooked = false;
+
+function sanitizeErrorPopupMessage(message) {
+  const s = String(message || "").trim();
+  if (!s) return GLOBAL_ERROR_POPUP_TEXT;
+  if (s.length > 220) return s.slice(0, 220) + "...";
+  return s;
+}
+
+function showGlobalErrorPopupSafely(message) {
+  const safeMessage = sanitizeErrorPopupMessage(message);
+  const now = Date.now();
+
+  // If an explicit popup was already shown (e.g. via systemError), don't duplicate it.
+  try {
+    if (window.__lastErrorPopupAt && now - window.__lastErrorPopupAt < 500) return;
+  } catch (_) {}
+
+  // Throttle any popups to avoid storms (e.g. loops).
+  if (now - lastGlobalErrorPopupAt < 1500) return;
+
+  // Throttle duplicates to avoid popup spam
+  if (safeMessage === lastGlobalErrorPopupMessage && now - lastGlobalErrorPopupAt < 3000) return;
+  lastGlobalErrorPopupMessage = safeMessage;
+  lastGlobalErrorPopupAt = now;
+
+  // If DOM isn't ready yet, defer until DOMContentLoaded
+  if (!document?.body) {
+    pendingGlobalErrorPopupMessage = safeMessage;
+    if (!globalErrorDomReadyHooked) {
+      globalErrorDomReadyHooked = true;
+      document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+          if (pendingGlobalErrorPopupMessage) {
+            try {
+              showErrorPopup(pendingGlobalErrorPopupMessage);
+            } catch (_) {}
+            pendingGlobalErrorPopupMessage = null;
+          }
+        },
+        { once: true }
+      );
+    }
+    return;
+  }
+
+  try {
+    showErrorPopup(safeMessage);
+  } catch (_) {
+    // Ignore popup rendering errors to avoid recursion loops.
+  }
+}
+
 function logError(error) {
   console.log("Произошла ошибка. Перезагрузите страницу", error);
+
+  // Show global red popup for all pages (avoid using systemError here to prevent recursion).
+  try {
+    const args = Array.isArray(error) ? error : [error];
+    const firstText = args.find((v) => typeof v === "string" && v.trim());
+    const msg = firstText ? `${GLOBAL_ERROR_POPUP_TEXT}: ${firstText}` : GLOBAL_ERROR_POPUP_TEXT;
+    showGlobalErrorPopupSafely(msg);
+  } catch (_) {}
 }
+
+// Also catch uncaught errors that may not go through console.error
+window.addEventListener("error", (event) => {
+  try {
+    const msg = event?.message ? `${GLOBAL_ERROR_POPUP_TEXT}: ${event.message}` : GLOBAL_ERROR_POPUP_TEXT;
+    showGlobalErrorPopupSafely(msg);
+  } catch (_) {}
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  try {
+    const reason = event?.reason;
+    const msg = reason?.message
+      ? `${GLOBAL_ERROR_POPUP_TEXT}: ${reason.message}`
+      : GLOBAL_ERROR_POPUP_TEXT;
+    showGlobalErrorPopupSafely(msg);
+  } catch (_) {}
+});
 
 function createTabs(tabButtons) {
   const container = document.createElement("div");
@@ -774,15 +858,44 @@ function mapFields(header, article) {
 }
 
 function returnArticleAsObject(header, article) {
-  var newArticle = {};
-  for (var k = 0; k < header.length; k++) {
-    for (var i = 0; i < article[0].length; i++) {
-      if (header[k] == article[0][i]) {
-        newArticle[header[k]] = article[1][i];
+  // Поддерживаем несколько форматов:
+  // 1) header: string[], article: [headers[], values[]]
+  // 2) header: string[], article: object (уже в виде {key: value})
+  // 3) header: undefined/null, article: object -> возвращаем как есть (копию)
+  // 4) header: undefined/null, article: [headers[], values[]] -> строим объект из article[0]/article[1]
+  try {
+    if (article && typeof article === "object" && !Array.isArray(article)) {
+      if (!Array.isArray(header)) {
+        return { ...article };
       }
+      const picked = {};
+      for (let k = 0; k < header.length; k++) {
+        const key = header[k];
+        if (key != null && key !== "") {
+          picked[key] = article[key];
+        }
+      }
+      return picked;
     }
+
+    const matrix = Array.isArray(article) ? article : null;
+    const headers = Array.isArray(header) ? header : (Array.isArray(matrix?.[0]) ? matrix[0] : []);
+    const cols = Array.isArray(matrix?.[0]) ? matrix[0] : [];
+    const vals = Array.isArray(matrix?.[1]) ? matrix[1] : [];
+    if (!Array.isArray(headers) || headers.length === 0) return {};
+
+    const newArticle = {};
+    for (let k = 0; k < headers.length; k++) {
+      const key = headers[k];
+      if (key == null || key === "") continue;
+      const idx = cols.indexOf(key);
+      if (idx !== -1) newArticle[key] = vals[idx];
+    }
+    return newArticle;
+  } catch (e) {
+    console.error("returnArticleAsObject failed", e);
+    return {};
   }
-  return newArticle;
 }
 
 let errorPopupTimer = null;
@@ -861,6 +974,11 @@ function showErrorPopup(message) {
   if (!popup || !errorMessage) return;
 
   forceHideOverlay();
+
+  try {
+    window.__lastErrorPopupAt = Date.now();
+    window.__lastErrorPopupMessage = String(message || "");
+  } catch (_) {}
 
   errorMessage.textContent = message;
   popup.classList.remove("hidden");

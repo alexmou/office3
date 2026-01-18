@@ -141,6 +141,15 @@ async function loadPage(pageId) {
   currentPageName = pageId;
   hidePage(pageId);
 
+  const cacheBustCss = (href) => {
+    const url = String(href || "");
+    if (!url) return url;
+    // Не трогаем внешние URL (CDN) и уже закеш-бастнутые.
+    if (/^https?:\/\//i.test(url)) return url;
+    if (/[?&]v=/.test(url)) return url;
+    return `${url}${url.includes("?") ? "&" : "?"}v=${Date.now()}`;
+  };
+
   if (cfg.externalCss) {
     cfg.externalCss.forEach((href) => {
       const link = document.createElement("link");
@@ -154,7 +163,7 @@ async function loadPage(pageId) {
     cfg.css.forEach((href) => {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = href;
+      link.href = cacheBustCss(href);
       document.head.appendChild(link);
       currentPageStyles.push(link);
     });
