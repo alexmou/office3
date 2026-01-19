@@ -6,11 +6,19 @@ registerPageInit(PAGE_ID, initCatalogPage);
 async function initCatalogPage() {
 
 
+  function debounce(fn, ms) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), ms);
+    };
+  }
+
   const INITIAL_QUERY = "All"; //{type:"someFilter"}
   const DATA_FUNCTION_NAME="getAllItemsFromCatalogByQuery"
   const FILTER_FUNCTION_NAME="getCatalogFilterOptions"
   const TABLEID="catalog-list"
-	  const COLUMNS_TO_KEEP = ["article", "Brand", "Name", "price", "quantity","type", "subtype", "color", "size", "производитель", "description"];
+		  const COLUMNS_TO_KEEP = ["article", "Brand", "Name", "price", "quantity","type", "subtype", "color", "size", "производитель", "description"];
 	  const catalogData = new TableData();
 	  await catalogData.initWithServerQuery(INITIAL_QUERY, DATA_FUNCTION_NAME, FILTER_FUNCTION_NAME);
 	  normalizeCatalogResponse(catalogData, COLUMNS_TO_KEEP);
@@ -63,10 +71,34 @@ async function initCatalogPage() {
 	    });
 	  }
 
-	  const catalogUI = new TableUI(TABLEID, catalogData);
+		  const catalogUI = new TableUI(TABLEID, catalogData);
 
-      
-        catalogUI.drawAll();
+		  // Полнотекстовый поиск (по аналогии с admin_sklad: debounce + includes по видимым полям)
+		  const contentEl = document.getElementById("content");
+		  const listEl = document.getElementById(TABLEID);
+		  if (contentEl && listEl && !document.getElementById("catalogFullTextSearch")) {
+		    const wrap = document.createElement("div");
+		    wrap.className = "catalog-search";
+		    wrap.innerHTML = `
+		      <input
+		        id="catalogFullTextSearch"
+		        type="text"
+		        placeholder="Поиск по каталогу..."
+		        style="width: 100%; max-width: 520px; padding: 8px 10px; border: 1px solid #d0d0d0; border-radius: 8px; margin: 8px 0;"
+		      />
+		    `;
+		    contentEl.insertBefore(wrap, listEl);
+
+		    const input = document.getElementById("catalogFullTextSearch");
+		    const deb = debounce((val) => {
+		      catalogData.fullTextQuery = val;
+		      catalogUI.updateTable();
+		    }, 200);
+		    input.addEventListener("input", (e) => deb(e.target.value));
+		  }
+
+	      
+	        catalogUI.drawAll();
 
         const colorizeRowsOptions={
             columnName: "quantity",  // Название столбца
@@ -111,7 +143,6 @@ catalogUI.colorizeRows();
 }
 
 })();
-
 
 
 

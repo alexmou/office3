@@ -17,6 +17,7 @@ class TableData {
         this.query = null;
         this.dataFunctionName = null;
         this.filterFunctionName = null;
+        this.fullTextQuery = "";
     }
 
     /**
@@ -158,7 +159,7 @@ class TableData {
     filterByCurrentQuery() {
         const rows = this.values.length > 1 ? this.values : [];
 
-        return rows.filter(row => {
+        const filtered = rows.filter(row => {
             return Object.keys(this.currentQuery).every(key => {
                 const option = this.filterOptions.find(opt => opt.header === key);
                 if (!option) return true;
@@ -167,6 +168,16 @@ class TableData {
                 if (filterValue === "All") return true;
                 return row[headerIndex] == filterValue;
             });
+        });
+
+        const needle = String(this.fullTextQuery || "").trim().toLowerCase();
+        if (!needle) return filtered;
+
+        return filtered.filter((row) => {
+          const haystack = Array.isArray(row)
+            ? row
+            : (row && typeof row === "object" ? Object.values(row) : [row]);
+          return haystack.some((cell) => String(cell ?? "").toLowerCase().includes(needle));
         });
     }
 
