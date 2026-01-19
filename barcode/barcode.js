@@ -492,7 +492,7 @@ function addArticle() {
   getDataFromServer(request)
     .then((data) => {
       console.log(data)
-      const article = data;
+      const article = data[0];
       if (!article || article.length <= 1) {
         showErrorPopup(CONFIG.articlenotfound);
         return false;

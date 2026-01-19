@@ -10,6 +10,33 @@ const NAV_ITEMS = [
   { id: "settings", label: "Settings" },
 ];
 
+const HEADER_FALLBACK_HTML = `
+  <header class="app-header" id="appHeader">
+    <div class="app-topbar">
+      <div class="app-topbar-left">
+        <button class="hamburger" type="button" aria-label="Open menu">&#9776;</button>
+      </div>
+      <div class="app-topbar-center">
+        <div class="brand" aria-label="Button Rouge">Button Rouge</div>
+      </div>
+      <div class="app-topbar-right user-info">
+        <span id="store"></span>
+        <span id="username"></span>
+        <button id="logoutButton" type="button">Logout</button>
+      </div>
+    </div>
+
+    <div class="app-titlebar" aria-label="Page title">
+      <h1 id="pageName"></h1>
+    </div>
+
+    <nav class="sidebar" id="sidebar" aria-label="Menu">
+      <button class="closebtn" type="button" aria-label="Close menu">&times;</button>
+      <ul id="hamburgerMenu"></ul>
+    </nav>
+  </header>
+`;
+
 const loadedAssets = {
   css: new Map(),
   js: new Map(),
@@ -73,11 +100,27 @@ async function loadHeader() {
   if (!headerRoot) return;
   const cfg = window.PAGE_CONFIG?.header;
   if (!cfg) return;
-  const res = await fetch(cfg.html);
-  const html = await res.text();
-  headerRoot.innerHTML = extractBodyHtml(html);
+
   ensureCss(cfg.css);
   await ensureScripts(cfg.js, { persistent: true });
+
+  let htmlText = null;
+  // `fetch()` for local files is blocked in most browsers; fall back to an inline template.
+  if (window.location.protocol !== "file:") {
+    try {
+      const res = await fetch(cfg.html, { cache: "no-store" });
+      if (!res.ok) throw new Error(`Header HTML fetch failed: ${res.status} ${res.statusText}`);
+      htmlText = await res.text();
+    } catch (err) {
+      console.error("Failed to load header HTML", err);
+    }
+  }
+
+  headerRoot.innerHTML = htmlText ? extractBodyHtml(htmlText) : HEADER_FALLBACK_HTML;
+
+  if (!htmlText && window.location.protocol === "file:" && typeof showErrorPopup === "function") {
+    showErrorPopup("Откройте приложение через HTTP-сервер (не file://), иначе загрузка страниц и header через fetch будет заблокирована.");
+  }
   if (typeof initHeader === "function") {
     initHeader(NAV_ITEMS);
   }
@@ -172,7 +215,21 @@ async function loadPage(pageId) {
     });
   }
 
-  const res = await fetch(cfg.html);
+  if (window.location.protocol === "file:") {
+    const pageRoot = document.getElementById("page-root");
+    if (pageRoot) {
+      pageRoot.innerHTML =
+        '<div style="padding:1rem;max-width:60ch">' +
+        "<h2>Нужен HTTP-сервер</h2>" +
+        "<p>Страницы загружаются через <code>fetch()</code>, а в режиме <code>file://</code> браузер обычно блокирует такие запросы.</p>" +
+        "<p>Пример: <code>python3 -m http.server 8123</code> (в корне проекта) и открыть <code>http://127.0.0.1:8123/index/index.html</code>.</p>" +
+        "</div>";
+    }
+    showPage(pageId);
+    return;
+  }
+
+  const res = await fetch(cfg.html, { cache: "no-store" });
   const htmlText = await res.text();
   const pageRoot = document.getElementById("page-root");
   pageRoot.innerHTML = extractBodyHtml(htmlText);
