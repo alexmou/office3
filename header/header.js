@@ -1,12 +1,49 @@
 
 // Новый header: работает без Apps Script, использует navigateTo для SPA.
 
+let headerHeightObserver = null;
+let headerHeightResizeListenerAdded = false;
+
+function updateAppHeaderHeight() {
+  const header = document.getElementById("appHeader");
+  if (!header) return;
+
+  const next = Math.ceil(header.getBoundingClientRect().height);
+  document.documentElement.style.setProperty("--app-header-height", `${next}px`);
+}
+
+function initHeaderHeightTracking() {
+  const header = document.getElementById("appHeader");
+  if (!header) return;
+
+  updateAppHeaderHeight();
+
+  if (window.ResizeObserver) {
+    if (headerHeightObserver) headerHeightObserver.disconnect();
+    headerHeightObserver = new ResizeObserver(() => {
+      updateAppHeaderHeight();
+    });
+    headerHeightObserver.observe(header);
+    return;
+  }
+
+  if (!headerHeightResizeListenerAdded) {
+    headerHeightResizeListenerAdded = true;
+    window.addEventListener("resize", () => {
+      requestAnimationFrame(updateAppHeaderHeight);
+    });
+  }
+}
+
+window.updateAppHeaderHeight = updateAppHeaderHeight;
+
 function initHeader(navItems = []) {
   buildMenu(navItems);
   wireHamburger();
   wireClose();
   wireLogout();
   applyUserStore(window.USER_STORE);
+  initHeaderHeightTracking();
 }
 
 function buildMenu(navItems) {

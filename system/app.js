@@ -24,11 +24,14 @@ window.registerPageInit = function(pageId, fn) {
   }
 };
 
-function runPageInit(pageId) {
+async function runPageInit(pageId) {
   const fn = pageInitializers[pageId];
   if (typeof fn === "function") {
     try {
-      fn();
+      const res = fn();
+      if (res && typeof res.then === "function") {
+        await res;
+      }
     } catch (err) {
       console.error(`Failed to init page ${pageId}`, err);
     }
@@ -182,10 +185,13 @@ async function loadPage(pageId) {
     scriptsToLoad.push(...cfg.js);
   }
   await ensureScripts(scriptsToLoad);
-  runPageInit(pageId);
+  await runPageInit(pageId);
   showPage(pageId);
   const titleEl = document.getElementById("pageName");
   if (titleEl) titleEl.textContent = cfg.title || pageId;
+  if (typeof window.updateAppHeaderHeight === "function") {
+    window.updateAppHeaderHeight();
+  }
 }
 
 function navigateTo(pageId) {
@@ -271,6 +277,10 @@ async function updateHeaderUserInfo(parsedAuth) {
     applyUserStore({ storeName });
   } else if (storeEl && storeId) {
     storeEl.textContent = storeId;
+  }
+
+  if (typeof window.updateAppHeaderHeight === "function") {
+    window.updateAppHeaderHeight();
   }
 }
 

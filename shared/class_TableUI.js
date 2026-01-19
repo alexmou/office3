@@ -18,6 +18,8 @@ class TableData {
         this.dataFunctionName = null;
         this.filterFunctionName = null;
         this.fullTextQuery = "";
+        this.inStockOnly = false;
+        this.inStockField = "quantity";
     }
 
     /**
@@ -138,7 +140,7 @@ class TableData {
      * Если "All", то вернуть все данные (без заголовка).
      */
     getData(condition = "All") {
-        const rows = this.values.length > 1 ? this.values : [];
+        const rows = Array.isArray(this.values) ? this.values : [];
         if (condition === "All") {
             return rows;
         }
@@ -157,18 +159,41 @@ class TableData {
      * Фильтрует данные по currentQuery.
      */
     filterByCurrentQuery() {
-        const rows = this.values.length > 1 ? this.values : [];
+        const rows = Array.isArray(this.values) ? this.values : [];
 
-        const filtered = rows.filter(row => {
+        let filtered = rows.filter(row => {
             return Object.keys(this.currentQuery).every(key => {
                 const option = this.filterOptions.find(opt => opt.header === key);
                 if (!option) return true;
                 const headerIndex = option.index;
                 const filterValue = this.currentQuery[key];
                 if (filterValue === "All") return true;
-                return row[headerIndex] == filterValue;
+                const cellValue = row?.[headerIndex];
+                return String(cellValue ?? "").trim() === String(filterValue ?? "").trim();
             });
         });
+
+        if (this.inStockOnly) {
+          const fieldName = this.inStockField || "quantity";
+          const opt = this.filterOptions.find((o) => o.header === fieldName);
+          const qtyIndex = opt ? opt.index : -1;
+          if (qtyIndex !== -1) {
+            const toNumber = (v) => {
+              if (v === null || v === undefined) return null;
+              const s = String(v).trim().replace(/\s+/g, "").replace(",", ".");
+              if (!s) return null;
+              const n = Number(s);
+              return Number.isFinite(n) ? n : null;
+            };
+            filtered = filtered.filter((row) => {
+              const val = row?.[qtyIndex];
+              const n = toNumber(val);
+              if (n !== null) return n !== 0;
+              const s = String(val ?? "").trim();
+              return s !== "" && s !== "0";
+            });
+          }
+        }
 
         const needle = String(this.fullTextQuery || "").trim().toLowerCase();
         if (!needle) return filtered;
@@ -215,7 +240,7 @@ class TableUI {
         this.productListElement.innerHTML = '';
 
         const container = document.createElement('div');
-        container.className = 'relative overflow-x-auto shadow-md sm:rounded-lg';
+        container.className = 'table-scroll relative shadow-md sm:rounded-lg';
 
         const table = document.createElement('table');
         table.id = "flowTable";
@@ -227,6 +252,7 @@ class TableUI {
         thead.className = 'text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400';
 
         const headerRow = document.createElement('tr');
+        headerRow.className = 'table-header-row';
         headers.forEach(headerText => {
             const th = document.createElement('th');
             th.scope = 'col';
@@ -269,8 +295,11 @@ class TableUI {
         const thead = document.getElementById("thead");
         if (!thead) return;
 
+        const normalizeFilterValue = (value) => String(value ?? "").trim();
+
         // Создаем строку для фильтров
         const filterRow = document.createElement('tr');
+        filterRow.className = 'table-filter-row';
 
         headers.forEach((header, index) => {
             const th = document.createElement('th');
@@ -284,7 +313,7 @@ class TableUI {
             select.appendChild(allOption);
 
             // Собираем уникальные значения для текущего столбца
-            const uniqueValues = new Set(data.map(row => row[index]));
+            const uniqueValues = new Set(data.map(row => normalizeFilterValue(row?.[index])));
             uniqueValues.forEach(value => {
                 const optionElement = document.createElement('option');
                 optionElement.value = value;
@@ -293,7 +322,8 @@ class TableUI {
             });
 
             // Устанавливаем текущее выбранное значение из currentQuery
-            select.value = this.currentQuery[header] || 'All';
+            const current = this.currentQuery[header];
+            select.value = current === undefined ? 'All' : normalizeFilterValue(current) || 'All';
 
             // При изменении фильтра обновляем таблицу
             select.addEventListener('change', () => {
@@ -310,6 +340,18 @@ class TableUI {
         filterRow.appendChild(actionTh);
 
         thead.appendChild(filterRow);
+
+        // Sticky offset для второй строки (фильтров) = высота строки заголовков
+        try {
+          const table = thead.closest("table");
+          const headerRow = thead.querySelector("tr.table-header-row");
+          if (table && headerRow && headerRow.getBoundingClientRect) {
+            const h = headerRow.getBoundingClientRect().height || 0;
+            table.style.setProperty("--table-header-height", `${h}px`);
+          }
+        } catch (_) {
+          // ignore measurement errors
+        }
     }
 
     /**
@@ -333,12 +375,14 @@ class TableUI {
      * @param {Array} filteredData - Текущий отфильтрованный набор данных.
      */
     updateFilterOptions(filteredData) {
+        const normalizeFilterValue = (value) => String(value ?? "").trim();
+
         this.catalogData.header.forEach((header, index) => {
             const selectElement = document.getElementById(`${header}Select`);
             if (!selectElement) return;
 
             const currentValue = this.currentQuery[header];
-            const uniqueValues = new Set(filteredData.map(row => row[index]));
+            const uniqueValues = new Set(filteredData.map(row => normalizeFilterValue(row?.[index])));
 
             // Очищаем select
             selectElement.innerHTML = '';
@@ -356,8 +400,9 @@ class TableUI {
             });
 
             // Восстанавливаем выбранный фильтр, если он ещё доступен
-            if (currentValue !== 'All' && uniqueValues.has(currentValue)) {
-                selectElement.value = currentValue;
+            const normalizedCurrent = currentValue === "All" ? "All" : normalizeFilterValue(currentValue);
+            if (normalizedCurrent !== 'All' && uniqueValues.has(normalizedCurrent)) {
+                selectElement.value = normalizedCurrent;
             } else {
                 selectElement.value = 'All';
                 this.currentQuery[header] = 'All';

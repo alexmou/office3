@@ -15,21 +15,38 @@
     background: #f1f1f1;
 }
 
-.filter-select {
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 20px;
-    background: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-max-width: -webkit-fill-available;
+.table-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 8px 0 12px;
+}
 
+.table-toolbar input[type="text"] {
+  flex: 1 1 340px;
+  min-width: 260px;
+  max-width: 720px;
+  padding: 10px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.filter-select {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  max-width: -webkit-fill-available;
 }
 
 .filter-select:hover {
-    border-color: #6200ea;
-    transform: scale(1.02);
+  border-color: #6200ea;
 }
 
 .table-row {
@@ -136,4 +153,36 @@ padding-top: 87px;
 #flowTable {
   width: 100%;
   table-layout: fixed; /* фиксированная раскладка */
+}
+
+/* Scroll body while keeping header visible */
+.table-scroll {
+  overflow: auto;
+  max-height: calc(100vh - 180px);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.table-scroll #flowTable {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-scroll #flowTable thead tr.table-header-row th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #f3f4f6;
+}
+
+.table-scroll #flowTable thead tr.table-filter-row th {
+  position: sticky;
+  top: var(--table-header-height, 44px);
+  z-index: 2;
+  background: #ffffff;
+}
+
+.table-scroll #flowTable tbody tr:hover {
+  background: rgba(219, 52, 85, 0.06);
 }

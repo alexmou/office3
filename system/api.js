@@ -17,10 +17,10 @@
     getDistinctBrandNames: { source: "auto", webhook: "prod" },
     getHeader:  { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
     getItemByArticleName: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
-    sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "test", webhookAction: "newSale" },
+    sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "prod", webhookAction: "newSale" },
 
     getMenu: { source: "auto", webhook: "prod" },
-    getMySalary: { source: "auto", webhook: "prod" },
+    getMySalary:{ source: "n8n", method: "GET", webhook: "prod", webhookAction: "Slaary" },
     getPivot: { source: "auto", webhook: "prod" },
     getPnl: { source: "auto", webhook: "prod" },
     getSalesFilterOptions: { source: "auto", webhook: "prod" },
@@ -157,6 +157,24 @@
       } else if (action === "getAllItemsFromCatalogByQuery") {
         console.log("getAllItemsFromCatalogByQuery payload ->", paramsWithToken);
       }
+    }
+
+    // Автодобавление username для Salary (нужен в n8n как $json.query.username)
+    if (action === "getMySalary") {
+      const usernameFromParams =
+        paramsWithToken.username ||
+        paramsWithToken.user ||
+        paramsWithToken.login ||
+        paramsWithToken.email;
+      const usernameFromDom = document.getElementById("username")?.textContent;
+      const usernameFromGlobal = window.currentLoginName || window.username;
+      const resolvedUsername = String(usernameFromParams || usernameFromDom || usernameFromGlobal || "").trim();
+      if (resolvedUsername) {
+        // Для совместимости оставляем value (в Apps Script getMySalary использует data.value)
+        paramsWithToken.username = paramsWithToken.username || resolvedUsername;
+        paramsWithToken.value = paramsWithToken.value || resolvedUsername;
+      }
+      console.log("getMySalary payload ->", paramsWithToken);
     }
 
     const payload = {

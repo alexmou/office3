@@ -1,129 +1,218 @@
-.nav-item {
-  display: block;
+:root {
+  --app-header-bg: #db3455;
+  --app-header-fg: #ffffff;
+  --app-title-bg: rgba(255, 255, 255, 0.96);
+  --app-title-fg: #111827;
+  --app-border: rgba(229, 231, 235, 0.9);
 }
 
-.nav-icon {
-  width: 46px;
-  position: absolute;
-  left: 21px;
-}
-
-.navbar-header {
-  z-index: 1000;
-  background-color: #db3455;
+.app-header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 50px;
+  z-index: 1000;
+  box-shadow:
+    0 1px 0 rgba(17, 24, 39, 0.08),
+    0 12px 30px rgba(17, 24, 39, 0.12);
+}
+
+.app-topbar {
+  background: var(--app-header-bg);
+  color: var(--app-header-fg);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  min-height: 3.25rem;
+}
+
+.app-topbar-left {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.app-topbar-center {
+  justify-self: center;
+  min-width: 0;
+}
+
+.app-topbar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  justify-self: end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.hamburger {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1.55rem;
+  line-height: 1;
+  padding: 0.45rem 0.55rem;
+  border-radius: 12px;
+}
+
+.hamburger:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.hamburger:active {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.brand {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: clamp(1rem, 2.1vw, 1.25rem);
+  white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+#store {
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-family: "Segoe UI", Roboto, -apple-system, sans-serif;
+  text-transform: uppercase;
+  font-size: 0.92em;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+#username {
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  max-width: 28ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#logoutButton {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 0.35rem 0.55rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+#logoutButton:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.app-titlebar {
+  background: var(--app-title-bg);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--app-border);
+}
+
+#pageName {
+  margin: 0;
+  padding: 0.65rem 1rem 0.6rem;
+  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--app-title-fg);
+  line-height: 1.15;
+}
+
+#pageName:empty {
+  padding: 0.25rem 1rem;
 }
 
 .sidebar {
   height: 100%;
   width: 0;
   position: fixed;
-  z-index: 100;
+  z-index: 2000;
   top: 0;
   left: 0;
-  background-color: #db3455;
+  background: var(--app-header-bg);
   overflow-x: hidden;
-  transition: 0.5s;
-  padding-top: 60px;
-}
-
-.sidebar a {
-  padding: 8px 8px 8px 32px;
-  text-decoration: none;
-  font-size: 25px;
-  color: #fff;
-  display: block;
-  transition: 0.3s;
-}
-
-.sidebar a:hover {
-  color: orange;
-  cursor: pointer;
+  overflow-y: auto;
+  transition: width 0.25s ease;
+  box-shadow: 12px 0 30px rgba(17, 24, 39, 0.18);
 }
 
 .sidebar .closebtn {
-  position: absolute;
-  top: 0;
-  right: 25px;
-  font-size: 36px;
-}
-
-.hamburger {
-  font-size: 30px;
-  cursor: pointer;
-  padding: 10px;
-  color: white;
-}
-
-.container-fluid-header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-.collapse- {
-  visibility: visible;
-  display: contents;
-}
-
-.nav-link-1 {
-  margin-left: 15px;
-  font-size: larger;
-}
-
-@media screen and (max-width: 520px) {
-  .navbar-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-  }
-}
-
-header h1 {
-  font-family: 'Roboto', sans-serif;
-  font-size: 36px;
-  margin: 0;
-  letter-spacing: 2px;
-  color: white;
-  position: absolute;
-  margin-left: 40%;
-}
-
-.user-info {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  align-items: center;
-}
-
-#username {
-  margin-right: 10px;
-  font-weight: bold;
-  color: white;
-}
-
-#logoutButton {
-  color: white;
-  background-color: transparent;
+  appearance: none;
   border: none;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  position: sticky;
+  top: 0;
+  width: 100%;
+  text-align: right;
+  padding: 0.75rem 1rem;
+  font-size: 2rem;
+  line-height: 1;
 }
 
-#store {
-  color: #ffffff;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
-  text-transform: uppercase;
-  font-size: 0.9em;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background-color: #000000;
-  margin-right: 8px;
+#hamburgerMenu {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav-item {
+  display: block;
+}
+
+.sidebar .nav-link {
+  display: block;
+  text-decoration: none;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  font-size: 1.05rem;
+  border-radius: 12px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar .nav-link:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.sidebar .nav-link:active {
+  background: rgba(0, 0, 0, 0.28);
+}
+
+@media (max-width: 520px) {
+  .app-topbar {
+    padding: 0.5rem 0.6rem;
+  }
+
+  #username {
+    display: none;
+  }
+
+  #pageName {
+    padding: 0.6rem 0.75rem 0.55rem;
+  }
 }

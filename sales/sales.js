@@ -8,6 +8,14 @@ registerPageInit("sales", initSalesPage);
 
 async function initSalesPage() {
 
+  function debounce(fn, ms) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), ms);
+    };
+  }
+
 	var inputName = "articleName";
 	var caption_h1 = "";
 	var initValue = "BUTTON ROUGE" //07-010101-030904-0202;
@@ -62,13 +70,36 @@ const params = {
 
 
 
-        const catalogUI = new TableUI(TABLEID, catalogData);
-        catalogUI.drawAll(); 
+	        const catalogUI = new TableUI(TABLEID, catalogData);
+
+	        // Полнотекстовый поиск по таблице продаж (как в Catalog)
+	        const contentEl = document.getElementById("content");
+	        const listEl = document.getElementById(TABLEID);
+	        if (contentEl && listEl && !document.getElementById("salesFullTextSearch")) {
+	          const wrap = document.createElement("div");
+	          wrap.className = "table-toolbar";
+	          wrap.innerHTML = `
+	            <input
+	              id="salesFullTextSearch"
+	              type="text"
+	              placeholder="Поиск по продажам..."
+	            />
+	          `;
+	          contentEl.insertBefore(wrap, listEl);
+
+	          const input = document.getElementById("salesFullTextSearch");
+	          const deb = debounce((val) => {
+	            catalogData.fullTextQuery = val;
+	            catalogUI.updateTable();
+	          }, 200);
+	          input.addEventListener("input", (e) => deb(e.target.value));
+	        }
+
+	        catalogUI.drawAll(); 
 
 
 
 }
-
 
 
 

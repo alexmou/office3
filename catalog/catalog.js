@@ -84,8 +84,11 @@ async function initCatalogPage() {
 		        id="catalogFullTextSearch"
 		        type="text"
 		        placeholder="Поиск по каталогу..."
-		        style="width: 100%; max-width: 520px; padding: 8px 10px; border: 1px solid #d0d0d0; border-radius: 8px; margin: 8px 0;"
 		      />
+		      <label>
+		        <input id="catalogInStockOnly" type="checkbox" checked />
+		        показывать товар в наличии
+		      </label>
 		    `;
 		    contentEl.insertBefore(wrap, listEl);
 
@@ -95,6 +98,15 @@ async function initCatalogPage() {
 		      catalogUI.updateTable();
 		    }, 200);
 		    input.addEventListener("input", (e) => deb(e.target.value));
+
+		    // По умолчанию показываем только товар в наличии (quantity != 0)
+		    catalogData.inStockOnly = true;
+		    catalogData.inStockField = "quantity";
+		    const inStock = document.getElementById("catalogInStockOnly");
+		    inStock.addEventListener("change", (e) => {
+		      catalogData.inStockOnly = !!e.target.checked;
+		      catalogUI.updateTable();
+		    });
 		  }
 
 	      
@@ -143,7 +155,6 @@ catalogUI.colorizeRows();
 }
 
 })();
-
 
 
 

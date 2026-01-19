@@ -9,32 +9,30 @@
 <body>
 
 
-<nav class="navbar-header navbar-header-expand-md">
-  <span class="hamburger">&#9776;</span>
-  <div class="container-fluid-header">
-    <div class="sidebar" id="sidebar">
-      <a href="javascript:void(0)" class="closebtn">&times;</a>
-      <ul id="hamburgerMenu">
-
-      </ul>
-          </div>
-
-    <!-- Hamburger Icon -->
-    <!--            hamburger menu-->
-    <div class="navbar-header-menu d-none d-md-block" href="#">
-      <div class="ham-menu"></div>
+<header class="app-header" id="appHeader">
+  <div class="app-topbar">
+    <div class="app-topbar-left">
+      <button class="hamburger" type="button" aria-label="Open menu">&#9776;</button>
     </div>
-    <!--            hamburger menu-->
-    <!--                navbar menu-->
-    <h1 style="margin-left:45%; color: white; margin-top: -35px;">Button Rouge</h1>
-    <div class="user-info">
-        <span id="store"></span>
+    <div class="app-topbar-center">
+      <div class="brand" aria-label="Button Rouge">Button Rouge</div>
+    </div>
+    <div class="app-topbar-right user-info">
+      <span id="store"></span>
       <span id="username"></span>
-      <button id="logoutButton">Logout</button>
+      <button id="logoutButton" type="button">Logout</button>
     </div>
   </div>
-</nav>
-<h3 id="pageName"></h3>
+
+  <div class="app-titlebar" aria-label="Page title">
+    <h1 id="pageName"></h1>
+  </div>
+
+  <nav class="sidebar" id="sidebar" aria-label="Menu">
+    <button class="closebtn" type="button" aria-label="Close menu">&times;</button>
+    <ul id="hamburgerMenu"></ul>
+  </nav>
+</header>
 <div id="errorPopup" class="error-popup hidden">
   <div class="error-popup-content">
     <span class="close-btn" onclick="hideErrorPopup()">&times;</span>

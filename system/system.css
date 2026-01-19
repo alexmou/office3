@@ -1,6 +1,5 @@
 #main{
-padding-left: 1rem;
-
+  padding: 0 1rem;
 }
 
 select{
@@ -182,10 +181,6 @@ select{
   to{ bottom:0; opacity:1 }
 }
 
-#header { 
-
-}
-
 
      .order-summary {
             width: 300px;
@@ -263,9 +258,7 @@ select{
 
 }
 
-#content {
-  display:flex
-}
+
 
 #menu {
   width: 30%;
@@ -277,7 +270,7 @@ select{
 
 body {
       margin: 0;
-      padding-top: 60px; /* отступ под фиксированный header */
+      padding-top: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
       font-size: 1rem;
       font-weight: 400;
@@ -291,10 +284,12 @@ body {
   background-size: cover;
     }
 
-    #app,
-    #page-root,
-    #global {
-      padding-top: 0;
+    :root {
+      --app-header-height: 6rem;
+    }
+
+    #page-root {
+      padding-top: var(--app-header-height);
     }
 
     h1 {
@@ -575,6 +570,3 @@ background-color: rgb(114 191 114 / 90%);
   from { transform:translateY(20px); opacity:0 }
   to   { transform:translateY(0);  opacity:1 }
 }
-
-
-
