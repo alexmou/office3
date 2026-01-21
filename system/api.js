@@ -3,15 +3,17 @@
 
   
   const API_ROUTES = {
-    addBudgetRecord: { source: "auto", webhook: "prod" },
-    addCacheRegisterRecord: { source: "auto", webhook: "prod" },
+    addBudgetRecord: { source: "n8n", webhook: "prod" },
+    addCacheRegisterRecord: { source: "n8n", webhook: "prod" },
     getAllItemsFromCatalogByQuery: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
     getAllItemsFromSalesByQuery: { source: "auto", webhook: "prod" },
     getAllSalesStatistic: { source: "auto", webhook: "prod" },
     getBudget: { source: "auto", webhook: "prod" },
     getBudgetRecords: { source: "auto", webhook: "prod" },
-    getCash: { source: "auto", webhook: "prod" },
-    getCashRegisterRecords: { source: "auto", webhook: "prod" },
+
+    getCash: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "CashRegister" },
+    getCashRegisterRecords: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "CashRegister" },
+
     getCatalogFilterOptions: { source: "auto", webhook: "prod" },
     getConfig: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "config" },
     getDistinctBrandNames: { source: "auto", webhook: "prod" },
@@ -20,12 +22,14 @@
     sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "prod", webhookAction: "newSale" },
 
     getMenu: { source: "auto", webhook: "prod" },
-    getMySalary:{ source: "n8n", method: "GET", webhook: "prod", webhookAction: "Slaary" },
+    getMySalary:{ source: "n8n", method: "GET", webhook: "prod", webhookAction: "Salary" },
     getPivot: { source: "auto", webhook: "prod" },
     getPnl: { source: "auto", webhook: "prod" },
     getSalesFilterOptions: { source: "auto", webhook: "prod" },
     getUserStoreByToken: { source: "auto", webhook: "prod" },
-    getVocabulary: { source: "auto", webhook: "prod" }, 
+    getVocabulary:  { source: "n8n", method: "GET", webhook: "test", webhookAction: "CashRegister" },
+
+
     setStatisticBrandName: { source: "auto", webhook: "prod" },
     setToken: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "Auth" },
     getToken: { source: "n8n", method: "GET", webhook: "prod" },
@@ -157,6 +161,48 @@
       } else if (action === "getAllItemsFromCatalogByQuery") {
         console.log("getAllItemsFromCatalogByQuery payload ->", paramsWithToken);
       }
+    }
+
+    // Автодобавление sheetName_accounting для Cash (нужен лист accounting)
+    if (action === "getCash") {
+      const storeIdFromParams = paramsWithToken.store || paramsWithToken.storeId || window?.USER_STORE?.storeId;
+      const storeNameFromParams = paramsWithToken.storeName || window?.USER_STORE?.storeName;
+      const storeContext = resolveStoreContext(storeIdFromParams, storeNameFromParams);
+      if (storeIdFromParams) {
+        paramsWithToken.store = storeIdFromParams;
+        paramsWithToken.storeId = paramsWithToken.storeId || storeIdFromParams;
+      }
+      if (storeNameFromParams) paramsWithToken.storeName = storeNameFromParams;
+      if (storeContext) {
+        paramsWithToken.storeName = paramsWithToken.storeName || storeContext.storeName;
+        paramsWithToken.storeId = paramsWithToken.storeId || storeContext.storeId;
+        paramsWithToken.sheetName_accounting =
+          paramsWithToken.sheetName_accounting || storeContext.sheetName_accounting;
+        // alias, если workflow ждёт другое имя
+        paramsWithToken.accounting = paramsWithToken.accounting || storeContext.sheetName_accounting;
+      }
+      console.log("getCash payload ->", paramsWithToken);
+    }
+
+    // Автодобавление sheetName_accounting для Cash Register Records (нужен лист accounting)
+    if (action === "getCashRegisterRecords") {
+      const storeIdFromParams = paramsWithToken.store || paramsWithToken.storeId || window?.USER_STORE?.storeId;
+      const storeNameFromParams = paramsWithToken.storeName || window?.USER_STORE?.storeName;
+      const storeContext = resolveStoreContext(storeIdFromParams, storeNameFromParams);
+      if (storeIdFromParams) {
+        paramsWithToken.store = storeIdFromParams;
+        paramsWithToken.storeId = paramsWithToken.storeId || storeIdFromParams;
+      }
+      if (storeNameFromParams) paramsWithToken.storeName = storeNameFromParams;
+      if (storeContext) {
+        paramsWithToken.storeName = paramsWithToken.storeName || storeContext.storeName;
+        paramsWithToken.storeId = paramsWithToken.storeId || storeContext.storeId;
+        paramsWithToken.sheetName_accounting =
+          paramsWithToken.sheetName_accounting || storeContext.sheetName_accounting;
+        // alias, если workflow ждёт другое имя
+        paramsWithToken.accounting = paramsWithToken.accounting || storeContext.sheetName_accounting;
+      }
+      console.log("getCashRegisterRecords payload ->", paramsWithToken);
     }
 
     // Автодобавление username для Salary (нужен в n8n как $json.query.username)

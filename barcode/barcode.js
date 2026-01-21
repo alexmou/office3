@@ -1,5 +1,5 @@
 
-  var printSRC = "https://img.icons8.com/?size=100&id=jSgeixVcdvbm&format=png&color=000000";
+  var printSRC = "../vendor/icons/print.png";
 //WEBHOOK = 'https://buttonrouge.org/n8n/webhook/';
 const endP = 'tags';
 
@@ -703,7 +703,7 @@ addBarcode(labelEl, data.barcodeValue, template); // или другой клю�
     btnWrap.style.cssText='position:absolute;top:5px;right:5px;z-index:10;';
     const btn = document.createElement('button');
     btn.className='print-btn';
-    btn.innerHTML='<img src="https://img.icons8.com/?size=100&id=jSgeixVcdvbm&format=png&color=000000" alt="Print Icon">';
+    btn.innerHTML = '<img src="' + printSRC + '" alt="Print Icon">';
     btn.addEventListener('click',()=>{
         labelEl.style.border = '';
           window.print()

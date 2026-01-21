@@ -42,7 +42,14 @@ function initHeader(navItems = []) {
   wireHamburger();
   wireClose();
   wireLogout();
-  applyUserStore(window.USER_STORE);
+  if (typeof window.applyUserStore === "function") {
+    window.applyUserStore(window.USER_STORE);
+  } else {
+    const storeEl = document.getElementById("store");
+    if (storeEl && window.USER_STORE && typeof window.USER_STORE === "object" && window.USER_STORE.storeName) {
+      storeEl.textContent = window.USER_STORE.storeName;
+    }
+  }
   initHeaderHeightTracking();
 }
 
@@ -103,7 +110,7 @@ function wireLogout() {
 
 function openNav() {
   const sidebar = document.getElementById("sidebar");
-  if (sidebar) sidebar.style.width = "250px";
+  if (sidebar) sidebar.style.width = "160px";
 }
 
 function closeNav() {

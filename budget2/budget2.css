@@ -1,8 +1,4 @@
-
-<style>    
-
-
-
+/* Budget page stylesheet (external). */
 /* ===== Палитра и базовые токены ===== */
 :root{
   --bg: #f7f8fb;
@@ -140,8 +136,10 @@ body{
 
 /* ===== Контентная часть ===== */
 #main-container{
-  display:flex; gap:16px; min
-  -height: 520px; align-items: stretch;
+  display:flex;
+  gap:16px;
+  min-height: 520px;
+  align-items: stretch;
   max-width: 2048px;
 }
 #right-container{
@@ -303,5 +301,3 @@ button{ transition: background-color .2s ease, transform .1s ease; }
   #summary{ --per-view:1; }
 }
 
-
-</style>

@@ -78,17 +78,6 @@ function chartOptions(title) {
 
 
 
-function loadChartJS() {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
-}
-
-
 /*
 function resetZoomAll() {
   Chart.instances && Object.values(Chart.instances).forEach(chart => {
@@ -177,10 +166,6 @@ function onChartClick(info) {
   // можно: открыть модалку, вызвать webhook, отфильтровать что-то и т.д.
 }
 
-
-
-
-
 // Асинхронная отрисовка всех графиков
 async function renderCharts(valueField) {
   const container = document.getElementById('charts-container');
@@ -235,16 +220,19 @@ function createFieldSelector() {
   document.getElementById('controls').appendChild(select);
 }
 
-// Запуск
-Promise.all([
-  loadChartJS(),
-  new Promise(resolve => {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', resolve);
-    } else resolve();
-  })
-]).then(() => {
+function boot() {
+  if (typeof Chart === "undefined") {
+    const msg = "Chart.js не загружен (ожидался через system/pageConfig.js).";
+    console.error(msg);
+    if (typeof showErrorPopup === "function") showErrorPopup(msg);
+    return;
+  }
   createFieldSelector();
   renderCharts(availableFields[0]);
-}).catch(console.error);
+}
 
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}

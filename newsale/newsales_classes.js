@@ -787,7 +787,7 @@ class SalesTableUI {
             removeLink.id = "remove_" + index;
             removeLink.className = 'font-medium text-red-600 dark:text-red-500 hover:underline ms-3';
             removeLink.setAttribute('onclick', 'productTable.removeArticle(this)');
-            removeLink.innerHTML = '<img src="https://img.icons8.com/?size=100&id=iMs6ukNZl9UI&format=png&color=000000" title="Remove" style="width: 20px; ">'
+            removeLink.innerHTML = '<img src="../vendor/icons/remove.png" title="Remove" style="width: 20px; ">'
 
             actionTd.appendChild(removeLink);
             row.appendChild(actionTd);

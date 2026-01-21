@@ -108,7 +108,7 @@ async function loadHeader() {
   // `fetch()` for local files is blocked in most browsers; fall back to an inline template.
   if (window.location.protocol !== "file:") {
     try {
-      const res = await fetch(cfg.html, { cache: "no-store" });
+      const res = await fetch(cfg.html);
       if (!res.ok) throw new Error(`Header HTML fetch failed: ${res.status} ${res.statusText}`);
       htmlText = await res.text();
     } catch (err) {
@@ -128,7 +128,6 @@ async function loadHeader() {
 
 function ensureCss(cssList = []) {
   const head = document.head;
-  const cacheBust = Date.now();
   return cssList.map((href) => {
     if (loadedAssets.css.has(href)) {
       const el = loadedAssets.css.get(href);
@@ -137,7 +136,7 @@ function ensureCss(cssList = []) {
     }
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = `${href}?v=${cacheBust}`;
+    link.href = href;
     head.appendChild(link);
     loadedAssets.css.set(href, link);
     return link;
@@ -155,9 +154,8 @@ function ensureScripts(scriptList = [], opts = {}) {
             return resolve(loadedAssets.js.get(src));
           }
 
-          const url = `${src}?v=${Date.now()}`;
           const script = document.createElement("script");
-          script.src = url;
+          script.src = src;
           script.onload = () => {
             loadedAssets.js.set(src, script);
             resolve(script);
@@ -187,15 +185,6 @@ async function loadPage(pageId) {
   currentPageName = pageId;
   hidePage(pageId);
 
-  const cacheBustCss = (href) => {
-    const url = String(href || "");
-    if (!url) return url;
-    // Не трогаем внешние URL (CDN) и уже закеш-бастнутые.
-    if (/^https?:\/\//i.test(url)) return url;
-    if (/[?&]v=/.test(url)) return url;
-    return `${url}${url.includes("?") ? "&" : "?"}v=${Date.now()}`;
-  };
-
   if (cfg.externalCss) {
     cfg.externalCss.forEach((href) => {
       const link = document.createElement("link");
@@ -209,7 +198,7 @@ async function loadPage(pageId) {
     cfg.css.forEach((href) => {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = cacheBustCss(href);
+      link.href = href;
       document.head.appendChild(link);
       currentPageStyles.push(link);
     });
@@ -229,7 +218,7 @@ async function loadPage(pageId) {
     return;
   }
 
-  const res = await fetch(cfg.html, { cache: "no-store" });
+  const res = await fetch(cfg.html);
   const htmlText = await res.text();
   const pageRoot = document.getElementById("page-root");
   pageRoot.innerHTML = extractBodyHtml(htmlText);
@@ -274,14 +263,27 @@ document.addEventListener("DOMContentLoaded", () => {
     window.token = urlToken;
   }
 
+  const headerTask = loadHeader().catch((err) => {
+    console.error("Header bootstrap failed", err);
+  });
+
   loadCoreScripts()
     .then(() => fetchConfigFromN8n())
     .then(() => fetchUserStoreFromToken())
-    .then(() => loadHeader())
-    .then(() => applyUserStore(window.USER_STORE))
+    .then(() => headerTask)
+    .then(() => {
+      if (typeof window.applyUserStore === "function") {
+        window.applyUserStore(window.USER_STORE);
+      }
+    })
     .then(() => {
       const initial = (window.token ? (localStorage.getItem("lastPage") || NAV_ITEMS[0]?.id) : "login") || "login";
       navigateTo(initial);
+    })
+    .catch((err) => {
+      console.error("App bootstrap failed", err);
+      // Still try to show header if it was requested.
+      return headerTask;
     });
 });
 
