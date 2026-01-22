@@ -308,17 +308,277 @@ return income
 
 
 
+function setupMenuConfigSheet() {
+  try {
+    ensureMenuConfigSheet_();
+    return true;
+  } catch (e) {
+    logError(e.message + " " + e.stack);
+    return false;
+  }
+}
+
+function ensureMenuConfigSheet_() {
+  const ss = SpreadsheetApp.openById(sheetConfig);
+  let sheet = ss.getSheetByName(MENU_CONFIG_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(MENU_CONFIG_SHEET_NAME);
+  }
+
+  const header = ["order", "pageName", "text", "role", "visible", "pos", "type"];
+  const existing = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0] || [];
+  const existingNormalized = existing.map(v => String(v || "").trim()).filter(Boolean);
+
+  if (existingNormalized.length === 0) {
+    sheet.getRange(1, 1, 1, header.length).setValues([header]);
+  } else {
+    const missing = header.filter(h => existingNormalized.indexOf(h) === -1);
+    if (missing.length > 0) {
+      sheet.getRange(1, existingNormalized.length + 1, 1, missing.length).setValues([missing]);
+    }
+  }
+
+  const data = sheet.getDataRange().getValues();
+  const hasRows = data.length > 1 && data.slice(1).some(r => r.some(v => String(v || "").trim() !== ""));
+  if (!hasRows) {
+    const defaults = normalizeLegacyMenuItems_();
+    if (defaults.length > 0) {
+      const rows = defaults.map(item => [
+        item.order,
+        item.pageName,
+        item.text,
+        item.role,
+        item.visible ? "TRUE" : "FALSE",
+        item.pos,
+        item.type,
+      ]);
+      sheet.getRange(2, 1, rows.length, header.length).setValues(rows);
+    }
+    return sheet;
+  }
+
+  // Добавляем новые пункты меню, если они появились в коде, но отсутствуют в листе.
+  const headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => String(h || "").trim());
+  const map = buildHeaderMap_(headerRow);
+  const colPageName = map.pageName;
+  if (colPageName === -1) return sheet;
+
+  const existingNames = new Set(
+    sheet
+      .getRange(2, colPageName + 1, Math.max(0, sheet.getLastRow() - 1), 1)
+      .getValues()
+      .map(r => String(r[0] || "").trim())
+      .filter(Boolean)
+  );
+
+  const defaults = normalizeLegacyMenuItems_();
+  const missingDefaults = defaults.filter(d => d.pageName && !existingNames.has(d.pageName));
+  if (missingDefaults.length > 0) {
+    const rows = missingDefaults.map(item => [
+      item.order,
+      item.pageName,
+      item.text,
+      item.role,
+      item.visible ? "TRUE" : "FALSE",
+      item.pos,
+      item.type,
+    ]);
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, header.length).setValues(rows);
+  }
+
+  return sheet;
+}
+
+function buildHeaderMap_(headerRow) {
+  const idx = (name) => headerRow.indexOf(name);
+  return {
+    order: idx("order"),
+    pageName: idx("pageName"),
+    text: idx("text"),
+    role: idx("role"),
+    visible: idx("visible"),
+    pos: idx("pos"),
+    type: idx("type"),
+  };
+}
+
+function normalizeLegacyMenuItems_() {
+  const defaults = [];
+  (menuItems || []).forEach((item, idx) => {
+    if (!item) return;
+    const req = safeJsonParse_(item.request);
+    const pageName = req && req.pageName ? String(req.pageName) : String(item.pageName || "").trim();
+    const text = (req && req.text ? String(req.text) : String(item.name || item.text || pageName)).trim();
+    defaults.push({
+      order: Number(item.order || idx),
+      pageName: pageName,
+      text: text,
+      role: item.role || roles[2],
+      visible: item.role !== "none",
+      pos: Number(item.pos || 0),
+      type: pageName ? "page" : "group",
+    });
+  });
+  return defaults;
+}
+
+function safeJsonParse_(value) {
+  try {
+    if (!value) return null;
+    if (typeof value === "object") return value;
+    return JSON.parse(value);
+  } catch (_) {
+    return null;
+  }
+}
+
+function normalizeBool_(value, defaultValue) {
+  if (value === true || value === false) return value;
+  const s = String(value || "").trim().toLowerCase();
+  if (!s) return defaultValue;
+  if (["true", "1", "yes", "y", "да"].indexOf(s) !== -1) return true;
+  if (["false", "0", "no", "n", "нет"].indexOf(s) !== -1) return false;
+  return defaultValue;
+}
+
+function readMenuConfig_() {
+  const cacheKey = `${SCRIPT_VERSION}_menu_config`;
+  const cache = CacheService.getScriptCache();
+  const cached = cache.get(cacheKey);
+  if (cached && USE_DATA_CACHE) {
+    try {
+      return JSON.parse(cached);
+    } catch (_) {}
+  }
+
+  const sheet = ensureMenuConfigSheet_();
+  const values = sheet.getDataRange().getValues();
+  if (values.length < 2) {
+    const legacy = normalizeLegacyMenuItems_();
+    cache.put(cacheKey, JSON.stringify(legacy), CONFIG_CACHE_TIME);
+    return legacy;
+  }
+
+  const headerRow = values[0].map(h => String(h || "").trim());
+  const map = buildHeaderMap_(headerRow);
+  const get = (row, colIdx) => (colIdx >= 0 ? row[colIdx] : "");
+
+  const items = [];
+  for (let r = 1; r < values.length; r++) {
+    const row = values[r];
+    if (!row || row.every(v => String(v || "").trim() === "")) continue;
+
+    const pageName = String(get(row, map.pageName) || "").trim();
+    const text = String(get(row, map.text) || "").trim();
+    const role = String(get(row, map.role) || "").trim() || roles[2];
+    const visible = normalizeBool_(get(row, map.visible), true);
+    const pos = Number(get(row, map.pos) || 0) || 0;
+    const type = String(get(row, map.type) || "").trim() || (pageName ? "page" : "group");
+    const order = Number(get(row, map.order));
+    const normalizedOrder = Number.isFinite(order) ? order : r - 1;
+
+    items.push({
+      order: normalizedOrder,
+      pageName,
+      text: text || pageName,
+      role,
+      visible,
+      pos,
+      type,
+    });
+  }
+
+  items.sort((a, b) => (a.order - b.order) || (a.pos - b.pos));
+  cache.put(cacheKey, JSON.stringify(items), CONFIG_CACHE_TIME);
+  return items;
+}
+
+function pruneEmptyMenuGroups_(items) {
+  const keep = items.map(() => true);
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.type !== "group") continue;
+    const level = Number(item.pos || 0);
+    let hasChildPage = false;
+    for (let j = i + 1; j < items.length; j++) {
+      const next = items[j];
+      const nextLevel = Number(next.pos || 0);
+      if (nextLevel <= level) break;
+      if (next.type === "page") {
+        hasChildPage = true;
+        break;
+      }
+    }
+    if (!hasChildPage) keep[i] = false;
+  }
+
+  const pruned = [];
+  for (let i = 0; i < items.length; i++) {
+    if (!keep[i]) continue;
+    pruned.push(items[i]);
+  }
+
+  // Убираем разделители в начале/конце и двойные разделители.
+  const compacted = [];
+  for (let i = 0; i < pruned.length; i++) {
+    const item = pruned[i];
+    if (item.type !== "separator") {
+      compacted.push(item);
+      continue;
+    }
+    const prev = compacted[compacted.length - 1];
+    if (!prev || prev.type === "separator" || prev.type === "group") continue;
+    const next = pruned[i + 1];
+    if (!next || next.type === "separator") continue;
+    compacted.push(item);
+  }
+
+  // Убираем group, если он последний или после него нет page
+  const finalItems = [];
+  for (let i = 0; i < compacted.length; i++) {
+    const item = compacted[i];
+    if (item.type !== "group") {
+      finalItems.push(item);
+      continue;
+    }
+    const level = Number(item.pos || 0);
+    let hasChildPage = false;
+    for (let j = i + 1; j < compacted.length; j++) {
+      const next = compacted[j];
+      const nextLevel = Number(next.pos || 0);
+      if (nextLevel <= level) break;
+      if (next.type === "page") {
+        hasChildPage = true;
+        break;
+      }
+    }
+    if (hasChildPage) finalItems.push(item);
+  }
+
+  return finalItems;
+}
+
 function getMenu(data) {
 //logError(data)
 	try {
+		data = data || {};
 
-    const username=data.username
-		var auth = new Auth
-		var res = {}
-		res[username] = auth.getRole(username)
+		let username = data.username;
+		let userRole = null;
+		if (data.token) {
+			const userContext = new UserContext();
+			const userData = userContext.getUserByToken(data.token);
+			if (userData) {
+				username = username || userData.username;
+				userRole = userData.role;
+			}
+		}
 
-
-		var userRole = res[username]; // Определяем роль пользователя
+		if (!userRole) {
+			var auth = new Auth;
+			userRole = auth.getRole(username);
+		}
 
 		if (!userRole || roles.indexOf(userRole) === -1) {
 			return []; // Если роль не найдена, возвращаем пустой массив
@@ -326,19 +586,40 @@ function getMenu(data) {
 
 		var userRoleIndex = roles.indexOf(userRole);
 
-		// Фильтруем пункты меню по роли и сразу возвращаем результат
-		const filteredMenuItems = menuItems.filter(item => {
-			let itemRoleIndex = roles.indexOf(item.role);
-
-			// Проверяем два условия:
-			// 1. Уровень доступа пользователя (`userRoleIndex`) должен быть таким же или выше, чем роль, требуемая для доступа к этому пункту (`itemRoleIndex`).
-			// 2. Пункт меню не должен иметь роль "none", которая делает его недоступным для всех.
-			return itemRoleIndex <= userRoleIndex && item.role !== "none";
+		const configItems = readMenuConfig_();
+		const filtered = configItems.filter(item => {
+			if (!item || item.visible === false) return false;
+			const requiredRole = String(item.role || "").trim() || roles[2];
+			if (requiredRole === "none") return false;
+			const itemRoleIndex = roles.indexOf(requiredRole);
+			if (itemRoleIndex === -1) return false;
+			return itemRoleIndex <= userRoleIndex;
 		});
 
-		//Logger.log(filteredMenuItems.length); // Логируем количество отфильтрованных элементов
-		//Logger.log(filteredMenuItems);        // Логируем отфильтрованные элементы
-		return filteredMenuItems;
+		const pruned = pruneEmptyMenuGroups_(filtered);
+
+		// Для совместимости со старым интерфейсом возвращаем и нормализованные поля, и request/globalUrl.
+		return pruned.map(item => {
+			const pageName = String(item.pageName || "").trim();
+			const text = String(item.text || item.name || pageName).trim();
+			const type = item.type || (pageName ? "page" : "group");
+			const request = pageName
+				? JSON.stringify({ action: "openpage", pageName: pageName, text: text })
+				: "";
+
+			return {
+				pos: Number(item.pos || 0) || 0,
+				name: text,
+				text: text,
+				pageName: pageName,
+				type: type,
+				role: item.role,
+				visible: item.visible,
+				order: item.order,
+				globalUrl: webAppUrl,
+				request: request,
+			};
+		});
 	} catch (e) {
 		logError(e.message + " " + e.stack);
 	}

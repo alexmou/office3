@@ -95,6 +95,39 @@ function extractMatrixVocabulary(matrix) {
   }, {});
 }
 
+function uniqueNonEmptyOrdered(values) {
+  const seen = new Set();
+  const out = [];
+  extractList(values).forEach((value) => {
+    const trimmed = String(value).trim();
+    if (!trimmed) return;
+    if (seen.has(trimmed)) return;
+    seen.add(trimmed);
+    out.push(trimmed);
+  });
+  return out;
+}
+
+function extractVocabularyFromRowObjects(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return null;
+  const allObjects = rows.every((row) => row && typeof row === "object" && !Array.isArray(row));
+  if (!allObjects) return null;
+
+  const hasOperationType = rows.some((row) => "Тип операции" in row) || rows.some((row) => "Тип" in row);
+  const hasActivity =
+    rows.some((row) => "activityCashRegister" in row) || rows.some((row) => "Статья расходов" in row);
+  if (!hasOperationType && !hasActivity) return null;
+
+  const operationValues = uniqueNonEmptyOrdered(
+    rows.map((row) => row["Тип операции"] ?? row["Тип"] ?? "")
+  );
+  const activityValues = uniqueNonEmptyOrdered(
+    rows.map((row) => row["activityCashRegister"] ?? row["Статья расходов"] ?? "")
+  );
+
+  return { operationTypes: operationValues, activities: activityValues };
+}
+
 async function fetchBudgetVocabularyFallback() {
   if (typeof getDataFromN8n !== "function") return [];
   try {
@@ -127,13 +160,17 @@ function renderCashRegisterForm({ operationTypes, activities }) {
   attributes = { id: "submitButton", class: "button-24", onclick: "sendDataToCashRegister()" };
   createElement("button", "Отправить", attributes, contentRight);
 
-  // Best-effort defaults (won't crash if options differ)
+  // Defaults: first value in the list (if any)
   try {
-    if (document.getElementById("OperationType")) {
-      document.getElementById("OperationType").value = "Расход";
+    const operationTypeEl = document.getElementById("OperationType");
+    if (operationTypeEl) {
+      if (opTypes.length > 0) operationTypeEl.value = opTypes[0];
+      else if (operationTypeEl.options && operationTypeEl.options.length > 0) operationTypeEl.selectedIndex = 0;
     }
-    if (document.getElementById("activityCashRegister")) {
-      document.getElementById("activityCashRegister").value = "Инкассация";
+    const activityEl = document.getElementById("activityCashRegister");
+    if (activityEl) {
+      if (activityList.length > 0) activityEl.value = activityList[0];
+      else if (activityEl.options && activityEl.options.length > 0) activityEl.selectedIndex = 0;
     }
   } catch (_) {}
 }
@@ -141,6 +178,18 @@ function renderCashRegisterForm({ operationTypes, activities }) {
 async function returnVocabulary(data){
   try {
     const parsed = parseMaybeJson(data);
+console.log(parsed)
+    // 0) n8n CashRegister getVocabulary: array of row objects
+    const extractedFromObjects = extractVocabularyFromRowObjects(parsed);
+    if (extractedFromObjects) {
+      renderCashRegisterForm({
+        operationTypes: extractedFromObjects.operationTypes.length
+          ? extractedFromObjects.operationTypes
+          : ["Расход", "Приход"],
+        activities: extractedFromObjects.activities,
+      });
+      return;
+    }
 
     // 1) Apps Script style: matrix with header row
     const matrixVocabulary = extractMatrixVocabulary(parsed);
@@ -278,10 +327,14 @@ function returnCashRegisterRecords(res){
 
 function cllearCashRegisterData() {
 const operationType = document.getElementById("OperationType");
-if (operationType) operationType.value = "Расход";
+if (operationType) {
+  if (operationType.options && operationType.options.length > 0) operationType.selectedIndex = 0;
+}
 
 const activity = document.getElementById("activityCashRegister");
-if (activity) activity.value = "Инкассация";
+if (activity) {
+  if (activity.options && activity.options.length > 0) activity.selectedIndex = 0;
+}
 
 const comment = document.getElementById("Comment");
 if (comment) comment.value = "";

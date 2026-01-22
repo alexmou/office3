@@ -185,6 +185,31 @@
   display: block;
 }
 
+.nav-group {
+  display: block;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.8rem;
+  padding: 0.35rem 0;
+}
+
+.nav-group-label {
+  display: block;
+  padding: 0.25rem 1rem;
+}
+
+.nav-separator {
+  padding: 0.25rem 0.5rem;
+}
+
+.nav-separator hr {
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  margin: 0.25rem 0;
+}
+
 .sidebar .nav-link {
   display: block;
   text-decoration: none;
@@ -193,6 +218,71 @@
   font-size: 1.05rem;
   border-radius: 12px;
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.nav-submenu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav-section {
+  display: block;
+}
+
+.nav-section.collapsed > .nav-submenu {
+  display: none;
+}
+
+.nav-section-toggle {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 1.05rem;
+  border-radius: 12px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nav-section-toggle:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.nav-section-toggle:active {
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.nav-section-icon {
+  display: inline-block;
+  width: 1rem;
+  flex: 0 0 1rem;
+  transform: rotate(0deg);
+  transition: transform 0.2s ease;
+  opacity: 0.9;
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+.nav-section:not(.collapsed) .nav-section-icon {
+  transform: rotate(90deg);
+}
+
+.nav-section-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar .nav-link:hover {

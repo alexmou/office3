@@ -1,14 +1,18 @@
-const NAV_ITEMS = [
-  { id: "newsale", label: "New sale" },
-  { id: "barcode", label: "Tag print" },
-  { id: "catalog", label: "Catalog" },
-  { id: "sales", label: "Sales" },
-  { id: "salary", label: "Salary" },
-  { id: "cashregister", label: "Cash Register" },
-  { id: "budget", label: "Budget" },
-  { id: "statistic", label: "Statistic" },
-  { id: "settings", label: "Settings" },
+const DEFAULT_NAV_ITEMS = [
+  { id: "newsale", label: "New sale", type: "page", level: 0 },
+  { id: "barcode", label: "Tag print", type: "page", level: 0 },
+  { id: "catalog", label: "Catalog", type: "page", level: 0 },
+  { id: "sales", label: "Sales", type: "page", level: 0 },
+  { id: "salary", label: "Salary", type: "page", level: 0 },
+  { id: "cashregister", label: "Cash Register", type: "page", level: 0 },
+  { id: "budget", label: "Budget", type: "page", level: 0 },
+  { id: "statistic", label: "Statistic", type: "page", level: 0 },
+  { id: "settings", label: "Settings", type: "page", level: 0 },
 ];
+
+let currentNavItems = [];
+let menuLoadedOnce = false;
+let menuLoadedForUser = "";
 
 const HEADER_FALLBACK_HTML = `
   <header class="app-header" id="appHeader">
@@ -122,8 +126,94 @@ async function loadHeader() {
     showErrorPopup("Откройте приложение через HTTP-сервер (не file://), иначе загрузка страниц и header через fetch будет заблокирована.");
   }
   if (typeof initHeader === "function") {
-    initHeader(NAV_ITEMS);
+    // По умолчанию меню пустое; затем обновляется из API.getMenu().
+    initHeader([]);
   }
+}
+
+function unwrapMenuResponse(raw) {
+  const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+  if (!parsed) return [];
+  if (Array.isArray(parsed)) return parsed;
+  if (Array.isArray(parsed.data)) return parsed.data;
+  if (parsed.data && Array.isArray(parsed.data.data)) return parsed.data.data;
+  const firstArray = Object.values(parsed).find(Array.isArray);
+  return firstArray || [];
+}
+
+function normalizeMenuItems(items) {
+  return (items || []).map((it) => {
+    const isSection =
+      it?.issection === 1 ||
+      it?.issection === "1" ||
+      it?.issection === true ||
+      it?.isSection === 1 ||
+      it?.isSection === "1" ||
+      it?.isSection === true;
+    const type = (it?.type || "").toString().trim() || (isSection ? "section" : "page");
+    const id = (it?.pageName || it?.id || it?.pageId || "").toString().trim();
+    const label = (it?.text || it?.name || it?.label || id).toString();
+    const rawPos = it?.pos ?? it?.level ?? "";
+    const pos = rawPos === 0 ? "0" : (rawPos == null ? "" : String(rawPos)).trim();
+    const posPath = pos
+      ? pos
+          .split(".")
+          .map((part) => parseInt(String(part).trim(), 10))
+          .filter((n) => Number.isFinite(n))
+      : null;
+    const level = Array.isArray(posPath) ? Math.max(0, posPath.length - 1) : 0;
+    return { id, label, type, level, pos, posPath, isSection };
+  });
+}
+
+function applyNavToHeader(navItems) {
+  if (typeof window.updateMenu === "function") {
+    window.updateMenu(navItems);
+  } else if (typeof initHeader === "function") {
+    initHeader(navItems);
+  }
+}
+
+async function refreshMenu() {
+  const username = String(window.currentLoginName || "").trim();
+  if (!username || !window.API || typeof window.API.getMenu !== "function") {
+    currentNavItems = [];
+    applyNavToHeader([]);
+    if (typeof window.setMenuEnabled === "function") {
+      window.setMenuEnabled(false);
+    }
+    return currentNavItems;
+  }
+
+  try {
+    const raw = await API.getMenu({ username });
+    const items = normalizeMenuItems(unwrapMenuResponse(raw));
+    const filtered = items.filter((it) => it.type !== "page" || !!it.id);
+    currentNavItems = filtered.length > 0 ? filtered : DEFAULT_NAV_ITEMS.slice();
+    applyNavToHeader(currentNavItems);
+    if (typeof window.setMenuEnabled === "function") {
+      window.setMenuEnabled(true);
+    }
+    return currentNavItems;
+  } catch (err) {
+    console.error("Failed to load menu via API.getMenu()", err);
+    currentNavItems = DEFAULT_NAV_ITEMS.slice();
+    applyNavToHeader(currentNavItems);
+    if (typeof window.setMenuEnabled === "function") {
+      window.setMenuEnabled(true);
+    }
+    return currentNavItems;
+  }
+}
+
+async function refreshMenuOnce() {
+  const username = String(window.currentLoginName || "").trim();
+  if (!username) return [];
+  if (menuLoadedOnce && menuLoadedForUser === username) return currentNavItems;
+  const res = await refreshMenu();
+  menuLoadedOnce = true;
+  menuLoadedForUser = username;
+  return res;
 }
 
 function ensureCss(cssList = []) {
@@ -238,6 +328,14 @@ async function loadPage(pageId) {
   if (typeof window.updateAppHeaderHeight === "function") {
     window.updateAppHeaderHeight();
   }
+
+  // На странице логина меню не показываем.
+  if (pageId === "login") {
+    applyNavToHeader([]);
+    if (typeof window.setMenuEnabled === "function") {
+      window.setMenuEnabled(false);
+    }
+  }
 }
 
 function navigateTo(pageId) {
@@ -277,7 +375,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
     .then(() => {
-      const initial = (window.token ? (localStorage.getItem("lastPage") || NAV_ITEMS[0]?.id) : "login") || "login";
+      const fallbackFirst = currentNavItems[0]?.id || DEFAULT_NAV_ITEMS[0]?.id;
+      const initial = (window.token ? (localStorage.getItem("lastPage") || fallbackFirst) : "login") || "login";
       navigateTo(initial);
     })
     .catch((err) => {
@@ -299,6 +398,7 @@ async function ensureValidToken(pageId) {
     const respToken = parsed?.token;
     if (respToken && respToken === window.token) {
       await updateHeaderUserInfo(parsed);
+      await refreshMenuOnce();
       return true;
     }
   } catch (e) {

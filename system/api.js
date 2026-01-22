@@ -21,13 +21,21 @@
     getItemByArticleName: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
     sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "prod", webhookAction: "newSale" },
 
-    getMenu: { source: "auto", webhook: "prod" },
+    getMenu: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "Menu" },
     getMySalary:{ source: "n8n", method: "GET", webhook: "prod", webhookAction: "Salary" },
-    getPivot: { source: "auto", webhook: "prod" },
-    getPnl: { source: "auto", webhook: "prod" },
-    getSalesFilterOptions: { source: "auto", webhook: "prod" },
-    getUserStoreByToken: { source: "auto", webhook: "prod" },
-    getVocabulary:  { source: "n8n", method: "GET", webhook: "test", webhookAction: "CashRegister" },
+
+        getSalaryFix:{ source: "n8n", method: "GET", webhook: "test", webhookAction: "SalaryFix" },
+
+    //getPivot: { source: "auto", webhook: "prod" },
+    //getPnl: { source: "auto", webhook: "prod" },
+    //getSalesFilterOptions: { source: "auto", webhook: "prod" },
+    //getUserStoreByToken: { source: "auto", webhook: "prod" },
+    getVocabulary:  { source: "n8n", method: "GET", webhook: "prod", webhookAction: "CashRegister" },
+
+    // Schedule services (n8n webhook: /schedule)
+    getScheduleMeta: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
+    getSchedule: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
+    upsertShifts: { source: "n8n", method: "POST", webhook: "test", webhookAction: "schedule" },
 
 
     setStatisticBrandName: { source: "auto", webhook: "prod" },
@@ -228,7 +236,7 @@
       action: paramsWithToken?.action || action,
     };
 
-    const overlayId = `n8n-${action}-${Date.now()}`;
+    const overlayId = opts.overlayId || `n8n-${action}-${Date.now()}`;
     hidePage(overlayId);
 
     if (useMock) {
@@ -246,6 +254,25 @@
         showPage(overlayId);
         return res;
       }
+
+      // Some endpoints expect raw JSON array/object in request body (no wrapper).
+      if (opts.rawBody !== undefined) {
+        const resp = await postDataToN8n(
+          `${targetAction}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(opts.rawBody),
+          },
+          opts.timeout || DEFAULT_TIMEOUT,
+          mode
+        );
+        if (!resp.ok) throw new Error(await resp.text());
+        const json = await safeJson(resp);
+        showPage(overlayId);
+        return json;
+      }
+
       const res = await callN8n(targetAction, payload, opts.timeout || DEFAULT_TIMEOUT, mode);
       showPage(overlayId);
       return res;
@@ -554,6 +581,19 @@
   }
 
   generatedApi.setToken = setToken;
+
+  async function upsertShifts(rows = [], opts = {}) {
+    const normalizedRows = Array.isArray(rows) ? rows : [rows];
+    return requestViaN8nOrMock(
+      "upsertShifts",
+      { action: "upsertShifts" },
+      { ...opts, rawBody: normalizedRows, overlayId: opts.overlayId || "schedule" }
+    );
+  }
+
+  generatedApi.upsertShifts = upsertShifts;
+  // Backward-compatible alias (old name used by schedule page)
+  generatedApi.upsertScheduleShifts = upsertShifts;
 
 
 

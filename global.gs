@@ -84,6 +84,7 @@ const SHEET_CASHREGISTER_NAME="cashregister"
 
 
 var roles=["none","reader","editor","author","admin"]
+const MENU_CONFIG_SHEET_NAME = "Menu"
 
 
     var menuItems=[]
@@ -125,7 +126,6 @@ USE_DATA_CACHE = false
 USE_SCRIPT_CACHE = false; // Меняйте на false во время разработки
 //clearVersionedCache() 
 }
-
 
 
 

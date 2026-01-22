@@ -1,4 +1,4 @@
-<style>
+
 
 /* Calendar UI for 1920×1080 — month fits without page scroll */
 :root{
@@ -45,8 +45,9 @@
 
 
 
-#schedule-root{ font-size:var(--font); color:#0f172a; }
+#schedule-root{ font-size:var(--font); color:#0f172a;  margin-top: 29px;}
 .toolbar{
+
   display:flex; align-items:center; gap:var(--gap);
   padding:10px 14px; height:var(--toolbar-h);
   background:var(--bg); border-bottom:1px solid var(--border);
@@ -65,18 +66,26 @@
 
 #schedule-legend{
   display:flex; align-items:center; gap:10px;
-  height:var(--legend-h); padding:8px 14px;
+  flex-wrap: wrap;
+  min-height:var(--legend-h);
+  padding:8px 14px;
   border-bottom:1px dashed var(--border); background:var(--bg);
 }
 .badge{ font-size:12px; padding:3px 10px; border-radius:9999px; border:1px solid var(--border); }
 .badge.plan{ background:#eef2ff; }
 .badge.actual{ background:#ecfdf5; }
 .badge.today{ background:#fff7ed; }
+.badge.employee{
+  background: var(--badge-bg, #e5e7eb);
+  color: #ffffff;
+  font-weight: 700;
+  border-color: rgba(0, 0, 0, 0.06);
+}
 
 /* Calendar (7×6) — no page scroll. The grid itself fits viewport height. */
 .calendar{
-  //height: calc(10vh - var(--toolbar-h) - var(--legend-h) - 2px);
-  padding: 10px 14px;
+  /*height: calc(10vh - var(--toolbar-h) - var(--legend-h) - 2px); */
+padding: 8px 13px;
   display:grid;
   grid-template-columns: repeat(7, 1fr);
   grid-template-rows: 32px repeat(6, 1fr); /* header row + 6 weeks */
@@ -90,6 +99,7 @@
   display:flex; align-items:center; justify-content:center;
   font-weight:700; color:white; background:var(--bg-sub);
   border:1px solid var(--border); border-radius:10px;
+
 }
 
 /* Day cell */
@@ -98,7 +108,8 @@
   display:flex; flex-direction:column; min-height:0; /* allow inner scroll */
   background:#fff; border:1px solid var(--border); border-radius:10px;
   padding:8px;
-  height: 25vh;
+
+
 }
 .day-head{
   display:flex; align-items:center; justify-content:space-between; gap:8px;
@@ -112,7 +123,7 @@
 .assignment{  display:flex; gap:6px; font-size:13px; align-items:center; padding:3px 0; border-bottom:1px dashed #f1f5f9;     margin-top: 10px;  padding-left: 6px; }
 .assignment:last-child{ border-bottom:none; }
 .assignment .store{ font-weight:700; }
-//.assignment .emp{ color:#0f172a; }
+/*.assignment .emp{ color:#0f172a; } */
 .assignment .hrs{ margin-left:auto; font-family:var(--mono); font-size:15px; color:#001dff; padding:2px 6px; border:1px solid #e2e8f0; border-radius:6px; background:#f8fafc; }
 
 /* Modal */
@@ -134,7 +145,7 @@
 .time-row{ display:grid; grid-template-columns: 1fr auto 1fr; gap:6px; align-items:center; }
 .time-row .sep{ text-align:center; color:#64748b; }
 
-.link{ background:##0056b3; border:1px  var(--border); color:#fff; padding:8px 10px; border-radius:10px; cursor:pointer; font-size: large;}
+.link{ background:#0056b3; border:1px  var(--border); color:#fff; padding:8px 10px; border-radius:10px; cursor:pointer; font-size: large;}
 .cancel{ background:#000000; border:1px  var(--border); color:#fff; padding:8px 10px; border-radius:10px; cursor:pointer; font-size: large;}
 .save{ background:#2b8a3e; border:1px  var(--border); color:#fff; padding:8px 10px; border-radius:10px; cursor:pointer;font-size: large; }
 
@@ -159,9 +170,10 @@
     background: var(--button);
     border: none;
 }
+/* 
 // #FBEC6B, #F4BC6B, #EB8B6B, #E0536B, #D6306D, #A32C68, #722A65, , #12255D, #275B75, #3C918B, #52C6A2, #66F8B6
 //  #542589
-/* Hide other-month dates: keep grid slot empty */
+Hide other-month dates: keep grid slot empty */
 .day.other{ background:transparent; border:none; pointer-events:none; }
 
 .assignment.color0 { background-color: var(--color0); }
@@ -176,5 +188,3 @@
 .assignment.color9 { background-color: var(--color9); }
 .assignment.color10 { background-color: var(--color10); }
 .assignment.color11 { background-color: var(--color11); }
-
-</style>

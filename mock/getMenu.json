@@ -1,26 +1,32 @@
 [
   {
     "pos": 0,
-    "name": "New sale",
-    "pageName": "newsale",
-    "text": "New sale"
+    "type": "group",
+    "text": "Operations"
   },
+  { "pos": 1, "type": "page", "pageName": "newsale", "text": "New sale" },
+  { "pos": 1, "type": "page", "pageName": "barcode", "text": "Tag print" },
+  { "pos": 1, "type": "page", "pageName": "catalog", "text": "Catalog" },
+  { "pos": 1, "type": "page", "pageName": "sales", "text": "Sales" },
+  { "pos": 0, "type": "separator" },
   {
     "pos": 0,
-    "name": "Catalog",
-    "pageName": "catalog",
-    "text": "Catalog"
+    "type": "group",
+    "text": "Finance"
   },
+  { "pos": 1, "type": "page", "pageName": "salary", "text": "Salary" },
+  { "pos": 1, "type": "page", "pageName": "cashregister", "text": "Cash Register" },
+  { "pos": 1, "type": "page", "pageName": "budget", "text": "Budget" },
+  { "pos": 0, "type": "separator" },
   {
     "pos": 0,
-    "name": "Sales",
-    "pageName": "sales",
-    "text": "Sales"
+    "type": "group",
+    "text": "Admin"
   },
-  {
-    "pos": 0,
-    "name": "Statistic",
-    "pageName": "statistic",
-    "text": "Statistic"
-  }
+  { "pos": 1, "type": "page", "pageName": "statistic", "text": "Statistic" },
+  { "pos": 1, "type": "page", "pageName": "supliers", "text": "Supliers" },
+  { "pos": 1, "type": "page", "pageName": "settings", "text": "Settings" },
+  { "pos": 1, "type": "page", "pageName": "admin_sklad", "text": "Админка" },
+  { "pos": 1, "type": "page", "pageName": "charts", "text": "Charts" },
+  { "pos": 1, "type": "page", "pageName": "schedule", "text": "Schedule" }
 ]
