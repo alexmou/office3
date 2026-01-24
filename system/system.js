@@ -4,7 +4,6 @@ var username;
 var currentPageName;
 var CONFIG = window.CONFIG || {};
 var GLOBAL_EXECUTION_TESTING = CONFIG.GLOBAL_EXECUTION_TESTING || 0;
-var USE_MOCK_DATA = CONFIG.USE_MOCK_DATA !== undefined ? CONFIG.USE_MOCK_DATA : true;
 
 // Stub google.script when not available (static hosting)
 if (typeof google === "undefined") {

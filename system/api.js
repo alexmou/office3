@@ -2,6 +2,36 @@
   const DEFAULT_TIMEOUT = 80000;
 
   
+  /*
+    Examples from legacy mock fixtures (removed). Used as response shape reference:
+    - addBudgetRecord -> true
+    - addCacheRegisterRecord -> true
+    - getAllItemsFromCatalogByQuery -> { data: [[ "num","article","Brand","type", ...], [ "0","1",1,0, ... ]] }
+    - getAllItemsFromSalesByQuery -> { data: [] }
+    - getAllSalesStatistic -> {}
+    - getAuthData -> { token: "MOCK_AUTH_TOKEN", globalUrl: "https://buttonrouge.org/store/?", storeId: 1, storeName: "Mock Store", username: "mock.user" }
+    - getBudget -> []
+    - getBudgetRecords -> { data: [], filterOptions: [] }
+    - getCash -> 0
+    - getCashRegisterRecords -> { data: [], filterOptions: [] }
+    - getCatalogFilterOptions -> { data: [{ header: "num", index: 0, values: ["all", "0", ...] }, ...] }
+    - getConfig -> { GLOBAL_EXECUTION_TESTING: 0, Email: "l.murygin@gmail.com", currentPageName_...: "...", ... }
+    - getDistinctBrandNames -> []
+    - getHeader -> [[ "num","article","Brand", ...], [ "0","1",1,0, ... ]]
+    - getItemByArticleName -> { data: [] }
+    - getMenu -> [{ pos: 0, type: "group", text: "Operations" }, { pos: 1, type: "page", pageName: "newsale", text: "New sale" }, ...]
+    - getMySalary -> {}
+    - getPivot -> {}
+    - getPnl -> {}
+    - getSalesFilterOptions -> { data: [] }
+    - getStores -> true (legacy mock fixture; real API returns array of stores)
+    - getToken -> { token: "MOCK_TOKEN_LOGIN", globalUrl: "https://buttonrouge.org/store/?" }
+    - getUserStoreByToken -> { row_number: 2, storeId: 1, storeName: "Boho", sheetName_sklad: "Sklad", sheetName_accounting: "accounting" }
+    - getVocabulary -> []
+    - setStatisticBrandName -> true
+    - setToken -> { token: "MOCK_TOKEN", globalUrl: "https://buttonrouge.org/store/?" }
+    - updateBudgetData -> true
+  */
   let API_ROUTES = {
     addBudgetRecord: { source: "n8n", webhook: "prod" },
     addCacheRegisterRecord: { source: "n8n", webhook: "prod" },
@@ -16,7 +46,7 @@
 
     getCatalogFilterOptions: { source: "auto", webhook: "prod" },
     getConfig: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "config" },
-    updateConfig: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "config?action=updateConfig", rawBody: true },
+    updateConfig: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "config", rawBody: true },
     getDistinctBrandNames: { source: "auto", webhook: "prod" },
     getHeader:  { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
     getItemByArticleName: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
@@ -30,7 +60,7 @@
     getPivot: { source: "auto", webhook: "prod" },
     getPnl: { source: "auto", webhook: "prod" },
     getSalesFilterOptions: { source: "auto", webhook: "prod" },
-    getUserStoreByToken: { source: "auto", webhook: "prod" },
+    getUserStoreByToken: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "stores" },
     getVocabulary:  { source: "n8n", method: "GET", webhook: "prod", webhookAction: "CashRegister" },
 
     // Charts services (n8n webhook: /charts)
@@ -44,27 +74,27 @@
     getBudgetVocabulary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "budget" },
     getBudgetData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "budget" },
     getMonthsSummary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "budget" },
-    saveBudgetChanges: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "budget?action=saveChanges", rawBody: true },
+    saveBudgetChanges: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "budget", rawBody: true },
 
     // Tags services (n8n webhook: /tags)
     // NOTE: backend action can be overridden via params.action.
     getTagsConfig: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "tags" },
-    saveTagsConfig: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "tags?action=saveChanges", rawBody: true },
+    saveTagsConfig: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "tags", rawBody: true },
 
     // Sklad services (n8n webhook: /sklad)
     getSkladHeader: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sklad" },
     getSkladData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sklad" },
     // NOTE: backend action can be overridden via params.action.
     getSkladVocabulary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sklad" },
-    saveSkladChanges: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad?action=saveChanges", rawBody: true },
-    deleteSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad?action=deleteItem", rawBody: true },
-    addSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad?action=addItem", rawBody: true },
-    editSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad?action=editItem", rawBody: true },
+    saveSkladChanges: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad", rawBody: true },
+    deleteSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad", rawBody: true },
+    addSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad", rawBody: true },
+    editSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad", rawBody: true },
 
     // Schedule services (n8n webhook: /schedule)
     getScheduleMeta: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
     getSchedule: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
-    upsertShifts: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "schedule?action=upsertShifts", rawBody: true },
+    upsertShifts: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "schedule"},
 
 
     setStatisticBrandName: { source: "auto", webhook: "prod" },
@@ -81,13 +111,6 @@
   // 1 = legacy (GET uses `data={"query":...}` wrapper; some POST routes may still rely on raw body/query-action)
   // 2 = universal (GET uses plain query params; POST uses `{ action, token, payload }` envelope; no rawBody)
   let API_CONTRACT_VERSION = 1;
-
-  function shouldUseMock(routeSource, overrideSource) {
-    const src = overrideSource || routeSource || "auto";
-    if (src === "mock") return true;
-    if (src === "n8n") return false;
-    return !!window.USE_MOCK_DATA;
-  }
 
   async function callN8n(action, paramsWithToken, timeout = DEFAULT_TIMEOUT, mode) {
     const resp = await postDataToN8n(
@@ -165,18 +188,6 @@
     }
   }
 
-  async function loadMock(action) {
-    try {
-      const res = await fetch(`../mock/${action}.json`);
-      if (!res.ok) throw new Error(`Mock ${action} not found`);
-      const data = await res.json();
-      return JSON.stringify(data);
-    } catch (e) {
-      console.error("Mock load failed", action, e);
-      return null;
-    }
-  }
-
   function normalizeWebhookMode(mode) {
     if (mode === undefined || mode === null) return "prod";
     return String(mode).trim().toLowerCase();
@@ -184,8 +195,6 @@
 
   async function requestViaN8nOrMock(action, paramsWithToken = {}, opts = {}) {
     const route = API_ROUTES[action] || {};
-    const forceN8n = opts.source === "n8n" || route.source === "n8n";
-    const useMock = !forceN8n && shouldUseMock(route.source, opts.source);
     const method = (opts.method || route.method || "POST").toUpperCase();
     const mode = normalizeWebhookMode(
       opts.webhook || opts.webhookMode || opts.mode || route.webhook || "prod"
@@ -280,18 +289,12 @@
       ...paramsWithToken,
       action: paramsWithToken?.action || action,
     };
+    const actionName = payload?.action || action;
+    const endpointLabel = method === "GET" ? endpoint : (isV2 ? endpoint : targetAction);
+    console.info(`[API] ${method} ${endpointLabel} action=${actionName}`);
 
     const overlayId = opts.overlayId || `n8n-${action}-${Date.now()}`;
     hidePage(overlayId);
-
-    if (useMock) {
-      const mock = await loadMock(action);
-      if (mock) {
-        showPage(overlayId);
-        return mock;
-      }
-      if (route.source === "mock" || opts.source === "mock") return null;
-    }
 
     try {
       if (method === "GET") {
@@ -307,7 +310,6 @@
       }
 
       if (isV2) {
-        const actionName = payload?.action || action;
         const token = payload?.token || window.token;
         let payloadData;
         if (opts.rawBody !== undefined) {
@@ -336,8 +338,14 @@
 
       // Some endpoints expect raw JSON array/object in request body (no wrapper).
       if (opts.rawBody !== undefined) {
+        const hasActionQuery = String(targetAction).includes("action=");
+        const rawAction = payload?.action;
+        const actionSuffix =
+          !hasActionQuery && rawAction
+            ? `${targetAction}${String(targetAction).includes("?") ? "&" : "?"}action=${encodeURIComponent(rawAction)}`
+            : targetAction;
         const resp = await postDataToN8n(
-          `${targetAction}`,
+          `${actionSuffix}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -357,22 +365,18 @@
       return res;
     } catch (error) {
       console.error(`Ошибка при выполнении ${action} через n8n:`, error);
-      if (forceN8n) return null;
-      const fallbackMock = await loadMock(action);
       showPage(overlayId);
-      return fallbackMock;
+      return null;
     }
   }
 
   async function invokeApiAction(actionName, params = {}, opts = {}) {
     const route = API_ROUTES[actionName] || {};
+    const method = (opts.method || route.method || "POST").toUpperCase();
 
     // Raw-body routes (legacy): first argument is the JSON body as-is (array/object).
     if (route.rawBody) {
-      const actionValue =
-        (params && typeof params === "object" && !Array.isArray(params) ? params.action : undefined) ||
-        actionName;
-      return requestViaN8nOrMock(actionName, { action: actionValue }, { ...opts, rawBody: params });
+      return requestViaN8nOrMock(actionName, { action: actionName }, { ...opts, rawBody: params });
     }
 
     // Regular routes: params can be object or primitive (mapped to { value }).
@@ -383,7 +387,10 @@
           ? {}
           : { value: params };
 
-    const paramsWithAction = { ...baseParams, action: baseParams.action || actionName };
+    const paramsWithAction =
+      method === "POST"
+        ? { ...baseParams, action: actionName }
+        : { ...baseParams, action: baseParams.action || actionName };
     return requestViaN8nOrMock(actionName, paramsWithAction, opts);
   }
 
@@ -475,7 +482,7 @@
       };
       return unwrap(parsed);
     } catch (error) {
-      console.error("Не удалось получить токен из n8n или mock", error);
+      console.error("Не удалось получить токен из n8n", error);
       return null;
     }
   }
@@ -485,6 +492,16 @@
 
 
   async function getStores(params = {}, opts = {}) {
+    let cachedStores = null;
+    try {
+      const cachedRaw = window.localStorage?.getItem("stores_cache");
+      if (cachedRaw) {
+        const parsedCached = JSON.parse(cachedRaw);
+        if (Array.isArray(parsedCached)) cachedStores = parsedCached;
+      }
+    } catch (e) {
+      console.warn("Не удалось прочитать stores_cache из localStorage", e);
+    }
     const payload = {
       action: params.action || "getStores",
       token: params.token,
@@ -511,13 +528,27 @@
       if ((!stores || stores.length === 0) && Array.isArray(window.STORES_CACHE)) {
         return window.STORES_CACHE;
       }
+      if ((!stores || stores.length === 0) && Array.isArray(cachedStores)) {
+        return cachedStores;
+      }
 
       if (Array.isArray(stores)) {
         window.STORES_CACHE = stores;
+        try {
+          window.localStorage?.setItem("stores_cache", JSON.stringify(stores));
+        } catch (e) {
+          console.warn("Не удалось сохранить stores_cache в localStorage", e);
+        }
       }
       return stores;
     } catch (error) {
-      console.error("Не удалось получить токен из n8n или mock", error);
+      console.error("Не удалось получить токен из n8n", error);
+      if (Array.isArray(window.STORES_CACHE) && window.STORES_CACHE.length > 0) {
+        return window.STORES_CACHE;
+      }
+      if (Array.isArray(cachedStores) && cachedStores.length > 0) {
+        return cachedStores;
+      }
       return null;
     }
   }
@@ -569,7 +600,7 @@
       applyConfig(cfg);
       return cfg;
     } catch (error) {
-      console.error("Не удалось получить CONFIG из n8n или mock", error);
+      console.error("Не удалось получить CONFIG из n8n", error);
       return null;
     }
   }
@@ -584,9 +615,6 @@
     if (!cfg || typeof cfg !== "object") return;
     window.CONFIG = cfg;
     window.GLOBAL_EXECUTION_TESTING = cfg.GLOBAL_EXECUTION_TESTING || 0;
-    if (cfg.USE_MOCK_DATA !== undefined) {
-      window.USE_MOCK_DATA = cfg.USE_MOCK_DATA;
-    }
 
     // Contract version (1 = legacy, 2 = universal)
     const cfgContract =
@@ -633,7 +661,7 @@
       applyUserStore(store);
       return store;
     } catch (error) {
-      console.error("Не удалось получить Store по токену из n8n или mock", error);
+      console.error("Не удалось получить Store по токену из n8n", error);
       return null;
     }
   }
@@ -723,7 +751,7 @@
       );
       return fromPost?.token ? fromPost : fromPost;
     } catch (error) {
-      console.error("Не удалось получить токен из n8n или mock", error);
+      console.error("Не удалось получить токен из n8n", error);
       return null;
     }
   }
@@ -756,7 +784,6 @@
   window.API_ROUTES = API_ROUTES;
   window.API_CONTRACT_VERSION = API_CONTRACT_VERSION;
   window.requestViaN8nOrMock = requestViaN8nOrMock;
-  window.loadMock = loadMock;
   window.fetchConfigFromN8n = fetchConfigFromN8n;
   window.applyConfig = applyConfig;
   window.fetchUserStoreFromToken = fetchUserStoreFromToken;

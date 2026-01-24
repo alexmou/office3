@@ -275,7 +275,8 @@ function generateLabelContent(product, config) {
   }).join('');
   
 
-  return `<div class="product-info label-${config.pdfSize.join('x')}">${fieldsContent}</div>`;
+  const labelClass = config.id ? `label-${config.id}` : `label-${config.pdfSize.join('x')}`;
+  return `<div class="product-info ${labelClass}">${fieldsContent}</div>`;
 }
 
 
@@ -317,13 +318,13 @@ function addBarcode(element, value, config) {
 
 
   // Пример использования
-const styleStr =bc.style
+const styleStr = normalizeBarcodeConfig(bc);
 
 const parsedStyle=parseStyleString(styleStr);
 
   const barContainer = document.createElement("div");
 
-  barContainer.style=bc.style
+  applyStyleString(barContainer, styleStr);
 
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -634,10 +635,7 @@ function renderLabel(template, data, mountEl, forEditor=true){
     }
     infoEl.appendChild(el);
 
-// Ждём браузерный рендер
-requestAnimationFrame(() => {
     applyStyleString(el, fld.style);
-});
 
 
 
@@ -663,11 +661,12 @@ requestAnimationFrame(() => {
       working.barcode.fontSize=extractPx(computed.fontSize);
     }
 */
-    mountEl.appendChild(labelEl);
+  labelEl.appendChild(infoEl);
+  mountEl.appendChild(labelEl);
 
    // addBarcode(brand, art, config);
    console.log("data",data)
-addBarcode(labelEl, data.barcodeValue, template); // или другой ключ шаблона
+  addBarcode(labelEl, data.barcodeValue, template); // или другой ключ шаблона
 
 
 
@@ -678,7 +677,6 @@ addBarcode(labelEl, data.barcodeValue, template); // или другой клю�
   bcEl.appendChild(bcText);
 */
 
-  labelEl.appendChild(infoEl);
  // labelEl.appendChild(bcEl);
 
 
@@ -723,6 +721,106 @@ function styleObjectToString(obj){
   return Object.entries(obj).map(([k,v])=>`${k}:${v}`).join(';');
 }
 
+function normalizeBarcodeStyle(styleStr){
+  const obj = parseStyleString(styleStr || '');
+  if (obj['margin-left']) {
+    if (!obj.left) obj.left = obj['margin-left'];
+    delete obj['margin-left'];
+  }
+  if (obj['margin-top']) {
+    if (!obj.top) obj.top = obj['margin-top'];
+    delete obj['margin-top'];
+  }
+  return styleObjectToString(obj);
+}
+
+function normalizeBarcodeConfig(barcode){
+  const bc = barcode || {};
+  const obj = parseStyleString(bc.style || '');
+  if (obj['margin-left']) {
+    if (!obj.left) obj.left = obj['margin-left'];
+    delete obj['margin-left'];
+  }
+  if (obj['margin-top']) {
+    if (!obj.top) obj.top = obj['margin-top'];
+    delete obj['margin-top'];
+  }
+  const isZeroDim = (v) => {
+    if (v == null || v === '') return true;
+    const num = parseFloat(v);
+    return !Number.isFinite(num) || num <= 0;
+  };
+  const normalizeDim = (v) => {
+    if (v == null || v === '') return null;
+    if (typeof v === 'number') return `${v}px`;
+    return String(v);
+  };
+  if (isZeroDim(obj.width)) {
+    const w = normalizeDim(bc.width);
+    if (w) obj.width = w;
+  }
+  if (isZeroDim(obj.height)) {
+    const h = normalizeDim(bc.height);
+    if (h) obj.height = h;
+  }
+  if (!obj['font-size'] && bc.fontSize) obj['font-size'] = `${bc.fontSize}px`;
+  if (!obj.position) obj.position = 'absolute';
+  return styleObjectToString(obj);
+}
+
+function toPxValue(value, parentSize){
+  if (value == null || value === '') return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  if (raw.endsWith('%')) {
+    const pct = parseFloat(raw);
+    if (!Number.isFinite(pct) || !parentSize) return null;
+    return (parentSize * pct / 100) + 'px';
+  }
+  if (raw.endsWith('cm')) {
+    const cm = parseFloat(raw);
+    if (!Number.isFinite(cm)) return null;
+    return cmToPx(cm) + 'px';
+  }
+  if (raw.endsWith('px')) return raw;
+  const num = parseFloat(raw);
+  if (Number.isFinite(num)) return num + 'px';
+  return null;
+}
+
+function convertEditorStylesToPx(labelEl){
+  const convertEl = (el) => {
+    const parentRect = (el.offsetParent || labelEl).getBoundingClientRect();
+    const styleObj = parseStyleString(el.getAttribute('style') || '');
+    const leftPx = toPxValue(styleObj.left, parentRect.width);
+    const topPx = toPxValue(styleObj.top, parentRect.height);
+    const widthPx = toPxValue(styleObj.width, parentRect.width);
+    const heightPx = toPxValue(styleObj.height, parentRect.height);
+    if (leftPx) styleObj.left = leftPx;
+    if (topPx) styleObj.top = topPx;
+    if (widthPx) styleObj.width = widthPx;
+    if (heightPx) styleObj.height = heightPx;
+    el.setAttribute('style', styleObjectToString(styleObj));
+  };
+
+  [...labelEl.querySelectorAll('.field-el')].forEach(convertEl);
+
+  [...labelEl.querySelectorAll('.barcode-box')].forEach((el) => {
+    const styleObj = parseStyleString(el.getAttribute('style') || '');
+    if (styleObj['margin-left']) {
+      if (!styleObj.left) styleObj.left = styleObj['margin-left'];
+      delete styleObj['margin-left'];
+    }
+    if (styleObj['margin-top']) {
+      if (!styleObj.top) styleObj.top = styleObj['margin-top'];
+      delete styleObj['margin-top'];
+    }
+    el.setAttribute('style', styleObjectToString(styleObj));
+    convertEl(el);
+    ensureElementSize(el);
+  });
+}
+
 function applyStyleString(el, str) {
   const obj = parseStyleString(str);
    for (const [k, v] of Object.entries(obj)) {
@@ -735,8 +833,8 @@ function applyStyleString(el, str) {
 /*************************************************
  * Constrain element to parent bounds (px) & optionally grid snap
  *************************************************/
-function constrainToParent(el, grid=true){
-  const parent=el.parentElement?.closest('.product-print')||el.parentElement;
+function constrainToParent(el, grid=true, keepSize=true){
+  const parent = el.offsetParent || el.parentElement?.closest('.product-print') || el.parentElement;
   if(!parent) return;
   const r=parent.getBoundingClientRect();
   const er=el.getBoundingClientRect();
@@ -758,22 +856,65 @@ function constrainToParent(el, grid=true){
   }
   el.style.left=left+'px';
   el.style.top=top+'px';
-  el.style.width=w+'px';
-  el.style.height=h+'px';
+  if (!keepSize) {
+    el.style.width=w+'px';
+    el.style.height=h+'px';
+  }
+}
+
+function setPositionPercent(el, leftPx, topPx){
+  const parent = el.offsetParent || el.parentElement?.closest('.product-print') || el.parentElement;
+  if (!parent) return;
+  const pr = parent.getBoundingClientRect();
+  const leftPct = pr.width ? (leftPx / pr.width) * 100 : 0;
+  const topPct = pr.height ? (topPx / pr.height) * 100 : 0;
+  el.style.left = leftPct.toFixed(2) + '%';
+  el.style.top = topPct.toFixed(2) + '%';
+}
+
+function getElementSize(el){
+  const rect = el.getBoundingClientRect();
+  let width = rect.width;
+  let height = rect.height;
+  const svg = el.querySelector('svg');
+  if (svg) {
+    const svgRect = svg.getBoundingClientRect();
+    const attrWidth = parseFloat(svg.getAttribute('width') || '') || 0;
+    const attrHeight = parseFloat(svg.getAttribute('height') || '') || 0;
+    width = Math.max(width, svgRect.width, attrWidth);
+    height = Math.max(height, svgRect.height, attrHeight);
+  }
+  return { width, height };
+}
+
+function ensureElementSize(el){
+  const size = getElementSize(el);
+  if (!size.width && !size.height) return;
+  const styleObj = parseStyleString(el.getAttribute('style') || '');
+  const width = extractPx(styleObj.width);
+  const height = extractPx(styleObj.height);
+  if (size.width && (!width || width <= 0)) styleObj.width = size.width + 'px';
+  if (size.height && (!height || height <= 0)) styleObj.height = size.height + 'px';
+  el.setAttribute('style', styleObjectToString(styleObj));
 }
 
 /*************************************************
  * Convert absolute px -> % so template portable across DPI
  *************************************************/
 function pxToPercentStyles(el){
-  const parent=el.parentElement?.closest('.product-print')||el.parentElement;
+  const parent=el.offsetParent || el.parentElement;
   const pr=parent.getBoundingClientRect();
   const er=el.getBoundingClientRect();
+  const size=getElementSize(el);
   const leftPct=(er.left - pr.left)/pr.width*100;
   const topPct=(er.top - pr.top)/pr.height*100;
-  const wPct=er.width/pr.width*100;
-  const hPct=er.height/pr.height*100;
+  const widthPx=size.width || er.width;
+  const heightPx=size.height || er.height;
+  const wPct=widthPx/pr.width*100;
+  const hPct=heightPx/pr.height*100;
   const styleObj=parseStyleString(el.getAttribute('style')||'');
+  delete styleObj['margin-left'];
+  delete styleObj['margin-top'];
   styleObj.left=leftPct.toFixed(2)+'%';
   styleObj.top=topPct.toFixed(2)+'%';
   styleObj.width=wPct.toFixed(2)+'%';
@@ -796,6 +937,9 @@ function openLabelEditor(structure, opts={}){
   const {data={}, onSave=()=>{}, onCancel=()=>{}} = opts;
   const working = structure;
 
+  if (working?.barcode) {
+    working.barcode.style = normalizeBarcodeConfig(working.barcode);
+  }
 
 console.log("data",data)
   // Build overlay DOM
@@ -827,42 +971,7 @@ console.log("data",data)
   canvasWrap.appendChild(mount);
    const labelEl=renderLabel(working, data, mount, true);
 
-  // convert percent styles to px so drag/resizes are stable with current on-screen size
-  // (We store px inline; will convert back to % on save.)
-  const printRect=labelEl.getBoundingClientRect();
-  [...labelEl.querySelectorAll('.field-el')].forEach(el=>{
-    const styleObj=parseStyleString(el.getAttribute('style')||'');
-    // compute px from % if needed
-    if((styleObj.left||'').includes('%')){
-      styleObj.left=(printRect.width*parseFloat(styleObj.left)/100)+'px';
-    }
-    if((styleObj.top||'').includes('%')){
-      styleObj.top=(printRect.height*parseFloat(styleObj.top)/100)+'px';
-    }
-    if((styleObj.width||'').includes('%')){
-      styleObj.width=(printRect.width*parseFloat(styleObj.width)/100)+'px';
-    }
-    if((styleObj.height||'').includes('%')){
-      styleObj.height=(printRect.height*parseFloat(styleObj.height)/100)+'px';
-    }
-    el.setAttribute('style', styleObjectToString(styleObj));
-  });
-
-  [...labelEl.querySelectorAll('.barcode-box')].forEach(el=>{
-    const styleObj=parseStyleString(el.getAttribute('style')||'');
-
- 
-      styleObj["margin-top"]=(parseFloat(styleObj.top)/100)+'px';
-    styleObj["margin-left"]=(parseFloat(styleObj.left)/100)+'px';
-
-
-
-
-
-
-    el.setAttribute('style', styleObjectToString(styleObj));
-
- });
+  // Convert %/cm styles to px for editing after layout is mounted.
 
   /* ---------------- Panel UI ---------------- */
   const listHdr=document.createElement('h3');
@@ -1094,7 +1203,7 @@ console.log("data",data)
     const lblStyle=document.createElement('label'); lblStyle.textContent='Raw CSS style (inline):';
     const ta=document.createElement('textarea');
     ta.value=selectedEl.getAttribute('style')||'';
-    ta.addEventListener('change',()=>{ applyStyleString(selectedEl, ta.value); constrainToParent(selectedEl,false); });
+    ta.addEventListener('change',()=>{ applyStyleString(selectedEl, ta.value); constrainToParent(selectedEl,false,true); });
     //lblStyle.appendChild(ta); fieldConfig.appendChild(lblStyle);
 
     // position & size readouts
@@ -1124,7 +1233,7 @@ console.log("data",data)
       if(sym==='→') st.left=(l+step)+'px';
       if(sym==='↑') st.top=(t-step)+'px';
       if(sym==='↓') st.top=(t+step)+'px';
-      constrainToParent(selectedEl,true);
+      constrainToParent(selectedEl,true,true);
     }
   }
 
@@ -1204,14 +1313,21 @@ function refreshFieldContent(idx) {
       selectElement(el);
     });
     el.addEventListener('pointermove',ev=>{
-      console.log("ccc")
       if(!dragging) return;
-      const pr=labelEl.getBoundingClientRect();
+      const parent = el.offsetParent || labelEl;
+      const pr=parent.getBoundingClientRect();
       let newLeft=ev.clientX-pr.left-dragOffX;
       let newTop=ev.clientY-pr.top-dragOffY;
+      const er = el.getBoundingClientRect();
+      const maxLeft = pr.width - er.width;
+      const maxTop = pr.height - er.height;
+      if (newLeft < 0) newLeft = 0;
+      if (newTop < 0) newTop = 0;
+      if (newLeft > maxLeft) newLeft = maxLeft;
+      if (newTop > maxTop) newTop = maxTop;
       el.style.left=newLeft+'px';
       el.style.top=newTop+'px';
-      constrainToParent(el,true);
+      constrainToParent(el,true,true);
       if(selectedEl===el) buildFieldConfig();
     });
     el.addEventListener('pointerup',ev=>{ dragging=false; el.releasePointerCapture(ev.pointerId); });
@@ -1245,7 +1361,7 @@ function refreshFieldContent(idx) {
         el.style.top=(top-pr.top)+'px';
         el.style.width=w+'px';
         el.style.height=hgt+'px';
-        constrainToParent(el,true);
+        constrainToParent(el,true,false);
         if(selectedEl===el) buildFieldConfig();
       });
       h.addEventListener('pointerup',ev=>{ resizing=false; h.releasePointerCapture(ev.pointerId); });
@@ -1319,33 +1435,42 @@ function refreshFieldContent(idx) {
     const infoEls=[...labelEl.querySelectorAll('.field-el')];
     infoEls.forEach(el=>{
       const idx=Number(el.dataset.fieldIndex);
-      const pctObj=pxToPercentStyles(el);
       // capture computed inline font-size + align etc
       const computed=window.getComputedStyle(el);
-      pctObj['font-size']=computed.fontSize;
-      pctObj['text-align']=computed.textAlign;
-      working.fields[idx].style=styleObjectToString(pctObj);
+      const styleObj=parseStyleString(el.getAttribute('style')||'');
+      styleObj.left = el.style.left || computed.left;
+      styleObj.top = el.style.top || computed.top;
+      styleObj.width = el.style.width || computed.width;
+      styleObj.height = el.style.height || computed.height;
+      styleObj['font-size']=computed.fontSize;
+      styleObj['text-align']=computed.textAlign;
+      styleObj.position = computed.position || styleObj.position || 'absolute';
+      styleObj['font-weight'] = computed.fontWeight;
+      working.fields[idx].style=styleObjectToString(styleObj);
     });
     // barcode
     const bcEl=labelEl.querySelector('.barcode-box');
     if(bcEl){
-     // const pctObj=pxToPercentStyles(bcEl);
-
-
+      const cleaned = parseStyleString(bcEl.getAttribute('style') || '');
+      if (cleaned['margin-left']) {
+        if (!cleaned.left) cleaned.left = cleaned['margin-left'];
+        delete cleaned['margin-left'];
+      }
+      if (cleaned['margin-top']) {
+        if (!cleaned.top) cleaned.top = cleaned['margin-top'];
+        delete cleaned['margin-top'];
+      }
+      bcEl.setAttribute('style', styleObjectToString(cleaned));
+      ensureElementSize(bcEl);
       const computed=window.getComputedStyle(bcEl);
-
-  const styleObj=parseStyleString(bcEl.getAttribute('style')||'');
-
-console.log("styleObj",styleObj)
-console.log("bcEl.getAttribute('style')",bcEl.getAttribute('style'))
-console.log("computed",styleObjectToString(computed))
-
-     // pctObj['font-size']=computed.fontSize;
-      working.barcode.style=styleObjectToString(styleObj);
-//working.barcode.style=computed;
-      
+      cleaned.left = bcEl.style.left || computed.left;
+      cleaned.top = bcEl.style.top || computed.top;
+      cleaned.width = bcEl.style.width || computed.width;
+      cleaned.height = bcEl.style.height || computed.height;
+      cleaned['font-size'] = bcEl.style.fontSize || computed.fontSize;
+      cleaned.position = computed.position || cleaned.position || 'absolute';
+      working.barcode.style=styleObjectToString(cleaned);
       working.barcode.fontSize=extractPx(computed.fontSize);
-      console.log("working",working)
     }
     document.body.removeChild(overlay);
     onSave(working);
@@ -1353,6 +1478,9 @@ console.log("computed",styleObjectToString(computed))
 
   // mount overlay
   document.body.appendChild(overlay);
+  requestAnimationFrame(() => {
+    convertEditorStylesToPx(labelEl);
+  });
   clearSelection(); // initial blank message
 }
 

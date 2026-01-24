@@ -109,7 +109,8 @@
 
   async function getStores() {
     try {
-      const resp = await API.getStores({ token: window.token }, { source: "n8n", webhook: "prod" });
+      const params = window.token ? { token: window.token } : {};
+      const resp = await API.getStores(params, { webhook: "prod" });
       const parsed = typeof resp === "string" ? JSON.parse(resp) : resp;
       const stores = parsed?.data || parsed;
       if (Array.isArray(stores) && stores.length > 0) return stores;
@@ -119,6 +120,13 @@
     // fallback: return cached or example structure to avoid empty UI
     if (Array.isArray(window.STORES_CACHE) && window.STORES_CACHE.length > 0) {
       return window.STORES_CACHE;
+    }
+    try {
+      const cachedRaw = window.localStorage?.getItem("stores_cache");
+      const cached = cachedRaw ? JSON.parse(cachedRaw) : null;
+      if (Array.isArray(cached) && cached.length > 0) return cached;
+    } catch (e) {
+      console.warn("Не удалось прочитать stores_cache из localStorage", e);
     }
     return [];
   }
@@ -180,7 +188,10 @@
       token = me.token;
       globalUrl = me.globalUrl || (window.location.origin + window.location.pathname + "?");
       setToken(token, globalUrl);
-      navigateTo("newsale");
+      const preferred = typeof window.getPreferredInitialPage === "function"
+        ? window.getPreferredInitialPage()
+        : null;
+      navigateTo(preferred || "newsale");
     } else {
       alert("Неверный логин или пароль");
     }

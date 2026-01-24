@@ -238,8 +238,8 @@
     const collected = new Set(existing);
     for (let i = 0; i < 12; i++) {
       const ym = addMonths(startYm, -i);
-      const query = { action: 'getSchedule', visible: true, mode: "no test", Ym: ym };
-      const raw = i === 0 ? CACHED_ROWS : (await window.API.getSchedule(query, { mode: query.mode, overlayId: "schedule" })) || [];
+      const query = { action: 'getSchedule', visible: true, Ym: ym };
+      const raw = i === 0 ? CACHED_ROWS : (await window.API.getSchedule(query, { overlayId: "schedule" })) || [];
       const rows = Array.isArray(raw) ? raw : (raw?.data?.data || raw?.data || []);
       deriveEmployeesFromRows(Array.isArray(rows) ? rows : []).forEach((name) => collected.add(name));
     }
@@ -264,7 +264,7 @@
   }
 
   async function loadMeta(){
-    const params = { visible: true, mode: "no test" };
+    const params = { visible: true };
     if (!window.API || typeof window.API.getScheduleMeta !== "function") {
       throw new Error("API.getScheduleMeta is not available");
     }
@@ -287,11 +287,11 @@
     // keep CURRENT_STORE empty to show ALL stores by default
   }
   async function loadMonthData(ym){
-    const query = { action: 'getSchedule', visible: true, mode: "no test",Ym:ym };
+    const query = { action: 'getSchedule', visible: true, Ym: ym };
     if (!window.API || typeof window.API.getSchedule !== "function") {
       throw new Error("API.getSchedule is not available");
     }
-    const rows = await window.API.getSchedule(query, { mode: query.mode, overlayId: "schedule" });
+    const rows = await window.API.getSchedule(query, { overlayId: "schedule" });
     CACHED_ROWS = Array.isArray(rows) ? rows : [];
     mergeEmployeesFromRowsIntoMeta(CACHED_ROWS);
   }
@@ -299,7 +299,7 @@
     if (!window.API || typeof window.API.upsertShifts !== "function") {
       throw new Error("API.upsertShifts is not available");
     }
-    await window.API.upsertShifts(rows, { timeout: 8000, mode: "no test", overlayId: "schedule" });
+    await window.API.upsertShifts(rows, { timeout: 8000, overlayId: "schedule", source: "n8n" });
 
 
 
@@ -479,17 +479,23 @@
     const fallbackStores = storeList.length ? storeList : deriveStoresFromRows(CACHED_ROWS);
     const storeOptions = fallbackStores.length ? fallbackStores : ([rec.Store || CURRENT_STORE].filter(Boolean));
     if (!storeOptions.length) storeOptions.push('');
-    stores.innerHTML = storeOptions
+    const storeOptionItems = storeOptions
       .map((s)=>{
         const v = s?.store || s?.name || s;
         const text = normalizeStoreName(v);
         const label = text || '—';
-        return `<option value="${text}">${label}</option>`;
-      }).join('');
+        return { value: text, label };
+      })
+      .filter((opt) => opt.value);
+    stores.innerHTML = ['<option value="">—</option>']
+      .concat(storeOptionItems.map((opt) => `<option value="${opt.value}">${opt.label}</option>`))
+      .join('');
     if (rec.Store) {
       stores.value = normalizeStoreName(rec.Store);
     } else if (CURRENT_STORE) {
       stores.value = normalizeStoreName(CURRENT_STORE);
+    } else {
+      stores.value = '';
     }
 
 
@@ -509,14 +515,22 @@
       });
     const empOptions = filteredEmps.length ? filteredEmps : (filteredFallbackEmps.length ? filteredFallbackEmps : ([rec.Employee].filter(Boolean)));
     if (!empOptions.length) empOptions.push('');
-    sel.innerHTML = empOptions
+    const empOptionItems = empOptions
       .map((e)=>{
         const v = e?.employee || e?.Employee || e?.name || e;
         const text = normalizeEmployeeName(v);
         const label = text || '—';
-        return `<option value="${text}">${label}</option>`;
-      }).join('');
-    if (rec.Employee) sel.value = normalizeEmployeeName(rec.Employee);
+        return { value: text, label };
+      })
+      .filter((opt) => opt.value);
+    sel.innerHTML = ['<option value="">—</option>']
+      .concat(empOptionItems.map((opt) => `<option value="${opt.value}">${opt.label}</option>`))
+      .join('');
+    if (rec.Employee) {
+      sel.value = normalizeEmployeeName(rec.Employee);
+    } else {
+      sel.value = '';
+    }
 
 
 

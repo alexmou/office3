@@ -323,19 +323,67 @@ async function loadPage(pageId) {
       window.setMenuEnabled(false);
     }
   }
+
+  persistCurrentPage(pageId);
 }
 
 function navigateTo(pageId) {
-  ensureValidToken(pageId).then((ok) => {
-    if (!ok) return;
-    return loadPage(pageId);
-  }).catch((err) => {
-    console.error("Failed to load page", pageId, err);
-    showPage(pageId);
-  });
+  if (pageId !== "login" && !window.token) {
+    redirectToLogin();
+    return;
+  }
+  const requiresAuthCheck = pageId !== "login" && !!window.token && !window.__authVerified;
+  const load = () => loadPage(pageId);
+  if (!requiresAuthCheck) {
+    load().catch((err) => {
+      console.error("Failed to load page", pageId, err);
+      showPage(pageId);
+    });
+    return;
+  }
+  ensureValidToken(pageId)
+    .then((ok) => {
+      if (!ok) return;
+      return load();
+    })
+    .catch((err) => {
+      console.error("Failed to load page", pageId, err);
+      showPage(pageId);
+    });
 }
 
 window.navigateTo = navigateTo;
+
+function getPreferredInitialPage() {
+  const username = String(window.currentLoginName || "").trim();
+  const key = username ? `currentPageName_${username}` : "currentPageName";
+  let raw = null;
+  try {
+    raw = window.localStorage?.getItem(key);
+  } catch (e) {
+    console.warn("Не удалось прочитать текущую страницу из localStorage", e);
+  }
+  const pageId = typeof raw === "string" ? raw.trim() : "";
+  if (!pageId) return null;
+  if (!window.PAGE_CONFIG?.[pageId]) return null;
+  if (Array.isArray(currentNavItems) && currentNavItems.length > 0) {
+    const allowed = currentNavItems.some((item) => item?.type === "page" && item?.id === pageId);
+    if (!allowed) return null;
+  }
+  return pageId;
+}
+window.getPreferredInitialPage = getPreferredInitialPage;
+
+async function persistCurrentPage(pageId) {
+  if (!pageId || pageId === "login") return;
+  const username = String(window.currentLoginName || "").trim();
+  const key = username ? `currentPageName_${username}` : "currentPageName";
+  try {
+    window.localStorage?.setItem(key, pageId);
+  } catch (e) {
+    console.warn("Не удалось сохранить текущую страницу в localStorage", e);
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const url = new URL(window.location.href);
@@ -357,9 +405,17 @@ document.addEventListener("DOMContentLoaded", () => {
         window.applyUserStore(window.USER_STORE);
       }
     })
-    .then(() => {
+    .then(async () => {
+      if (window.token) {
+        const ok = await ensureValidToken("bootstrap");
+        if (!ok) return;
+      }
+      const preferred = getPreferredInitialPage();
       const fallbackFirst = currentNavItems[0]?.id || DEFAULT_NAV_ITEMS[0]?.id;
-      const initial = (window.token ? fallbackFirst : "login") || "login";
+      const initial = (window.token ? (preferred || fallbackFirst) : "login") || "login";
+      if (window.token) {
+        return loadPage(initial);
+      }
       navigateTo(initial);
     })
     .catch((err) => {
@@ -380,8 +436,12 @@ async function ensureValidToken(pageId) {
     const parsed = typeof res === "string" ? JSON.parse(res) : res;
     const respToken = parsed?.token;
     if (respToken && respToken === window.token) {
-      await updateHeaderUserInfo(parsed);
-      await refreshMenu();
+      if (!window.__headerHydrated) {
+        await updateHeaderUserInfo(parsed);
+        await refreshMenu();
+        window.__headerHydrated = true;
+      }
+      window.__authVerified = true;
       return true;
     }
   } catch (e) {
