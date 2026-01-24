@@ -11,8 +11,6 @@ const DEFAULT_NAV_ITEMS = [
 ];
 
 let currentNavItems = [];
-let menuLoadedOnce = false;
-let menuLoadedForUser = "";
 
 const HEADER_FALLBACK_HTML = `
   <header class="app-header" id="appHeader">
@@ -47,7 +45,6 @@ const loadedAssets = {
 };
 
 const pageInitializers = {};
-let storeCache = null;
 
 window.registerPageInit = function(pageId, fn) {
   if (pageId && typeof fn === "function") {
@@ -206,16 +203,6 @@ async function refreshMenu() {
   }
 }
 
-async function refreshMenuOnce() {
-  const username = String(window.currentLoginName || "").trim();
-  if (!username) return [];
-  if (menuLoadedOnce && menuLoadedForUser === username) return currentNavItems;
-  const res = await refreshMenu();
-  menuLoadedOnce = true;
-  menuLoadedForUser = username;
-  return res;
-}
-
 function ensureCss(cssList = []) {
   const head = document.head;
   return cssList.map((href) => {
@@ -342,10 +329,6 @@ function navigateTo(pageId) {
   ensureValidToken(pageId).then((ok) => {
     if (!ok) return;
     return loadPage(pageId);
-  }).then(() => {
-    if (pageId && pageId !== "login") {
-      localStorage.setItem("lastPage", pageId);
-    }
   }).catch((err) => {
     console.error("Failed to load page", pageId, err);
     showPage(pageId);
@@ -376,7 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .then(() => {
       const fallbackFirst = currentNavItems[0]?.id || DEFAULT_NAV_ITEMS[0]?.id;
-      const initial = (window.token ? (localStorage.getItem("lastPage") || fallbackFirst) : "login") || "login";
+      const initial = (window.token ? fallbackFirst : "login") || "login";
       navigateTo(initial);
     })
     .catch((err) => {
@@ -398,7 +381,7 @@ async function ensureValidToken(pageId) {
     const respToken = parsed?.token;
     if (respToken && respToken === window.token) {
       await updateHeaderUserInfo(parsed);
-      await refreshMenuOnce();
+      await refreshMenu();
       return true;
     }
   } catch (e) {
@@ -448,18 +431,17 @@ async function getStoreNameById(storeId) {
   const numericId = Number(storeId);
   if (Number.isNaN(numericId)) return null;
 
-  if (!storeCache) {
-    try {
-      const resp = await API.getStores({ token: window.token });
-      const parsed = typeof resp === "string" ? JSON.parse(resp) : resp;
-      storeCache = parsed?.data || parsed || [];
-    } catch (e) {
-      console.error("Failed to load stores for header", e);
-      return null;
-    }
+  let stores = [];
+  try {
+    const resp = await API.getStores({ token: window.token });
+    const parsed = typeof resp === "string" ? JSON.parse(resp) : resp;
+    stores = parsed?.data || parsed || [];
+  } catch (e) {
+    console.error("Failed to load stores for header", e);
+    return null;
   }
 
-  const entry = (storeCache || []).find((s) => {
+  const entry = (stores || []).find((s) => {
     const id = Number(s?.storeId ?? s?.id ?? s?.[0]);
     return id === numericId;
   });

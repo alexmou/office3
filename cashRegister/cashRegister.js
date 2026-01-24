@@ -129,11 +129,12 @@ function extractVocabularyFromRowObjects(rows) {
 }
 
 async function fetchBudgetVocabularyFallback() {
-  if (typeof getDataFromN8n !== "function") return [];
+  if (!window.API || typeof window.API.getBudgetVocabulary !== "function") return [];
   try {
-    const query = { action: "getVocabulary", visible: true };
-    const params = { data: { query } };
-    const data = await getDataFromN8n("budget", params);
+    const data = await window.API.getBudgetVocabulary(
+      { action: "getVocabulary", visible: true },
+      { overlayId: "cashregister" }
+    );
     return Array.isArray(data) ? data : [];
   } catch (e) {
     console.error("Failed to fetch budget vocabulary fallback", e);

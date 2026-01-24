@@ -37,13 +37,7 @@ async function initSalesPage() {
       // await catalogData.initWithServerQuery(INITIAL_QUERY, DATA_FUNCTION_NAME, FILTER_FUNCTION_NAME);
  //console.log(catalogData)
 
-   const query = { action: "getSalesData", visible: true };
-
-const params = {
-    data: { query: query }
-};
-
-        const data = await getDataFromN8n('sales', params);
+        const data = await window.API.getSalesData({ visible: true }, { overlayId: "sales" });
     //   console.log('Ответ GET:', data[0]);
 
   //  catalogData.values =  data[0].values
@@ -100,7 +94,6 @@ const params = {
 
 
 }
-
 
 
 

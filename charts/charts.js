@@ -1,7 +1,3 @@
-
-WEBHOOK = 'https://buttonrouge.org/n8n/webhook/';
-//WEBHOOK = 'https://buttonrouge.org/n8n/webhook-test/';
-
 const bgColor = [
   'rgba(30, 119, 182, 0.4)',
   'rgba(255, 127, 14, 0.4)',
@@ -172,7 +168,7 @@ async function renderCharts(valueField) {
   container.innerHTML = ''; // очистить перед перерисовкой
 
   const charts = await Promise.all(chartConfigs.map(async cfg => {
-    const rawData = await getDataFromN8n('charts', { data: { query: cfg.query } });
+    const rawData = await window.API.getChartsData(cfg.query, { overlayId: "charts" });
 
     const { labels, seriesLabels, matrices } = toChartMatrix(rawData, {
       labelProp: cfg.labelProp,
@@ -231,7 +227,9 @@ function boot() {
   renderCharts(availableFields[0]);
 }
 
-if (document.readyState === "loading") {
+if (typeof registerPageInit === "function") {
+  registerPageInit("charts", boot);
+} else if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", boot);
 } else {
   boot();

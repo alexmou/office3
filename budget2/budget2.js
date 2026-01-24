@@ -17,12 +17,12 @@ var TIP_COLUMN_INDEX
 
 var VOCABULARY
 
-(async function() {
+  (async function() {
 
-   query = { action: "getVocabulary", visible: true, mode:"notest" };
-     params = { data: { query: query } };
-
-  const ARTICLE_DICTIONARY =     await getDataFromN8n('budget', params);
+  const ARTICLE_DICTIONARY = await window.API.getBudgetVocabulary(
+    { action: "getVocabulary", visible: true, mode: "notest" },
+    { overlayId: "budget" }
+  );
 
   //console.log("ARTICLE_DICTIONARY",ARTICLE_DICTIONARY)
 /* 
@@ -135,14 +135,10 @@ function getNumberClass(num) {
     let params
 
      query = { action: "getBudgetData", visible: true, mode:"no test" };
-     params = { data: { query: query } };
-
-     budgetData = await getDataFromN8n('budget', params);
+     budgetData = await window.API.getBudgetData(query, { overlayId: "budget" });
 
      query = { action: "getMonthsSummary", visible: true};
-     params = { data: { query: query } };
-
-     monthsSummary = await getDataFromN8n('budget', params);
+     monthsSummary = await window.API.getMonthsSummary(query, { overlayId: "budget" });
 
 
 
@@ -523,19 +519,8 @@ function renderArticles() {
       //console.log("Сохраняем", changedArray)
       await new Promise(r => setTimeout(r, 1000));
 
-      const resp = await postDataToN8n(
-        `${"budget"}?action=saveChanges`,
-        
-        {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify(changedArray)
-          
-        },
-        8000,
-        //"test"
-      );
-      if (!resp.ok) throw new Error(await resp.text());
+      const resp = await window.API.saveBudgetChanges(changedArray, { timeout: 8000, overlayId: "budget" });
+      if (resp == null) throw new Error("Не удалось сохранить изменения бюджета");
       showToast('Изменения успешно сохранены!','success');
       init()
       //changedItems.clear();
@@ -799,8 +784,6 @@ function isPastMonth(dateStr) {
 
   await init();
 })();
-
-
 
 
 

@@ -1,7 +1,5 @@
 
   var printSRC = "../vendor/icons/print.png";
-//WEBHOOK = 'https://buttonrouge.org/n8n/webhook/';
-const endP = 'tags';
 
 // Глобальная конфигурация типов ценников
 let LABEL_TYPES = {}
@@ -39,9 +37,10 @@ async function init() {
     const action = "addArticle";
     const target = "content";
 
-    const query = { action: "getConfig", visible: true, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING };
-    const params = { data: { query } };
-    const data = await getDataFromN8n(endP, params);
+    const data = await window.API.getTagsConfig(
+      { action: "getConfig", visible: true, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING },
+      { overlayId: "barcode" }
+    );
     LABEL_TYPES = typeof data === "string" ? JSON.parse(data) : (data || {});
 
     createNewInputWithButton(elName, caption_h1, initValue, action, target);
@@ -122,16 +121,7 @@ async function init() {
     try {
 
     
-      const resp = await postDataToN8n(
-        `${endP}?action=saveChanges`,
-        { 
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify(LABEL_TYPES)
-        }, 
-        8000
-      );
-        if (!resp.ok) throw new Error(await resp.text());
+      await window.API.saveTagsConfig(LABEL_TYPES, { timeout: 8000, overlayId: "barcode" });
         showToast('Изменения успешно сохранены!','success');
         document.getElementById("save").setAttribute("style", "visibility: hidden;")
     } catch(err) {

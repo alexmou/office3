@@ -180,7 +180,6 @@
       token = me.token;
       globalUrl = me.globalUrl || (window.location.origin + window.location.pathname + "?");
       setToken(token, globalUrl);
-      localStorage.setItem("lastPage", "newsale");
       navigateTo("newsale");
     } else {
       alert("Неверный логин или пароль");

@@ -129,59 +129,91 @@
     return META && Array.isArray(META.stores) ? META.stores : [];
   }
 
-  function unwrapMaybe(value){
+  function normalizeStoreName(value){
+    return String(value || '').trim();
+  }
+
+  function deriveStoresFromRows(rows){
+    const set = new Set();
+    (rows || []).forEach((r) => {
+      const v = normalizeStoreName(r?.Store ?? r?.store ?? '');
+      if (v) set.add(v);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'ru'));
+  }
+
+  function deriveEmployeesFromRows(rows){
+    const set = new Set();
+    (rows || []).forEach((r) => {
+      const v = normalizeEmployeeName(r?.Employee ?? r?.employee ?? '');
+      if (v) set.add(v);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'ru'));
+  }
+
+  function unwrapMaybe(value, depth = 0){
+    if (depth > 8) return value;
     if (value == null) return null;
     if (typeof value === 'string') {
-      try { return unwrapMaybe(JSON.parse(value)); } catch (_) { return value; }
+      try { return unwrapMaybe(JSON.parse(value), depth + 1); } catch (_) { return value; }
     }
     if (Array.isArray(value)) return value;
     if (typeof value === 'object') {
-      if (Array.isArray(value.data)) return unwrapMaybe(value.data);
-      if (value.data && Array.isArray(value.data.data)) return unwrapMaybe(value.data.data);
-      const firstArray = Object.values(value).find(Array.isArray);
-      if (firstArray) return unwrapMaybe(firstArray);
+      // Preserve schedule meta object shape
+      if (Array.isArray(value.employees) || Array.isArray(value.stores)) return value;
+      // Common wrappers
+      if (value.data !== undefined) return unwrapMaybe(value.data, depth + 1);
+      if (value.result !== undefined) return unwrapMaybe(value.result, depth + 1);
+      if (value.payload !== undefined) return unwrapMaybe(value.payload, depth + 1);
+      // If it's a single-key wrapper around an array/object
+      const keys = Object.keys(value);
+      if (keys.length === 1) {
+        const only = value[keys[0]];
+        return unwrapMaybe(only, depth + 1);
+      }
       return value;
     }
     return value;
   }
 
   function normalizeScheduleMeta(raw){
-    const unwrapped = unwrapMaybe(raw);
     const result = { employees: [], stores: [] };
 
-    const pickEmployees = (val) => {
-      if (!val) return [];
-      if (Array.isArray(val)) return val;
-      if (typeof val === 'object') return Array.isArray(val.employees) ? val.employees : [];
-      return [];
-    };
-    const pickStores = (val) => {
-      if (!val) return [];
-      if (Array.isArray(val)) return val;
-      if (typeof val === 'object') return Array.isArray(val.stores) ? val.stores : [];
-      return [];
-    };
-
-    if (Array.isArray(unwrapped)) {
-      // Common legacy shape: [ { employees: [...] }, { stores: [...] } ]
-      unwrapped.forEach((part) => {
-        if (part && typeof part === 'object') {
-          if (Array.isArray(part.employees) && result.employees.length === 0) result.employees = part.employees;
-          if (Array.isArray(part.stores) && result.stores.length === 0) result.stores = part.stores;
-        }
+    const isObj = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
+    const looksLikeEmployeeList = (arr) =>
+      Array.isArray(arr) &&
+      arr.length > 0 &&
+      arr.every((v) => {
+        if (typeof v === 'string') return true;
+        return isObj(v) && ('employee' in v || 'Employee' in v || 'name' in v);
       });
-      // Alternative shape: { employees: [...] , stores: [...] } nested inside array
-      if (result.employees.length === 0) result.employees = pickEmployees(unwrapped[0]);
-      if (result.stores.length === 0) result.stores = pickStores(unwrapped[1] || unwrapped[0]);
-      return result;
-    }
+    const looksLikeStoreList = (arr) =>
+      Array.isArray(arr) &&
+      arr.length > 0 &&
+      arr.every((v) => {
+        if (typeof v === 'string') return true;
+        return isObj(v) && ('store' in v || 'Store' in v || 'name' in v);
+      });
 
-    if (unwrapped && typeof unwrapped === 'object') {
-      if (Array.isArray(unwrapped.employees)) result.employees = unwrapped.employees;
-      if (Array.isArray(unwrapped.stores)) result.stores = unwrapped.stores;
-      return result;
-    }
+    const consume = (val) => {
+      if (result.employees.length && result.stores.length) return;
+      const v = unwrapMaybe(val);
+      if (v == null) return;
 
+      if (Array.isArray(v)) {
+        if (result.employees.length === 0 && looksLikeEmployeeList(v)) result.employees = v;
+        if (result.stores.length === 0 && looksLikeStoreList(v)) result.stores = v;
+        v.forEach((item) => consume(item));
+        return;
+      }
+
+      if (isObj(v)) {
+        if (result.employees.length === 0 && Array.isArray(v.employees)) result.employees = v.employees;
+        if (result.stores.length === 0 && Array.isArray(v.stores)) result.stores = v.stores;
+      }
+    };
+
+    consume(raw);
     return result;
   }
 
@@ -189,78 +221,91 @@
     return String(value || '').trim();
   }
 
+  function mergeEmployeesFromRowsIntoMeta(rows){
+    const derived = deriveEmployeesFromRows(rows);
+    if (!derived.length) return;
+
+    const existing = getMetaEmployees().map((e) => normalizeEmployeeName(e?.employee || e?.Employee || e?.name || e)).filter(Boolean);
+    const merged = Array.from(new Set(existing.concat(derived)));
+    merged.sort((a, b) => a.localeCompare(b, 'ru'));
+    META.employees = merged.map((name) => ({ employee: name }));
+  }
+
+  async function ensureEmployeesFromHistory(startYm){
+    const existing = getMetaEmployees()
+      .map((e) => normalizeEmployeeName(e?.employee || e?.Employee || e?.name || e))
+      .filter(Boolean);
+    const collected = new Set(existing);
+    for (let i = 0; i < 12; i++) {
+      const ym = addMonths(startYm, -i);
+      const query = { action: 'getSchedule', visible: true, mode: "no test", Ym: ym };
+      const raw = i === 0 ? CACHED_ROWS : (await window.API.getSchedule(query, { mode: query.mode, overlayId: "schedule" })) || [];
+      const rows = Array.isArray(raw) ? raw : (raw?.data?.data || raw?.data || []);
+      deriveEmployeesFromRows(Array.isArray(rows) ? rows : []).forEach((name) => collected.add(name));
+    }
+
+    const names = Array.from(collected);
+    names.sort((a, b) => a.localeCompare(b, 'ru'));
+    if (names.length) {
+      META.employees = names.map((name) => ({ employee: name }));
+    }
+  }
+
   function employeeColorIndex(employeeName){
     const name = normalizeEmployeeName(employeeName);
     if (!name) return null;
 
-    const employees = getMetaEmployees();
-    const idx = employees.findIndex((e) => {
-      const candidate =
-        normalizeEmployeeName(e?.employee) ||
-        normalizeEmployeeName(e?.Employee) ||
-        normalizeEmployeeName(e?.name) ||
-        normalizeEmployeeName(e);
-      return candidate === name;
-    });
-    if (idx >= 0) return idx % 11;
-
-    // Fallback: deterministic hash -> color bucket
+    // Deterministic hash -> color bucket (stable even when the employee list changes).
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = (hash * 31 + name.charCodeAt(i)) | 0;
     }
-    return Math.abs(hash) % 11;
+    return Math.abs(hash) % 12;
   }
 
   async function loadMeta(){
     const params = { visible: true, mode: "no test" };
-    const res =
-      window.API && typeof window.API.getScheduleMeta === "function"
-        ? await window.API.getScheduleMeta(params, { mode: params.mode, overlayId: "schedule" })
-        : await getDataFromN8n('schedule', { data: { query: { ...params, action: "getScheduleMeta" } } },);
-    console.log("res",res)
+    if (!window.API || typeof window.API.getScheduleMeta !== "function") {
+      throw new Error("API.getScheduleMeta is not available");
+    }
+    const res = await window.API.getScheduleMeta(params, { mode: params.mode, overlayId: "schedule" });
     const normalized = normalizeScheduleMeta(res);
-    META = (normalized.employees.length || normalized.stores.length) ? normalized : (res || META);
+    META = normalized;
+
+    // Fallback: getStores() is stable and returns storeName values needed by schedule UI.
+    if (!getMetaStores().length && window.API && typeof window.API.getStores === "function") {
+      try {
+        const stores = await window.API.getStores({}, { overlayId: "schedule" });
+        const storeNames = (Array.isArray(stores) ? stores : [])
+          .map((s) => normalizeStoreName(s?.store || s?.storeName || s?.name || s?.Store || s?.[1] || s))
+          .filter(Boolean);
+        META.stores = storeNames.map((store) => ({ store }));
+      } catch (e) {
+        console.warn("Failed to load stores for schedule", e);
+      }
+    }
     // keep CURRENT_STORE empty to show ALL stores by default
-    console.log("META",META)
   }
   async function loadMonthData(ym){
     const query = { action: 'getSchedule', visible: true, mode: "no test",Ym:ym };
-    if (CURRENT_STORE) query.store = CURRENT_STORE;
-    const rows =
-      window.API && typeof window.API.getSchedule === "function"
-        ? await window.API.getSchedule(query, { mode: query.mode, overlayId: "schedule" })
-        : await getDataFromN8n('schedule', { data: { query } }) || [];
-    CACHED_ROWS = rows;
+    if (!window.API || typeof window.API.getSchedule !== "function") {
+      throw new Error("API.getSchedule is not available");
+    }
+    const rows = await window.API.getSchedule(query, { mode: query.mode, overlayId: "schedule" });
+    CACHED_ROWS = Array.isArray(rows) ? rows : [];
+    mergeEmployeesFromRowsIntoMeta(CACHED_ROWS);
   }
   async function saveRows(rows){
-    if (window.API && typeof window.API.upsertShifts === "function") {
-      await window.API.upsertShifts(rows, { timeout: 8000, mode: "no test", overlayId: "schedule" });
-      return;
+    if (!window.API || typeof window.API.upsertShifts !== "function") {
+      throw new Error("API.upsertShifts is not available");
     }
-    if (window.API && typeof window.API.upsertScheduleShifts === "function") {
-      await window.API.upsertScheduleShifts(rows, { timeout: 8000, mode: "no test", overlayId: "schedule" });
-      return;
-    }
-
-    const resp = await postDataToN8n(
-      'schedule?action=upsertShifts',
-      {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(rows)
-      },
-      8000,
-      "no test"
-    );
-    if (!resp.ok) throw new Error(await resp.text());
+    await window.API.upsertShifts(rows, { timeout: 8000, mode: "no test", overlayId: "schedule" });
 
 
 
 
 
 
-   // await postDataToN8n('schedule', { data: { query, rows } }, "", "test");
   }
 
   // ---- Render ----
@@ -386,7 +431,7 @@
       cell.appendChild(body);
 
       // open modal on click
-      cell.addEventListener('click', ()=> openDayModal(d.iso));
+      cell.addEventListener('click', async ()=> { await openDayModal(d.iso); });
       cal.appendChild(cell);
     });
 
@@ -405,7 +450,7 @@
 
   // ---- Modal ----
   let MODAL_DATE_ISO = '';
-  function openDayModal(dateISO){
+  async function openDayModal(dateISO){
     MODAL_DATE_ISO = dateISO;
     const modal = $('#day-modal');
     const d = parseISO(dateISO); // parse locally to avoid UTC shift
@@ -431,29 +476,47 @@
 
     const stores = tr.querySelector('.cell-store');
     const storeList = (getMetaStores()||[]);
-    stores.innerHTML = storeList
-           .map((s)=>{
-             const v = s?.store || s?.name || s;
-             const text = v == null ? '' : String(v);
-             return `<option value="${text}">${text}</option>`;
-           }).join('');
-    if(rec.Store) stores.value = rec.Store;
+    const fallbackStores = storeList.length ? storeList : deriveStoresFromRows(CACHED_ROWS);
+    const storeOptions = fallbackStores.length ? fallbackStores : ([rec.Store || CURRENT_STORE].filter(Boolean));
+    if (!storeOptions.length) storeOptions.push('');
+    stores.innerHTML = storeOptions
+      .map((s)=>{
+        const v = s?.store || s?.name || s;
+        const text = normalizeStoreName(v);
+        const label = text || '—';
+        return `<option value="${text}">${label}</option>`;
+      }).join('');
+    if (rec.Store) {
+      stores.value = normalizeStoreName(rec.Store);
+    } else if (CURRENT_STORE) {
+      stores.value = normalizeStoreName(CURRENT_STORE);
+    }
 
 
 
     const sel = tr.querySelector('.cell-employee');
     const empList = (getMetaEmployees()||[]);
-    sel.innerHTML = empList
+    const fallbackEmployees = empList.length ? empList : deriveEmployeesFromRows(CACHED_ROWS);
+    const filteredEmps = empList
       .filter((e)=> {
         const store = e?.store || e?.Store;
         return !CURRENT_STORE || !store || String(store)===String(CURRENT_STORE);
-      })
+      });
+    const filteredFallbackEmps = fallbackEmployees
+      .filter((e)=> {
+        const store = e?.store || e?.Store;
+        return !CURRENT_STORE || !store || String(store)===String(CURRENT_STORE);
+      });
+    const empOptions = filteredEmps.length ? filteredEmps : (filteredFallbackEmps.length ? filteredFallbackEmps : ([rec.Employee].filter(Boolean)));
+    if (!empOptions.length) empOptions.push('');
+    sel.innerHTML = empOptions
       .map((e)=>{
         const v = e?.employee || e?.Employee || e?.name || e;
-        const text = v == null ? '' : String(v);
-        return `<option value="${text}">${text}</option>`;
+        const text = normalizeEmployeeName(v);
+        const label = text || '—';
+        return `<option value="${text}">${label}</option>`;
       }).join('');
-    if(rec.Employee) sel.value = rec.Employee;
+    if (rec.Employee) sel.value = normalizeEmployeeName(rec.Employee);
 
 
 
@@ -564,7 +627,7 @@
       const ym = $('#schedule_month').value + '-01';
       const query = { action: 'computePayroll', visible: true, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING, monthISO: ym };
       if (CURRENT_STORE) query.store = CURRENT_STORE;
-      const res = await getDataFromN8n('schedule', { data: { query } }) || [];
+      const res = await window.API.computePayroll(query, { overlayId: "schedule" }) || [];
       const total = (Array.isArray(res)?res:[]).reduce((a,r)=>a+(Number(r.PayTotal)||0),0);
       alert('Расчёт выполнен. Сотрудников: '+ (res.length||0) + '\nИтого к выплате: ' + (total||0).toLocaleString());
     });
@@ -581,7 +644,10 @@
     });
 
     // load meta and month
-    await loadMeta(); populateStoreSelect(); await reloadAll();
+    await loadMeta();
+    populateStoreSelect();
+    await reloadAll();
+    await ensureEmployeesFromHistory($('#schedule_month').value);
   }
 
   /* ==== N8N CONTRACT EXAMPLES ====

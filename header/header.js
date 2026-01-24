@@ -304,7 +304,6 @@ function wireLogout() {
         const url = new URL(window.location.href);
         url.searchParams.delete("token");
         history.replaceState({}, "", url.toString());
-        localStorage.removeItem("lastPage");
         window.location.reload();
       }
     });

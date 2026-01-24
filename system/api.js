@@ -2,7 +2,7 @@
   const DEFAULT_TIMEOUT = 80000;
 
   
-  const API_ROUTES = {
+  let API_ROUTES = {
     addBudgetRecord: { source: "n8n", webhook: "prod" },
     addCacheRegisterRecord: { source: "n8n", webhook: "prod" },
     getAllItemsFromCatalogByQuery: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
@@ -16,6 +16,7 @@
 
     getCatalogFilterOptions: { source: "auto", webhook: "prod" },
     getConfig: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "config" },
+    updateConfig: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "config?action=updateConfig", rawBody: true },
     getDistinctBrandNames: { source: "auto", webhook: "prod" },
     getHeader:  { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
     getItemByArticleName: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
@@ -26,16 +27,44 @@
 
         getSalaryFix:{ source: "n8n", method: "GET", webhook: "test", webhookAction: "SalaryFix" },
 
-    //getPivot: { source: "auto", webhook: "prod" },
-    //getPnl: { source: "auto", webhook: "prod" },
-    //getSalesFilterOptions: { source: "auto", webhook: "prod" },
-    //getUserStoreByToken: { source: "auto", webhook: "prod" },
+    getPivot: { source: "auto", webhook: "prod" },
+    getPnl: { source: "auto", webhook: "prod" },
+    getSalesFilterOptions: { source: "auto", webhook: "prod" },
+    getUserStoreByToken: { source: "auto", webhook: "prod" },
     getVocabulary:  { source: "n8n", method: "GET", webhook: "prod", webhookAction: "CashRegister" },
+
+    // Charts services (n8n webhook: /charts)
+    getChartsData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "charts" },
+
+    // Sales services (n8n webhook: /sales)
+    getSalesData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sales" },
+
+    // Budget services (n8n webhook: /budget)
+    // NOTE: backend action can be overridden via params.action (keeps API_ROUTES simple).
+    getBudgetVocabulary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "budget" },
+    getBudgetData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "budget" },
+    getMonthsSummary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "budget" },
+    saveBudgetChanges: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "budget?action=saveChanges", rawBody: true },
+
+    // Tags services (n8n webhook: /tags)
+    // NOTE: backend action can be overridden via params.action.
+    getTagsConfig: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "tags" },
+    saveTagsConfig: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "tags?action=saveChanges", rawBody: true },
+
+    // Sklad services (n8n webhook: /sklad)
+    getSkladHeader: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sklad" },
+    getSkladData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sklad" },
+    // NOTE: backend action can be overridden via params.action.
+    getSkladVocabulary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sklad" },
+    saveSkladChanges: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad?action=saveChanges", rawBody: true },
+    deleteSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad?action=deleteItem", rawBody: true },
+    addSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad?action=addItem", rawBody: true },
+    editSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad?action=editItem", rawBody: true },
 
     // Schedule services (n8n webhook: /schedule)
     getScheduleMeta: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
     getSchedule: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
-    upsertShifts: { source: "n8n", method: "POST", webhook: "test", webhookAction: "schedule" },
+    upsertShifts: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "schedule?action=upsertShifts", rawBody: true },
 
 
     setStatisticBrandName: { source: "auto", webhook: "prod" },
@@ -47,6 +76,11 @@
 
 
   };
+
+  // API contract version:
+  // 1 = legacy (GET uses `data={"query":...}` wrapper; some POST routes may still rely on raw body/query-action)
+  // 2 = universal (GET uses plain query params; POST uses `{ action, token, payload }` envelope; no rawBody)
+  let API_CONTRACT_VERSION = 1;
 
   function shouldUseMock(routeSource, overrideSource) {
     const src = overrideSource || routeSource || "auto";
@@ -77,15 +111,23 @@
     return JSON.parse(text);
   }
 
-  async function callN8nGet(action, paramsWithToken, timeout = DEFAULT_TIMEOUT, mode) {
+  async function callN8nGet(
+    action,
+    paramsWithToken,
+    timeout = DEFAULT_TIMEOUT,
+    mode,
+    contractVersion = API_CONTRACT_VERSION
+  ) {
+    const isV2 = Number(contractVersion) >= 2;
     const webhook = getWebHook(mode);
     const qs = new URLSearchParams();
     const payload = paramsWithToken || {};
     Object.entries(payload).forEach(([key, value]) => {
+      if (value === undefined) return;
       qs.append(key, typeof value === "string" ? value : JSON.stringify(value));
     });
-    // n8n часто ожидает параметры внутри data.query.*
-    if (!qs.has("data")) {
+    // Legacy n8n workflows may expect parameters inside data.query.*
+    if (!isV2 && !qs.has("data")) {
       try {
         qs.append("data", JSON.stringify({ query: payload }));
       } catch (_) {
@@ -149,6 +191,9 @@
       opts.webhook || opts.webhookMode || opts.mode || route.webhook || "prod"
     );
     const targetAction = opts.webhookAction || route.webhookAction || action;
+    const contractVersion = Number(opts.contractVersion ?? API_CONTRACT_VERSION);
+    const isV2 = contractVersion >= 2;
+    const endpoint = isV2 ? String(targetAction).split("?")[0] : targetAction;
     // Автодобавление контекста склада/магазина для каталогов/поиска товара
     if (action === "getItemByArticleName" || action === "getHeader" || action === "getAllItemsFromCatalogByQuery") {
       const storeIdFromParams = paramsWithToken.store || paramsWithToken.storeId || window?.USER_STORE?.storeId;
@@ -250,9 +295,43 @@
 
     try {
       if (method === "GET") {
-        const res = await callN8nGet(targetAction, payload, opts.timeout || DEFAULT_TIMEOUT, mode);
+        const res = await callN8nGet(
+          endpoint,
+          payload,
+          opts.timeout || DEFAULT_TIMEOUT,
+          mode,
+          contractVersion
+        );
         showPage(overlayId);
         return res;
+      }
+
+      if (isV2) {
+        const actionName = payload?.action || action;
+        const token = payload?.token || window.token;
+        let payloadData;
+        if (opts.rawBody !== undefined) {
+          payloadData = opts.rawBody;
+        } else {
+          payloadData = { ...payload };
+          delete payloadData.action;
+          delete payloadData.token;
+        }
+        const body = { action: actionName, token, payload: payloadData };
+        const resp = await postDataToN8n(
+          `${endpoint}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          },
+          opts.timeout || DEFAULT_TIMEOUT,
+          mode
+        );
+        if (!resp.ok) throw new Error(await resp.text());
+        const json = await safeJson(resp);
+        showPage(overlayId);
+        return json;
       }
 
       // Some endpoints expect raw JSON array/object in request body (no wrapper).
@@ -285,13 +364,55 @@
     }
   }
 
-  // Генерируем функции-заглушки для каждого маршрута
+  async function invokeApiAction(actionName, params = {}, opts = {}) {
+    const route = API_ROUTES[actionName] || {};
+
+    // Raw-body routes (legacy): first argument is the JSON body as-is (array/object).
+    if (route.rawBody) {
+      const actionValue =
+        (params && typeof params === "object" && !Array.isArray(params) ? params.action : undefined) ||
+        actionName;
+      return requestViaN8nOrMock(actionName, { action: actionValue }, { ...opts, rawBody: params });
+    }
+
+    // Regular routes: params can be object or primitive (mapped to { value }).
+    const baseParams =
+      params && typeof params === "object" && !Array.isArray(params)
+        ? params
+        : params === undefined || params === null
+          ? {}
+          : { value: params };
+
+    const paramsWithAction = { ...baseParams, action: baseParams.action || actionName };
+    return requestViaN8nOrMock(actionName, paramsWithAction, opts);
+  }
+
+  // Generated API (known routes) + Proxy fallback (unknown routes).
   const generatedApi = {};
   Object.keys(API_ROUTES).forEach((action) => {
-    generatedApi[action] = async function(params = {}, opts = {}) {
-      const paramsWithAction = { ...params, action: params.action || action };
-      return requestViaN8nOrMock(action, paramsWithAction, opts);
-    };
+    generatedApi[action] = (params = {}, opts = {}) => invokeApiAction(action, params, opts);
+  });
+  generatedApi.call = (action, params = {}, opts = {}) => invokeApiAction(action, params, opts);
+  generatedApi.getRoutes = () => API_ROUTES;
+  generatedApi.setRoutes = (routes) => {
+    if (!routes || typeof routes !== "object" || Array.isArray(routes)) return;
+    API_ROUTES = { ...API_ROUTES, ...routes };
+    window.API_ROUTES = API_ROUTES;
+  };
+  generatedApi.getContractVersion = () => API_CONTRACT_VERSION;
+  generatedApi.setContractVersion = (v) => {
+    const parsed = Number(v);
+    if (!Number.isFinite(parsed) || parsed <= 0) return;
+    API_CONTRACT_VERSION = parsed;
+    window.API_CONTRACT_VERSION = API_CONTRACT_VERSION;
+  };
+
+  const apiProxy = new Proxy(generatedApi, {
+    get(target, prop) {
+      if (prop in target) return target[prop];
+      if (typeof prop !== "string") return undefined;
+      return (params = {}, opts = {}) => invokeApiAction(prop, params, opts);
+    },
   });
 
   function resolveStoreContext(storeId, storeName) {
@@ -336,10 +457,10 @@
     return unwrap(parsed);
   }
 
-  async function getAuthData(params = {"token":token}, opts = {}) {
+  async function getAuthData(params = {}, opts = {}) {
     const payload = {
       action: params.action || "getAuthData",
-      token: params.token,
+      token: params.token || window.token,
       login: params.login,
       store: params.store,
     };
@@ -466,6 +587,40 @@
     if (cfg.USE_MOCK_DATA !== undefined) {
       window.USE_MOCK_DATA = cfg.USE_MOCK_DATA;
     }
+
+    // Contract version (1 = legacy, 2 = universal)
+    const cfgContract =
+      cfg.API_CONTRACT_VERSION ??
+      cfg.API_CONTRACT ??
+      cfg.API_VERSION ??
+      cfg.apiContractVersion ??
+      cfg.apiContract ??
+      cfg.apiVersion;
+    const parsedContract = Number(cfgContract);
+    if (Number.isFinite(parsedContract) && parsedContract > 0) {
+      API_CONTRACT_VERSION = parsedContract;
+    }
+    window.API_CONTRACT_VERSION = API_CONTRACT_VERSION;
+
+    // Routes can be provided by backend config (e.g. as JSON in Google Sheets).
+    const cfgRoutes =
+      cfg.API_ROUTES ??
+      cfg.apiRoutes ??
+      cfg.api_routes ??
+      cfg.ApiRoutes ??
+      cfg.Api_Routes;
+    if (cfgRoutes) {
+      try {
+        const parsed =
+          typeof cfgRoutes === "string" ? JSON.parse(cfgRoutes) : cfgRoutes;
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          API_ROUTES = { ...API_ROUTES, ...parsed };
+          window.API_ROUTES = API_ROUTES;
+        }
+      } catch (e) {
+        console.warn("CONFIG.API_ROUTES parse failed", e);
+      }
+    }
   }
 
   async function fetchUserStoreFromToken() {
@@ -491,22 +646,15 @@
       el.textContent = store.storeName;
     }
   }
-
-
-
-
-
-
   async function setToken(params = {}, opts = {}) {
-
     const loginpassword =
       params.login && params.password ? `${params.login}${params.password}` : params.loginpassword;
     const store = params.store;
-    const actionName = params.action || "setToken";
+    const actionValue = params.action || "setToken";
 
     // Payload с раздельными полями и слитным, чтобы покрыть оба варианта
     const simplePayload = {
-      action: actionName,
+      action: actionValue,
       login: params.login,
       password: params.password,
       store,
@@ -606,11 +754,12 @@
 
   // Экспорт в глобальную область
   window.API_ROUTES = API_ROUTES;
+  window.API_CONTRACT_VERSION = API_CONTRACT_VERSION;
   window.requestViaN8nOrMock = requestViaN8nOrMock;
   window.loadMock = loadMock;
   window.fetchConfigFromN8n = fetchConfigFromN8n;
   window.applyConfig = applyConfig;
   window.fetchUserStoreFromToken = fetchUserStoreFromToken;
   window.applyUserStore = applyUserStore;
-  window.API = generatedApi;
+  window.API = apiProxy;
 })();

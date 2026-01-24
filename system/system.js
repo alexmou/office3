@@ -81,19 +81,14 @@ async function openPage(pageName) {
   p["currentPageName_" + username] = pageName;
   //google.script.run.withSuccessHandler().setScriptProperty(p);
 
-  //WEBHOOK = 'https://buttonrouge.org/n8n/webhook/'
-  const endP = "config";
-  WEBHOOK = 'https://buttonrouge.org/n8n/webhook/';
-  const resp = await postDataToN8n(
-    `${endP}?action=updateConfig`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(p)
-    },
-    8000
-  );
-  if (!resp.ok) throw new Error(await resp.text());
+  // Update config (best-effort)
+  try {
+    if (window.API && typeof window.API.updateConfig === "function") {
+      await window.API.updateConfig(p, { timeout: 8000, overlayId: "config" });
+    }
+  } catch (e) {
+    console.warn("Не удалось обновить конфиг (updateConfig)", e);
+  }
 }
 
 function openLogin(pageName = "login") {

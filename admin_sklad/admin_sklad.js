@@ -1,11 +1,3 @@
-
-
-
-
-WEBHOOK = 'https://buttonrouge.org/n8n/webhook/';
-
-
-const endP = 'sklad';
 const MAIN_FIELDS   = ['article','Brand','Name','price'];
 const EXTRA_FIELDS  = ['description','color','size'];
 const HIDDEN_FIELDS = ['row_number']; 
@@ -15,11 +7,12 @@ let ALL_FIELDS = [];
 async function loadHeader() {
 ALL_FIELDS=['article','Brand','num','price','Brand','type','subtype','description','Name','fabric','color','size','manufacturer','price', 'quantity', 'netprice', 'netpriceFull', 'scladprice', 'salePrice']
  
-  const query = { action: "getSkladHeader", visible: true, TESTING:CONFIG.GLOBAL_EXECUTION_TESTING };
-  const params = { data: { query: query } };
-  const data = await getDataFromN8n('sklad', params);
+  const data = await window.API.getSkladHeader(
+    { visible: true, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING },
+    { overlayId: "admin_sklad" }
+  );
   console.log('data:', data);
-  ALL_FIELDS = data[0].sklad_header; // присваиваем после получения
+  ALL_FIELDS = data?.[0]?.sklad_header || ALL_FIELDS; // присваиваем после получения
 
 
 }
@@ -41,10 +34,10 @@ let warehousesInitialized = false;
 
 
 async function bodyOnload() {
+      warehousesInitialized = false;
       const query = { action: "getSkladData", visible: true , TESTING:CONFIG.GLOBAL_EXECUTION_TESTING};
-      const params = { data: { query: query }  };
           try {
-              const data = await getDataFromN8n('sklad', params);
+              const data = await window.API.getSkladData(query, { overlayId: "admin_sklad" });
               document.getElementById("warehouseData1").setAttribute("data-warehouse1",JSON.stringify(data[0].data1))
               document.getElementById("warehouseData2").setAttribute("data-warehouse2",JSON.stringify(data[1].data2))
               init()
@@ -339,16 +332,8 @@ function setupSaveButton() {
       return;
     }
     try {
-      const resp = await postDataToN8n(
-        `${endP}?action=saveChanges`,
-        {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify(changes)
-        },
-        8000
-      );
-      if (!resp.ok) throw new Error(await resp.text());
+      const resp = await window.API.saveSkladChanges(changes, { timeout: 8000, overlayId: "admin_sklad" });
+      if (resp == null) throw new Error("Не удалось сохранить изменения");
       showToast('Изменения успешно сохранены!','success');
       changes.length=0;
       renderWarehouses();
@@ -374,11 +359,11 @@ async function loadVocabulary() {
     return vocabularyCache;
   }
 
-  const query = { action: "getVocabulary", visible: true, TESTING:CONFIG.GLOBAL_EXECUTION_TESTING };
-  const params = { data: { query } };
-
   try {
-    const data = await getDataFromN8n('sklad', params);
+    const data = await window.API.getSkladVocabulary(
+      { action: "getVocabulary", visible: true, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING },
+      { overlayId: "admin_sklad" }
+    );
     //console.log(data[0])
     // data — объект с массивами в формате, который вы показали
 
@@ -432,17 +417,8 @@ try {
 
     const params = { query: query, data: data };
 
-    const resp = await postDataToN8n(
-      `${endP}?action=deleteItem`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params)
-      },
-      8000
-    );
-
-    if (!resp.ok) throw new Error(await resp.text());
+    const resp = await window.API.deleteSkladItem(params, { timeout: 8000, overlayId: "admin_sklad" });
+    if (resp == null) throw new Error("Не удалось удалить товар");
 
     // Удаляем товар из локального массива
     const list = warehouses[wid];
@@ -676,16 +652,10 @@ document.addEventListener('submit', async e => {
       const query = { action: action, visible: true, wid:wid, TESTING:CONFIG.GLOBAL_EXECUTION_TESTING };
       const params = { query:query, data:  data  };
     
-    const resp = await postDataToN8n(
-      `${endP}?action=${action}`,
-      {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body:   JSON.stringify(params)
-      },
-      8000
-    );
-    if (!resp.ok) throw new Error(await resp.text());
+    const resp = isNew
+      ? await window.API.addSkladItem(params, { timeout: 8000, overlayId: "admin_sklad" })
+      : await window.API.editSkladItem(params, { timeout: 8000, overlayId: "admin_sklad" });
+    if (resp == null) throw new Error("Не удалось сохранить изменения");
 
     const prepared = ensureArticle(data);
     updateProductInWarehouse(wid, prepared);
@@ -739,6 +709,10 @@ document.addEventListener('keydown', e=>{
   });
 });
 
-
-document.addEventListener('DOMContentLoaded', bodyOnload());
-
+if (typeof registerPageInit === "function") {
+  registerPageInit("admin_sklad", bodyOnload);
+} else if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bodyOnload);
+} else {
+  bodyOnload();
+}
