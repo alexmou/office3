@@ -56,14 +56,90 @@
 .toolbar .field{ display:flex; align-items:center; gap:8px; }
 .toolbar .mode-label{ color:white; }
 .toolbar .spacer{ flex:1; }
-.toolbar input[type="month"], .toolbar select{
+.toolbar input.month-input, .toolbar select{
   padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--button);
   font-size:20px; color:white;
+}
+.toolbar input.month-input{
+  min-width: 160px;
+  text-align: center;
+  cursor: pointer;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23ffffff' viewBox='0 0 24 24'><path d='M7 2h2v2h6V2h2v2h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3V2zm13 8H4v10h16V10z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
 }
 .toolbar button{ padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#111827; color:#fff; cursor:pointer; }
 .toolbar .ghost{ background:var(--button); color:white; font-size: 20px; }
 .toolbar button.primary{ background:#111827; }
 .toolbar button:hover{ filter:brightness(1.05); }
+
+.month-picker{
+  position: absolute;
+  z-index: 2000;
+}
+.month-picker.is-hidden{
+  display: none;
+}
+.month-picker__panel{
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  padding: 10px;
+}
+.month-picker__header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.month-picker__year{
+  font-weight: 700;
+  font-size: 16px;
+}
+.month-picker__nav{
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--button);
+  color: #fff;
+  cursor: pointer;
+}
+.month-picker__grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.month-picker__month{
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f8fafc;
+  cursor: pointer;
+  font-weight: 600;
+  color: #0f172a;
+}
+.month-picker__month.is-selected{
+  background: var(--bg-sub);
+  border-color: var(--bg-sub);
+  color: #fff;
+}
+.month-picker__footer{
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.month-picker__today{
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #111827;
+  color: #fff;
+  cursor: pointer;
+}
 
 #schedule-legend{
   display:flex; align-items:center; gap:10px;

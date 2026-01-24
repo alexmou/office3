@@ -256,6 +256,7 @@ async function loadPage(pageId) {
   const cfg = window.PAGE_CONFIG?.[pageId];
   if (!cfg) return;
 
+  setPageTitle(cfg.title || pageId);
   cleanupPageAssets();
   // always ensure overlay exists before toggling
   getOverlay();
@@ -353,6 +354,12 @@ function navigateTo(pageId) {
 }
 
 window.navigateTo = navigateTo;
+
+function setPageTitle(title) {
+  const titleEl = document.getElementById("pageName");
+  if (!titleEl) return;
+  titleEl.textContent = title || "";
+}
 
 function getPreferredInitialPage() {
   const username = String(window.currentLoginName || "").trim();

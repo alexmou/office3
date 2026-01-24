@@ -22,6 +22,7 @@
   // ---- Helpers (LOCAL date only) ----
   const pad = n => String(n).padStart(2,'0');
   function ymNow(){ const n=new Date(); return `${n.getFullYear()}-${pad(n.getMonth()+1)}`; }
+  const MONTH_LABELS = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
   function toLocalISO(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
   function parseISO(iso){ const [y,m,dd]=iso.split('-').map(Number); return new Date(y, m-1, dd); }
   function addMonths(ym, delta){
@@ -32,6 +33,139 @@
   function monthRange(ym){
     const [y,m]=ym.split('-').map(Number);
     return {Year: y, Month: m };
+  }
+  function buildScheduleQuery(ym){
+    const { Year, Month } = monthRange(ym);
+    return { action: 'getSchedule', visible: true, Ym: ym, Year, Month };
+  }
+  function formatYmDisplay(ym){
+    const [y, m] = ym.split('-').map(Number);
+    const label = MONTH_LABELS[(m || 1) - 1] || pad(m || 1);
+    return `${label} ${y || new Date().getFullYear()}`;
+  }
+  function getSelectedYm(){
+    const input = $('#schedule_month');
+    const ym = input?.dataset?.ym;
+    if (ym && /^\d{4}-\d{2}$/.test(ym)) return ym;
+    const raw = (input?.value || '').trim();
+    if (/^\d{4}-\d{2}$/.test(raw)) return raw;
+    return ymNow();
+  }
+  function setPickerFromYm(ym){
+    const input = $('#schedule_month');
+    if (!input) return;
+    input.dataset.ym = ym;
+    input.value = formatYmDisplay(ym);
+  }
+
+  let monthPickerEl = null;
+  let monthPickerYear = new Date().getFullYear();
+
+  function ensureMonthPicker(){
+    if (monthPickerEl) return monthPickerEl;
+    const el = document.createElement('div');
+    el.className = 'month-picker is-hidden';
+    el.innerHTML = `
+      <div class="month-picker__panel" role="dialog" aria-label="Выбор месяца">
+        <div class="month-picker__header">
+          <button class="month-picker__nav" type="button" data-dir="-1" aria-label="Предыдущий год">◀</button>
+          <div class="month-picker__year"></div>
+          <button class="month-picker__nav" type="button" data-dir="1" aria-label="Следующий год">▶</button>
+        </div>
+        <div class="month-picker__grid" role="listbox" aria-label="Месяцы"></div>
+        <div class="month-picker__footer">
+          <button class="month-picker__today" type="button">Текущий месяц</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(el);
+
+    const grid = el.querySelector('.month-picker__grid');
+    MONTH_LABELS.forEach((label, idx) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'month-picker__month';
+      btn.dataset.month = pad(idx + 1);
+      btn.textContent = label;
+      btn.setAttribute('role', 'option');
+      grid.appendChild(btn);
+    });
+
+    grid.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.month-picker__month');
+      if (!btn) return;
+      const month = btn.dataset.month;
+      const ym = `${monthPickerYear}-${month}`;
+      setPickerFromYm(ym);
+      closeMonthPicker();
+      await reloadAll();
+    });
+
+    el.querySelectorAll('.month-picker__nav').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const dir = Number(btn.dataset.dir) || 0;
+        monthPickerYear += dir;
+        updateMonthPicker();
+      });
+    });
+
+    el.querySelector('.month-picker__today').addEventListener('click', async () => {
+      const ym = ymNow();
+      setPickerFromYm(ym);
+      closeMonthPicker();
+      await reloadAll();
+    });
+
+    document.addEventListener('mousedown', (e) => {
+      if (!monthPickerEl || monthPickerEl.classList.contains('is-hidden')) return;
+      const input = $('#schedule_month');
+      if (monthPickerEl.contains(e.target) || input?.contains(e.target)) return;
+      closeMonthPicker();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMonthPicker();
+    });
+
+    monthPickerEl = el;
+    return el;
+  }
+
+  function updateMonthPicker(){
+    const el = ensureMonthPicker();
+    const yearEl = el.querySelector('.month-picker__year');
+    const ym = getSelectedYm();
+    const [y, m] = ym.split('-').map(Number);
+    yearEl.textContent = String(monthPickerYear);
+    el.querySelectorAll('.month-picker__month').forEach((btn, idx) => {
+      const isSelected = Number(y) === monthPickerYear && Number(m) === idx + 1;
+      btn.classList.toggle('is-selected', isSelected);
+      btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    });
+  }
+
+  function positionMonthPicker(anchor){
+    const el = ensureMonthPicker();
+    const rect = anchor.getBoundingClientRect();
+    const top = rect.bottom + window.scrollY + 6;
+    const left = rect.left + window.scrollX;
+    el.style.top = `${top}px`;
+    el.style.left = `${left}px`;
+  }
+
+  function openMonthPicker(){
+    const input = $('#schedule_month');
+    if (!input) return;
+    const ym = getSelectedYm();
+    const [y] = ym.split('-').map(Number);
+    monthPickerYear = Number.isFinite(y) ? y : new Date().getFullYear();
+    updateMonthPicker();
+    positionMonthPicker(input);
+    monthPickerEl.classList.remove('is-hidden');
+  }
+
+  function closeMonthPicker(){
+    if (!monthPickerEl) return;
+    monthPickerEl.classList.add('is-hidden');
   }
   function mondayOfWeek(d){
     // Map Sun..Sat -> 6,0,1,2,3,4,5 so that Monday=0
@@ -231,14 +365,16 @@
     META.employees = merged.map((name) => ({ employee: name }));
   }
 
-  async function ensureEmployeesFromHistory(startYm){
+  async function ensureEmployeesFromHistory(startYm, maxMonths = 2){
     const existing = getMetaEmployees()
       .map((e) => normalizeEmployeeName(e?.employee || e?.Employee || e?.name || e))
       .filter(Boolean);
+    if (existing.length) return;
     const collected = new Set(existing);
-    for (let i = 0; i < 12; i++) {
+    const totalMonths = Math.max(1, Number(maxMonths) || 1);
+    for (let i = 0; i < totalMonths; i++) {
       const ym = addMonths(startYm, -i);
-      const query = { action: 'getSchedule', visible: true, Ym: ym };
+      const query = buildScheduleQuery(ym);
       const raw = i === 0 ? CACHED_ROWS : (await window.API.getSchedule(query, { overlayId: "schedule" })) || [];
       const rows = Array.isArray(raw) ? raw : (raw?.data?.data || raw?.data || []);
       deriveEmployeesFromRows(Array.isArray(rows) ? rows : []).forEach((name) => collected.add(name));
@@ -287,7 +423,7 @@
     // keep CURRENT_STORE empty to show ALL stores by default
   }
   async function loadMonthData(ym){
-    const query = { action: 'getSchedule', visible: true, Ym: ym };
+    const query = buildScheduleQuery(ym);
     if (!window.API || typeof window.API.getSchedule !== "function") {
       throw new Error("API.getSchedule is not available");
     }
@@ -620,7 +756,7 @@
 
   // ---- Load/Reload ----
   async function reloadAll(){
-    const ym = $('#schedule_month').value;
+    const ym = getSelectedYm();
     await loadMonthData(ym);
     renderCalendar(ym);
   }
@@ -628,12 +764,20 @@
   async function initSchedulePage(){
     resetState();
     // default to current month
-    $('#schedule_month').value = ymNow();
+    setPickerFromYm(ymNow());
 
     // listeners
-    $('#month_prev').addEventListener('click', async ()=>{ const ym = addMonths($('#schedule_month').value, -1); $('#schedule_month').value = ym; await reloadAll(); });
-    $('#month_next').addEventListener('click', async ()=>{ const ym = addMonths($('#schedule_month').value, +1); $('#schedule_month').value = ym; await reloadAll(); });
-    document.querySelectorAll('input[name="schedule_mode"]').forEach(r=> r.addEventListener('change', ()=>{ MODE=r.value; renderCalendar($('#schedule_month').value); }));
+    $('#month_prev').addEventListener('click', async ()=>{ const ym = addMonths(getSelectedYm(), -1); setPickerFromYm(ym); await reloadAll(); });
+    $('#month_next').addEventListener('click', async ()=>{ const ym = addMonths(getSelectedYm(), +1); setPickerFromYm(ym); await reloadAll(); });
+    const monthInput = $('#schedule_month');
+    monthInput?.addEventListener('click', (e) => { e.preventDefault(); openMonthPicker(); });
+    monthInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openMonthPicker();
+      }
+    });
+    document.querySelectorAll('input[name="schedule_mode"]').forEach(r=> r.addEventListener('change', ()=>{ MODE=r.value; renderCalendar(getSelectedYm()); }));
     $('#schedule_store').addEventListener('change', async (e)=>{ CURRENT_STORE = e.target.value; await reloadAll(); });
    
    /*
@@ -661,7 +805,9 @@
     await loadMeta();
     populateStoreSelect();
     await reloadAll();
-    await ensureEmployeesFromHistory($('#schedule_month').value);
+    if (getMetaEmployees().length === 0) {
+      await ensureEmployeesFromHistory(getSelectedYm());
+    }
   }
 
   /* ==== N8N CONTRACT EXAMPLES ====
