@@ -199,7 +199,7 @@ console.log(parsed)
       return;
     }
 
-    // 1) Apps Script style: matrix with header row
+    // 1) Legacy matrix format: header row
     const matrixVocabulary = extractMatrixVocabulary(parsed);
     if (matrixVocabulary) {
       renderCashRegisterForm({

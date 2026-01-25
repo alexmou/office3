@@ -281,7 +281,7 @@
       const usernameFromGlobal = window.currentLoginName || window.username;
       const resolvedUsername = String(usernameFromParams || usernameFromDom || usernameFromGlobal || "").trim();
       if (resolvedUsername) {
-        // Для совместимости оставляем value (в Apps Script getMySalary использует data.value)
+        // Для совместимости оставляем value (legacy backend использует data.value)
         paramsWithToken.username = paramsWithToken.username || resolvedUsername;
         paramsWithToken.value = paramsWithToken.value || resolvedUsername;
       }

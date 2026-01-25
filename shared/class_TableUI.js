@@ -20,6 +20,8 @@ class TableData {
         this.fullTextQuery = "";
         this.inStockOnly = false;
         this.inStockField = "quantity";
+        this._searchIndex = null;
+        this._searchIndexRows = null;
     }
 
     /**
@@ -49,6 +51,7 @@ class TableData {
         this.values = rowData;
         this.header = headerData;
         this.filterOptions = filters || this.header.map((h, i) => ({header: h, index: i}));
+        this.invalidateSearchIndex();
         // Изначально устанавливаем все фильтры в "All"
         this.filterOptions.forEach(opt => {
             this.currentQuery[opt.header] = "All";
@@ -90,6 +93,7 @@ class TableData {
      */
     loadItemListUI(articleList) {
        this.values = articleList;
+       this.invalidateSearchIndex();
     }
 
     /**
@@ -118,10 +122,33 @@ class TableData {
     setFilterOptions(filters) {
         this.header = filters.map(option => option.header);
         this.filterOptions = filters;
+        this.invalidateSearchIndex();
         // Изначально все фильтры = "All"
         this.filterOptions.forEach(opt => {
             this.currentQuery[opt.header] = "All";
         });
+    }
+
+    invalidateSearchIndex() {
+        this._searchIndex = null;
+        this._searchIndexRows = null;
+    }
+
+    getSearchIndex(rows) {
+        if (!Array.isArray(rows)) return [];
+        if (this._searchIndex && this._searchIndexRows === rows) {
+            return this._searchIndex;
+        }
+        this._searchIndexRows = rows;
+        this._searchIndex = rows.map((row) => {
+            const haystack = Array.isArray(row)
+              ? row
+              : (row && typeof row === "object" ? Object.values(row) : [row]);
+            return haystack
+              .map((cell) => String(cell ?? "").toLowerCase())
+              .join("\t");
+        });
+        return this._searchIndex;
     }
 
     /**
@@ -162,50 +189,72 @@ class TableData {
      */
     filterByCurrentQuery() {
         const rows = Array.isArray(this.values) ? this.values : [];
-
-        let filtered = rows.filter(row => {
-            return Object.keys(this.currentQuery).every(key => {
-                const option = this.filterOptions.find(opt => opt.header === key);
-                if (!option) return true;
-                const headerIndex = option.index;
-                const filterValue = this.currentQuery[key];
-                if (filterValue === "All") return true;
-                const cellValue = row?.[headerIndex];
-                return String(cellValue ?? "").trim() === String(filterValue ?? "").trim();
-            });
+        const currentQuery = this.currentQuery || {};
+        const queryKeys = Object.keys(currentQuery);
+        const filterOptions = Array.isArray(this.filterOptions) ? this.filterOptions : [];
+        const filterIndex = new Map();
+        filterOptions.forEach((opt) => {
+            if (!opt) return;
+            filterIndex.set(opt.header, opt.index);
         });
-
-        if (this.inStockOnly) {
-          const fieldName = this.inStockField || "quantity";
-          const opt = this.filterOptions.find((o) => o.header === fieldName);
-          const qtyIndex = opt ? opt.index : -1;
-          if (qtyIndex !== -1) {
-            const toNumber = (v) => {
-              if (v === null || v === undefined) return null;
-              const s = String(v).trim().replace(/\s+/g, "").replace(",", ".");
-              if (!s) return null;
-              const n = Number(s);
-              return Number.isFinite(n) ? n : null;
-            };
-            filtered = filtered.filter((row) => {
-              const val = row?.[qtyIndex];
-              const n = toNumber(val);
-              if (n !== null) return n !== 0;
-              const s = String(val ?? "").trim();
-              return s !== "" && s !== "0";
-            });
-          }
-        }
 
         const needle = String(this.fullTextQuery || "").trim().toLowerCase();
-        if (!needle) return filtered;
+        const useSearch = !!needle;
+        const searchIndex = useSearch ? this.getSearchIndex(rows) : null;
 
-        return filtered.filter((row) => {
-          const haystack = Array.isArray(row)
-            ? row
-            : (row && typeof row === "object" ? Object.values(row) : [row]);
-          return haystack.some((cell) => String(cell ?? "").toLowerCase().includes(needle));
-        });
+        let qtyIndex = -1;
+        if (this.inStockOnly) {
+            const fieldName = this.inStockField || "quantity";
+            const opt = filterOptions.find((o) => o.header === fieldName);
+            qtyIndex = opt ? opt.index : -1;
+        }
+
+        const toNumber = (v) => {
+            if (v === null || v === undefined) return null;
+            const s = String(v).trim().replace(/\s+/g, "").replace(",", ".");
+            if (!s) return null;
+            const n = Number(s);
+            return Number.isFinite(n) ? n : null;
+        };
+
+        const filtered = [];
+        for (let i = 0; i < rows.length; i += 1) {
+            const row = rows[i];
+
+            let matchesFilters = true;
+            for (let k = 0; k < queryKeys.length; k += 1) {
+                const key = queryKeys[k];
+                const headerIndex = filterIndex.get(key);
+                if (headerIndex === undefined) continue;
+                const filterValue = currentQuery[key];
+                if (filterValue === "All") continue;
+                const cellValue = row?.[headerIndex];
+                if (String(cellValue ?? "").trim() !== String(filterValue ?? "").trim()) {
+                    matchesFilters = false;
+                    break;
+                }
+            }
+            if (!matchesFilters) continue;
+
+            if (this.inStockOnly && qtyIndex !== -1) {
+                const val = row?.[qtyIndex];
+                const n = toNumber(val);
+                if (n !== null) {
+                    if (n === 0) continue;
+                } else {
+                    const s = String(val ?? "").trim();
+                    if (s === "" || s === "0") continue;
+                }
+            }
+
+            if (useSearch) {
+                const haystack = searchIndex ? searchIndex[i] : "";
+                if (!haystack.includes(needle)) continue;
+            }
+
+            filtered.push(row);
+        }
+        return filtered;
     }
 
     /**
@@ -222,11 +271,124 @@ class TableData {
  * Отвечает за отрисовку таблицы, фильтров и обновление интерфейса.
  */
 class TableUI {
-    constructor(tableID, catalogData) {
+    constructor(tableID, catalogData, options = {}) {
         this.catalogData = catalogData;
         this.productListElement = document.getElementById(tableID);
         this.currentQuery = catalogData.currentQuery;
-        this.colorizeRowsOptions=""
+        this.colorizeRowsOptions = "";
+        this.renderOptions = {
+            virtualize: false,
+            chunkSize: 200,
+            thresholdPx: 240,
+        };
+        this._virtualState = null;
+        this._colorizeColumnIndex = -1;
+        this.setRenderOptions(options);
+    }
+
+    setRenderOptions(options = {}) {
+        if (!options || typeof options !== "object" || Array.isArray(options)) return;
+        const next = { ...this.renderOptions };
+        if (options.virtualize !== undefined) next.virtualize = !!options.virtualize;
+        if (Number.isFinite(Number(options.chunkSize))) {
+            next.chunkSize = Math.max(10, Number(options.chunkSize));
+        }
+        if (Number.isFinite(Number(options.thresholdPx))) {
+            next.thresholdPx = Math.max(40, Number(options.thresholdPx));
+        }
+        this.renderOptions = next;
+    }
+
+    cleanupVirtualState() {
+        if (!this._virtualState) return;
+        const { container, onScroll } = this._virtualState;
+        if (container && onScroll) {
+            container.removeEventListener("scroll", onScroll);
+        }
+        this._virtualState = null;
+    }
+
+    resolveColorizeIndex(headers) {
+        this._colorizeColumnIndex = -1;
+        const opts = this.colorizeRowsOptions || {};
+        if (!opts.columnName) return;
+        const idx = headers.indexOf(opts.columnName);
+        if (idx >= 0) {
+            this._colorizeColumnIndex = idx;
+        }
+    }
+
+    buildRow(row) {
+        const tr = document.createElement("tr");
+        const opts = this.colorizeRowsOptions || {};
+        if (this._colorizeColumnIndex !== -1 && opts.value !== undefined) {
+            const cellValue = row?.[this._colorizeColumnIndex];
+            if (String(cellValue ?? "").trim() === String(opts.value ?? "").trim()) {
+                tr.style = opts.style || "";
+            }
+        }
+        row.forEach((cell, cellIndex) => {
+            const td = document.createElement("td");
+            td.textContent = cell;
+            if (this.catalogData.isEditable(cellIndex)) {
+                td.contentEditable = true;
+                td.classList.add("editable-cell");
+            }
+            tr.appendChild(td);
+        });
+        return tr;
+    }
+
+    appendRows(tbody, data, startIndex, endIndex) {
+        const fragment = document.createDocumentFragment();
+        for (let i = startIndex; i < endIndex; i += 1) {
+            fragment.appendChild(this.buildRow(data[i]));
+        }
+        tbody.appendChild(fragment);
+    }
+
+    renderRows(tbody, data, container) {
+        if (!this.renderOptions.virtualize || !container) {
+            this.appendRows(tbody, data, 0, data.length);
+            return;
+        }
+
+        const state = {
+            data,
+            tbody,
+            container,
+            rendered: 0,
+            chunkSize: this.renderOptions.chunkSize,
+            thresholdPx: this.renderOptions.thresholdPx,
+            scheduled: false,
+            onScroll: null,
+        };
+
+        const renderChunk = () => {
+            if (state.rendered >= state.data.length) return;
+            const next = Math.min(state.rendered + state.chunkSize, state.data.length);
+            this.appendRows(state.tbody, state.data, state.rendered, next);
+            state.rendered = next;
+        };
+
+        renderChunk();
+        if (state.rendered >= state.data.length) return;
+
+        state.onScroll = () => {
+            if (state.scheduled) return;
+            state.scheduled = true;
+            requestAnimationFrame(() => {
+                state.scheduled = false;
+                if (!state.container) return;
+                const { scrollTop, clientHeight, scrollHeight } = state.container;
+                if (scrollTop + clientHeight >= scrollHeight - state.thresholdPx) {
+                    renderChunk();
+                }
+            });
+        };
+
+        state.container.addEventListener("scroll", state.onScroll);
+        this._virtualState = state;
     }
 
     /**
@@ -239,6 +401,7 @@ class TableUI {
             throw new Error("Не найден элемент для вывода таблицы.");
         }
 
+        this.cleanupVirtualState();
         this.productListElement.innerHTML = '';
 
         const container = document.createElement('div');
@@ -268,20 +431,8 @@ class TableUI {
         // Создаём тело таблицы
         const tbody = document.createElement('tbody');
         tbody.id = 'tbody';
-
-        data.forEach(row => {
-            const tr = document.createElement('tr');
-            row.forEach((cell, cellIndex) => {
-                const td = document.createElement('td');
-                td.textContent = cell;
-                if (this.catalogData.isEditable(cellIndex)) {
-                    td.contentEditable = true;
-                    td.classList.add('editable-cell');
-                }
-                tr.appendChild(td);
-            });
-            tbody.appendChild(tr);
-        });
+        this.resolveColorizeIndex(headers);
+        this.renderRows(tbody, data, container);
 
         table.appendChild(tbody);
         container.appendChild(table);

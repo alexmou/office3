@@ -30,17 +30,20 @@ async function initCatalogPage() {
 	    }
 
 	    // Новый формат: массив объектов [{...}, {...}]
-	    if (raw[0] && typeof raw[0] === "object" && !Array.isArray(raw[0])) {
-	      const present = new Set();
-	      raw.forEach((row) => {
-	        Object.keys(row || {}).forEach((k) => present.add(k));
-	      });
-	      // Строгое соответствие разрешенным заголовкам и порядок из columnsToKeep
-	      const headers = columnsToKeep.filter((h) => present.has(h));
-	      catalogData.header = headers;
-	      catalogData.values = raw.map((row) => headers.map((h) => (row?.[h] ?? "")));
-	      return;
-	    }
+      if (raw[0] && typeof raw[0] === "object" && !Array.isArray(raw[0])) {
+        const present = new Set();
+        raw.forEach((row) => {
+          Object.keys(row || {}).forEach((k) => present.add(k));
+        });
+        // Строгое соответствие разрешенным заголовкам и порядок из columnsToKeep
+        const headers = columnsToKeep.filter((h) => present.has(h));
+        catalogData.header = headers;
+        catalogData.values = raw.map((row) => headers.map((h) => (row?.[h] ?? "")));
+        if (typeof catalogData.invalidateSearchIndex === "function") {
+          catalogData.invalidateSearchIndex();
+        }
+        return;
+      }
 
 	    // Старый формат: матрица [headers, visibleContext, editableContext, ...data]
 	    if (!Array.isArray(raw[0])) {
@@ -54,13 +57,16 @@ async function initCatalogPage() {
 
 	    const filteredHeaders = indices.map((i) => headersRow[i]);
 	    const dataStartIndex = raw.length >= 3 ? 3 : 1; // headers + 2 context rows
-	    const filteredRows = raw
-	      .slice(dataStartIndex)
-	      .map((row) => indices.map((i) => (row && row[i] !== undefined ? row[i] : "")));
+    const filteredRows = raw
+      .slice(dataStartIndex)
+      .map((row) => indices.map((i) => (row && row[i] !== undefined ? row[i] : "")));
 
-	    catalogData.header = filteredHeaders;
-	    catalogData.values = filteredRows;
-	  }
+    catalogData.header = filteredHeaders;
+    catalogData.values = filteredRows;
+    if (typeof catalogData.invalidateSearchIndex === "function") {
+      catalogData.invalidateSearchIndex();
+    }
+  }
 
 	  function reInitFilterOptions(catalogData) {
 	    catalogData.filterOptions = catalogData.header.map((h, i) => ({header: h, index: i}));
@@ -154,5 +160,4 @@ catalogUI.colorizeRows();
 }
 
 })();
-
 

@@ -64,7 +64,11 @@ async function initSalesPage() {
 
 
 
-	        const catalogUI = new TableUI(TABLEID, catalogData);
+	        const catalogUI = new TableUI(TABLEID, catalogData, {
+	          virtualize: true,
+	          chunkSize: 200,
+	          thresholdPx: 320,
+	        });
 
 	        // Полнотекстовый поиск по таблице продаж (как в Catalog)
 	        const contentEl = document.getElementById("content");
@@ -94,7 +98,6 @@ async function initSalesPage() {
 
 
 }
-
 
 
 

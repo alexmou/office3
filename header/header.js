@@ -1,5 +1,5 @@
 
-// Новый header: работает без Apps Script, использует navigateTo для SPA.
+// Новый header: работает в SPA-режиме, использует navigateTo.
 
 let headerHeightObserver = null;
 let headerHeightResizeListenerAdded = false;
@@ -342,30 +342,11 @@ window.setMenuEnabled = setMenuEnabled;
 
   function userLogout(html) {
    // console.log(html)
-document.body.innerHTML=html
-//document.getElementById("global").outerHTML=html
-document.getElementById("global").display="block"
-//console.log(openedPages)
-//openedPages=[]
-//openedPages = openedPages.filter(item => item !== "header");
+	document.body.innerHTML=html
+	//document.getElementById("global").outerHTML=html
+	document.getElementById("global").display="block"
       showLogin() 
   }
-
-
-
-
-function appendMenuItem(text,pageName){
-       var a = document.createElement('a');
-        a.classList.add('nav-link');
-        a.setAttribute('aria-current', 'page');
-        a.textContent = text;
-        a.addEventListener("click", function (e) {
-
-                  openPage(pageName)
-                   closeNav()
-        })
-        return a
-}
 
 
 
