@@ -2,6 +2,8 @@
 
 
 
+let CASH_REGISTER_VOCAB = { operationTypes: ["Расход", "Приход"], activities: [] };
+
 if (typeof registerPageInit === "function") {
   registerPageInit("cashregister", bodyOnLoad);
 } else {
@@ -161,6 +163,11 @@ function renderCashRegisterForm({ operationTypes, activities }) {
   attributes = { id: "submitButton", class: "button-24", onclick: "sendDataToCashRegister()" };
   createElement("button", "Отправить", attributes, contentRight);
 
+  CASH_REGISTER_VOCAB = {
+    operationTypes: opTypes.length ? opTypes : ["Расход", "Приход"],
+    activities: activityList,
+  };
+
   // Defaults: first value in the list (if any)
   try {
     const operationTypeEl = document.getElementById("OperationType");
@@ -265,6 +272,17 @@ function returnCashRegisterRecords(res){
 	    }
 	
 	    let rows = rowsPayload;
+
+	    // Display newest first (reverse incoming order).
+	    if (Array.isArray(rows) && rows.length > 1) {
+	      if (Array.isArray(rows[0])) {
+	        const header = rows[0];
+	        const dataRows = rows.slice(1).reverse();
+	        rows = [header, ...dataRows];
+	      } else {
+	        rows = rows.slice().reverse();
+	      }
+	    }
 	
 	    // If server returned array of objects, normalize to matrix.
 	    if (Array.isArray(rows) && rows.length > 0 && rows.every((r) => r && typeof r === "object" && !Array.isArray(r))) {
@@ -352,19 +370,71 @@ const BUDGETNAME="BUTTON ROUGE"
 
 
 var budgetRecord={}
+const now = new Date();
 budgetRecord["Дата"]=getCurrentDate()
 budgetRecord["Время"]=getCurrentTime()
 budgetRecord["Бюджет"]=BUDGETNAME
 budgetRecord["Вид"]="Факт"
+budgetRecord["Год"]=now.getFullYear()
+budgetRecord["Месяц"]=now.getMonth() + 1
 
 budgetRecord["Тип"]=document.getElementById("OperationType").value
 budgetRecord["Статья расходов"]=document.getElementById("activityCashRegister").value
-budgetRecord["username"]=username
+const usernameFromDom = document.getElementById("username")?.textContent;
+const resolvedUsername = String(username || window.currentLoginName || usernameFromDom || "").trim();
+budgetRecord["username"]=resolvedUsername;
 budgetRecord["PaymentCashRegister"]="Касса"
 budgetRecord["Комментарий"]=document.getElementById("Comment").value
 budgetRecord["Сумма"]=document.getElementById("CashSum").value
-budgetRecord["countInBudget"]=0,
-budgetRecord["countInBudget"]=storeName
+budgetRecord["countInBudget"]=0;
+const storeElement = document.getElementById("store");
+const storeContext = window.USER_STORE || {};
+const storeId = storeContext.storeId || storeContext.store || storeContext.id || "";
+const storeNameFromContext =
+  storeContext.storeName || storeContext.name || storeContext.store || storeContext?.[1] || "";
+const resolvedStoreName = storeNameFromContext || (storeElement ? storeElement.textContent : "");
+const cachedStores = Array.isArray(window.STORES_CACHE) ? window.STORES_CACHE : [];
+const cachedStore =
+  cachedStores.find((s) => {
+    const id = Number(s?.storeId ?? s?.id ?? s?.[0]);
+    return storeId && id === Number(storeId);
+  }) ||
+  cachedStores.find((s) => {
+    const name = String(s?.storeName || s?.name || "").trim().toLowerCase();
+    return resolvedStoreName && name === String(resolvedStoreName).trim().toLowerCase();
+  }) ||
+  null;
+const sheetNameAccounting =
+  storeContext.sheetName_accounting ||
+  storeContext.accounting ||
+  cachedStore?.sheetName_accounting ||
+  cachedStore?.accounting ||
+  cachedStore?.sheetName_accounting;
+const storeMetadata = {
+  store: storeId,
+  storeId,
+  storeName: resolvedStoreName,
+};
+if ("sheetName_accounting" in storeContext) {
+  storeMetadata.sheetName_accounting = storeContext.sheetName_accounting;
+}
+if ("accounting" in storeContext) {
+  storeMetadata.accounting = storeContext.accounting;
+}
+if ("accountingSheet" in storeContext) {
+  storeMetadata.accountingSheet = storeContext.accountingSheet;
+}
+if (sheetNameAccounting && !storeMetadata.sheetName_accounting) {
+  storeMetadata.sheetName_accounting = sheetNameAccounting;
+}
+if (sheetNameAccounting && !storeMetadata.accounting) {
+  storeMetadata.accounting = sheetNameAccounting;
+}
+budgetRecord["storeName"] = resolvedStoreName;
+const payload = {
+  ...budgetRecord,
+  ...storeMetadata,
+};
 
 
 
@@ -388,7 +458,7 @@ let budgetRecord={
 	let request  = {
   		googleFuncName: "addCacheRegisterRecord",
   		callbackJSfunctionName: "dataRegistredToCashRegister",
-  		params: JSON.stringify(budgetRecord)
+  		params: JSON.stringify(payload)
   	};
   	runGSfunction(request); 
 
@@ -398,22 +468,29 @@ let budgetRecord={
 
 function dataRegistredToCashRegister(result){
   const parsed = parseMaybeJson(result);
+  const isEmptyResponse = parsed == null || parsed === "";
   const ok =
     parsed === true ||
     parsed === 1 ||
     parsed?.ok === true ||
     parsed?.success === true ||
-    parsed?.result === true;
+    parsed?.result === true ||
+    parsed?.data === true ||
+    parsed?.data === 1 ||
+    parsed?.data?.ok === true ||
+    parsed?.data?.success === true ||
+    parsed?.data?.result === true ||
+    isEmptyResponse;
 
   if (ok) {
     showInformationalPopup(CONFIG.cashRegistred);
-    cllearCashRegisterData();
-    getBudgetData();
-    getCashRegisterRecords();
-    return;
+    renderCashRegisterForm(CASH_REGISTER_VOCAB);
+  } else if (CONFIG.errorwritingcash) {
+    showErrorPopup(CONFIG.errorwritingcash);
   }
 
-  showErrorPopup(CONFIG.errorwritingcash);
+  getBudgetData();
+  getCashRegisterRecords();
 }
 
 

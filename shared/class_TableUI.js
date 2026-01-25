@@ -26,7 +26,7 @@ class TableData {
      * Инициализирует загрузку данных и создание набора данных с сервера.
      * @param {Object} query - Объект с параметрами фильтрации или условиями запроса.
      * @param {string} dataFunctionName - Название серверной функции для получения данных.
-     * @param {string} filterFunctionName - Название серверной функции для получения опций фильтра.
+     * @param {string} [filterFunctionName] - Опционально: функция для получения опций фильтра.
      */
     async initWithServerQuery(query, dataFunctionName, filterFunctionName) {
         this.query = query;
@@ -60,7 +60,9 @@ class TableData {
      */
     async loadDataSequentially() {
         await this.getAllItemsByQuery();
-        await this.getFilterOptions();
+        if (this.filterFunctionName) {
+            await this.getFilterOptions();
+        }
     }
 
     /**

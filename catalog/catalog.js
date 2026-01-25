@@ -16,11 +16,10 @@ async function initCatalogPage() {
 
   const INITIAL_QUERY = "All"; //{type:"someFilter"}
   const DATA_FUNCTION_NAME="getAllItemsFromCatalogByQuery"
-  const FILTER_FUNCTION_NAME="getCatalogFilterOptions"
   const TABLEID="catalog-list"
 		  const COLUMNS_TO_KEEP = ["article", "Brand", "Name", "price", "quantity","type", "subtype", "color", "size", "производитель", "description"];
 	  const catalogData = new TableData();
-	  await catalogData.initWithServerQuery(INITIAL_QUERY, DATA_FUNCTION_NAME, FILTER_FUNCTION_NAME);
+	  await catalogData.initWithServerQuery(INITIAL_QUERY, DATA_FUNCTION_NAME);
 	  normalizeCatalogResponse(catalogData, COLUMNS_TO_KEEP);
 	  reInitFilterOptions(catalogData); // Пересоздаем filterOptions и currentQuery под новую структуру
 
@@ -155,6 +154,5 @@ catalogUI.colorizeRows();
 }
 
 })();
-
 
 

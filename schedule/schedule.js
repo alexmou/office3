@@ -60,6 +60,7 @@
 
   let monthPickerEl = null;
   let monthPickerYear = new Date().getFullYear();
+  let schedulePageObserver = null;
 
   function ensureMonthPicker(){
     if (monthPickerEl) return monthPickerEl;
@@ -166,6 +167,21 @@
   function closeMonthPicker(){
     if (!monthPickerEl) return;
     monthPickerEl.classList.add('is-hidden');
+  }
+
+  function watchSchedulePageRemoval(){
+    if (schedulePageObserver) return;
+    const root = document.getElementById('page-root');
+    if (!root) return;
+    const observer = new MutationObserver(() => {
+      if (!document.getElementById('schedule-root')) {
+        closeMonthPicker();
+        observer.disconnect();
+        schedulePageObserver = null;
+      }
+    });
+    observer.observe(root, { childList: true });
+    schedulePageObserver = observer;
   }
   function mondayOfWeek(d){
     // Map Sun..Sat -> 6,0,1,2,3,4,5 so that Monday=0
@@ -679,12 +695,12 @@
     populateTimeSelect(startEl, TIME_START_OPTIONS);
     populateTimeSelect(endEl, TIME_END_OPTIONS);
 
-    const startValue = rec.ActualStart || '08:00';
-    let endValue = rec.ActualEnd || '24:00';
+    const startValue = rec.ActualStart || '11:00';
+    let endValue = rec.ActualEnd || '21:00';
     if (endValue === '00:00') endValue = '24:00';
     startEl.value = TIME_START_OPTIONS.includes(startValue) ? startValue : TIME_START_OPTIONS[0];
     endEl.value = TIME_END_OPTIONS.includes(endValue) ? endValue : TIME_END_OPTIONS[TIME_END_OPTIONS.length - 1];
-  //  tr.querySelector('.cell-sales').value = Number(rec.SalesAmount||0);
+  //  tr.querySelector('.cell-sales').value = Number(rec.SalesAmount||0); 
     tr.querySelector('.cell-note').value = rec.Note||'';
 
     tr.querySelector('.cell-Id').value = rec.Id||'';
@@ -808,6 +824,7 @@
     if (getMetaEmployees().length === 0) {
       await ensureEmployeesFromHistory(getSelectedYm());
     }
+    watchSchedulePageRemoval();
   }
 
   /* ==== N8N CONTRACT EXAMPLES ====

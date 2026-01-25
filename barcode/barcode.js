@@ -483,8 +483,19 @@ function addArticle() {
   getDataFromServer(request)
     .then((data) => {
       console.log(data)
-      const article = data[0];
+      const maybeError = detectApiError(data);
+      if (maybeError) {
+        showErrorPopup(CONFIG[maybeError] || maybeError);
+        return false;
+      }
+
+      const article = normalizeItemData(data);
       if (!article || article.length <= 1) {
+        showErrorPopup(CONFIG.articlenotfound);
+        return false;
+      }
+      const productPreview = returnArticleAsObject(article[0], article);
+      if (!productPreview || !String(productPreview.article || "").trim()) {
         showErrorPopup(CONFIG.articlenotfound);
         return false;
       }
@@ -505,6 +516,143 @@ function addArticle() {
     .catch((error) => {
       systemError("Ошибка получения данных с сервера", error);
     });
+}
+
+function detectApiError(raw) {
+  const holder = findInResponse(raw, (val) => {
+    if (!val || typeof val !== "object" || Array.isArray(val)) return false;
+    return val.error !== undefined && val.error !== null && String(val.error).trim() !== "";
+  });
+  return holder ? holder.error : null;
+}
+
+function findInResponse(raw, predicate, depth = 0) {
+  if (depth > 7 || raw === undefined || raw === null) return null;
+  let parsed = raw;
+  if (typeof parsed === "string") {
+    try { parsed = JSON.parse(parsed); } catch (_) { return null; }
+    return findInResponse(parsed, predicate, depth + 1);
+  }
+  if (predicate(parsed)) return parsed;
+
+  if (Array.isArray(parsed)) {
+    for (const item of parsed) {
+      const found = findInResponse(item, predicate, depth + 1);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  if (typeof parsed === "object") {
+    const preferredKeys = ["data", "result", "payload", "values"];
+    for (const key of preferredKeys) {
+      if (parsed[key] !== undefined) {
+        const found = findInResponse(parsed[key], predicate, depth + 1);
+        if (found) return found;
+      }
+    }
+    for (const v of Object.values(parsed)) {
+      const found = findInResponse(v, predicate, depth + 1);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function isContextRow(row) {
+  if (!Array.isArray(row)) return false;
+  let filled = 0;
+  let contextLike = 0;
+  row.forEach((cell) => {
+    if (cell === undefined || cell === null) return;
+    const s = String(cell).trim();
+    if (!s) return;
+    filled += 1;
+    if (s === "0" || s === "1") contextLike += 1;
+  });
+  if (!filled) return false;
+  return contextLike / filled >= 0.7;
+}
+
+function normalizeItemData(raw) {
+  if (raw === undefined || raw === null) return null;
+
+  const matrix = findInResponse(raw, (val) => {
+    if (!Array.isArray(val) || val.length < 2) return false;
+    if (!Array.isArray(val[0]) || !Array.isArray(val[1])) return false;
+    if (isContextRow(val[1]) && Array.isArray(val[2]) && isContextRow(val[2])) return false;
+    return true;
+  });
+  if (matrix) return matrix;
+
+  const looksLikeItemObject = (val) => {
+    if (!val || typeof val !== "object" || Array.isArray(val)) return false;
+    if (val.quantity !== undefined) return true;
+    if (val.article !== undefined) return true;
+    if (CONFIG?.FIELDNAME_PRICE && val[CONFIG.FIELDNAME_PRICE] !== undefined) return true;
+    return false;
+  };
+
+  const objectArray = findInResponse(raw, (val) => {
+    if (!Array.isArray(val) || val.length < 1) return false;
+    return looksLikeItemObject(val[0]);
+  });
+  if (objectArray) {
+    const obj = objectArray[0];
+    const headers = Object.keys(obj);
+    const values = headers.map((h) => obj[h]);
+    return [headers, values];
+  }
+
+  const objectRow = findInResponse(raw, looksLikeItemObject);
+  if (objectRow) {
+    const headers = Object.keys(objectRow);
+    const values = headers.map((h) => objectRow[h]);
+    return [headers, values];
+  }
+
+  let parsed = raw;
+  if (typeof raw === "string") {
+    try { parsed = JSON.parse(raw); } catch (e) { return null; }
+  }
+  if (Array.isArray(parsed)) {
+    if (parsed.length === 0) return null;
+    if (Array.isArray(parsed[0])) return parsed;
+    if (typeof parsed[0] === "object" && parsed[0] !== null) {
+      const obj = parsed[0];
+      const headers = Object.keys(obj);
+      const values = headers.map((h) => obj[h]);
+      return [headers, values];
+    }
+  }
+  if (typeof parsed === "object") {
+    const headers = Object.keys(parsed);
+    const values = headers.map((h) => parsed[h]);
+    return [headers, values];
+  }
+  return null;
+}
+
+function resolveArticleMatrix(raw) {
+  if (raw == null) return null;
+  if (Array.isArray(raw)) {
+    const isMatrix =
+      Array.isArray(raw[0]) &&
+      Array.isArray(raw[1]) &&
+      !Array.isArray(raw[0]?.[0]) &&
+      !Array.isArray(raw[1]?.[0]);
+    if (isMatrix) return raw;
+
+    const first = raw[0];
+    if (Array.isArray(first) && Array.isArray(first[0])) {
+      return first;
+    }
+    return null;
+  }
+  if (typeof raw === "object" && raw.data !== undefined) {
+    return resolveArticleMatrix(raw.data);
+  }
+  return null;
 }
 
 /**

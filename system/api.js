@@ -34,7 +34,7 @@
   */
   let API_ROUTES = {
     addBudgetRecord: { source: "n8n", webhook: "prod" },
-    addCacheRegisterRecord: { source: "n8n", webhook: "prod" },
+
     getAllItemsFromCatalogByQuery: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
     getAllItemsFromSalesByQuery: { source: "auto", webhook: "prod" },
     getAllSalesStatistic: { source: "auto", webhook: "prod" },
@@ -43,14 +43,17 @@
 
     getCash: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "CashRegister" },
     getCashRegisterRecords: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "CashRegister" },
+    addCacheRegisterRecord: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "CashRegister" },
 
-    getCatalogFilterOptions: { source: "auto", webhook: "prod" },
+   // getCatalogFilterOptions: { source: "auto", webhook: "prod" },
     getConfig: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "config" },
     updateConfig: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "config", rawBody: true },
     getDistinctBrandNames: { source: "auto", webhook: "prod" },
     getHeader:  { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
     getItemByArticleName: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
-    sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "prod", webhookAction: "newSale" },
+
+
+    sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "test", webhookAction: "newSale" },
 
     getMenu: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "Menu" },
     getMySalary:{ source: "n8n", method: "GET", webhook: "prod", webhookAction: "Salary" },
