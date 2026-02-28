@@ -326,6 +326,143 @@
     return value;
   }
 
+  function normalizeKey(value){
+    return String(value || '').trim().toLowerCase();
+  }
+
+  const EMPLOYEE_KEYS = new Set([
+    'employee', 'employees', 'user', 'users', 'staff', 'personnel', 'workers', 'team',
+    'сотрудник', 'сотрудники'
+  ]);
+  const STORE_KEYS = new Set([
+    'store', 'stores', 'shop', 'shops', 'store_name', 'storeid',
+    'магазин', 'магазины'
+  ]);
+
+  function extractMetaFromTable(rows){
+    if (!Array.isArray(rows) || rows.length < 2 || !Array.isArray(rows[0])) return null;
+    const header = rows[0].map((h) => normalizeKey(h));
+    const empIdx = header.findIndex((h) => EMPLOYEE_KEYS.has(h) || h === 'name' || h === 'fio' || h === 'фио' || h === 'имя');
+    const storeIdx = header.findIndex((h) => STORE_KEYS.has(h));
+    if (empIdx === -1 && storeIdx === -1) return null;
+
+    const employees = [];
+    const stores = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!Array.isArray(row)) continue;
+      if (empIdx >= 0) {
+        const name = normalizeEmployeeName(row[empIdx]);
+        if (name) {
+          const storeName = storeIdx >= 0 ? normalizeStoreName(row[storeIdx]) : '';
+          employees.push(storeName ? { employee: name, store: storeName } : { employee: name });
+        }
+      }
+      if (storeIdx >= 0) {
+        const storeName = normalizeStoreName(row[storeIdx]);
+        if (storeName) stores.push({ store: storeName });
+      }
+    }
+    return { employees, stores };
+  }
+
+  function collectEmployeesFromAny(raw){
+    const out = [];
+    const seen = new Set();
+    const visited = new WeakSet();
+    const pushEmployee = (name, store) => {
+      const emp = normalizeEmployeeName(name);
+      if (!emp) return;
+      const storeName = normalizeStoreName(store);
+      const key = `${emp}__${storeName}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push(storeName ? { employee: emp, store: storeName } : { employee: emp });
+    };
+    const visit = (val, ctx) => {
+      const v = unwrapMaybe(val);
+      if (v == null) return;
+
+      if (Array.isArray(v)) {
+        const table = extractMetaFromTable(v);
+        if (table) {
+          (table.employees || []).forEach((e) => pushEmployee(e.employee, e.store));
+        }
+        v.forEach((item) => visit(item, ctx));
+        return;
+      }
+      const type = typeof v;
+      if (type === 'string' || type === 'number') {
+        if (ctx === 'employee') pushEmployee(v);
+        return;
+      }
+      if (type === 'object') {
+        if (visited.has(v)) return;
+        visited.add(v);
+        const empValue =
+          v.employee ?? v.Employee ?? v.name ?? v.Name ?? v.username ?? v.user ?? v.User ?? v.fullName ?? v.full_name;
+        const storeValue = v.store ?? v.Store ?? v.storeName ?? v.StoreName ?? v.shop ?? v.Shop;
+        if (empValue && (ctx === 'employee' || 'employee' in v || 'Employee' in v || 'username' in v || 'user' in v)) {
+          pushEmployee(empValue, storeValue);
+        }
+        Object.entries(v).forEach(([k, value]) => {
+          const key = normalizeKey(k);
+          if (STORE_KEYS.has(key)) return;
+          if (EMPLOYEE_KEYS.has(key)) return visit(value, 'employee');
+          visit(value, ctx);
+        });
+      }
+    };
+    visit(raw, null);
+    return out;
+  }
+
+  function collectStoresFromAny(raw){
+    const out = [];
+    const seen = new Set();
+    const visited = new WeakSet();
+    const pushStore = (name) => {
+      const storeName = normalizeStoreName(name);
+      if (!storeName || seen.has(storeName)) return;
+      seen.add(storeName);
+      out.push({ store: storeName });
+    };
+    const visit = (val, ctx) => {
+      const v = unwrapMaybe(val);
+      if (v == null) return;
+
+      if (Array.isArray(v)) {
+        const table = extractMetaFromTable(v);
+        if (table) {
+          (table.stores || []).forEach((s) => pushStore(s.store));
+        }
+        v.forEach((item) => visit(item, ctx));
+        return;
+      }
+      const type = typeof v;
+      if (type === 'string' || type === 'number') {
+        if (ctx === 'store') pushStore(v);
+        return;
+      }
+      if (type === 'object') {
+        if (visited.has(v)) return;
+        visited.add(v);
+        const storeValue = v.store ?? v.Store ?? v.storeName ?? v.StoreName ?? v.shop ?? v.Shop;
+        if (storeValue && (ctx === 'store' || 'store' in v || 'Store' in v || 'storeName' in v)) {
+          pushStore(storeValue);
+        }
+        Object.entries(v).forEach(([k, value]) => {
+          const key = normalizeKey(k);
+          if (EMPLOYEE_KEYS.has(key)) return;
+          if (STORE_KEYS.has(key)) return visit(value, 'store');
+          visit(value, ctx);
+        });
+      }
+    };
+    visit(raw, null);
+    return out;
+  }
+
   function normalizeScheduleMeta(raw){
     const result = { employees: [], stores: [] };
 
@@ -364,6 +501,14 @@
     };
 
     consume(raw);
+    if (!result.employees.length) {
+      const fallbackEmployees = collectEmployeesFromAny(raw);
+      if (fallbackEmployees.length) result.employees = fallbackEmployees;
+    }
+    if (!result.stores.length) {
+      const fallbackStores = collectStoresFromAny(raw);
+      if (fallbackStores.length) result.stores = fallbackStores;
+    }
     return result;
   }
 
@@ -416,11 +561,14 @@
   }
 
   async function loadMeta(){
-    const params = { visible: true };
+    const params = { visible: true, action: 'getScheduleMeta' };
     if (!window.API || typeof window.API.getScheduleMeta !== "function") {
       throw new Error("API.getScheduleMeta is not available");
     }
-    const res = await window.API.getScheduleMeta(params, { mode: params.mode, overlayId: "schedule" });
+    const res = await window.API.getScheduleMeta(params, {
+      mode: params.mode,
+      overlayId: "schedule",
+    });
     const normalized = normalizeScheduleMeta(res);
     META = normalized;
 
@@ -654,19 +802,15 @@
 
     const sel = tr.querySelector('.cell-employee');
     const empList = (getMetaEmployees()||[]);
-    const fallbackEmployees = empList.length ? empList : deriveEmployeesFromRows(CACHED_ROWS);
-    const filteredEmps = empList
-      .filter((e)=> {
-        const store = e?.store || e?.Store;
-        return !CURRENT_STORE || !store || String(store)===String(CURRENT_STORE);
-      });
-    const filteredFallbackEmps = fallbackEmployees
-      .filter((e)=> {
-        const store = e?.store || e?.Store;
-        return !CURRENT_STORE || !store || String(store)===String(CURRENT_STORE);
-      });
-    const empOptions = filteredEmps.length ? filteredEmps : (filteredFallbackEmps.length ? filteredFallbackEmps : ([rec.Employee].filter(Boolean)));
-    if (!empOptions.length) empOptions.push('');
+    const baseEmployees = empList.length ? empList : deriveEmployeesFromRows(CACHED_ROWS);
+    const filterByStore = (list) => (list || []).filter((e)=> {
+      const store = e?.store || e?.Store || e?.storeName || e?.StoreName;
+      return !CURRENT_STORE || !store || String(store)===String(CURRENT_STORE);
+    });
+    const storeFiltered = filterByStore(baseEmployees);
+    let empOptions = storeFiltered.length ? storeFiltered : baseEmployees;
+    if (!empOptions.length && rec.Employee) empOptions = [rec.Employee];
+    if (!empOptions.length) empOptions = [''];
     const empOptionItems = empOptions
       .map((e)=>{
         const v = e?.employee || e?.Employee || e?.name || e;
@@ -675,6 +819,12 @@
         return { value: text, label };
       })
       .filter((opt) => opt.value);
+    if (rec.Employee) {
+      const recName = normalizeEmployeeName(rec.Employee);
+      if (recName && !empOptionItems.some((opt) => opt.value === recName)) {
+        empOptionItems.push({ value: recName, label: recName });
+      }
+    }
     sel.innerHTML = ['<option value="">—</option>']
       .concat(empOptionItems.map((opt) => `<option value="${opt.value}">${opt.label}</option>`))
       .join('');
@@ -778,6 +928,10 @@
   }
 
   async function initSchedulePage(){
+    const root = document.getElementById('schedule-root');
+    if (!root) return;
+    if (root.dataset.init === '1') return;
+    root.dataset.init = '1';
     resetState();
     // default to current month
     setPickerFromYm(ymNow());

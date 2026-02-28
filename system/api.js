@@ -53,7 +53,7 @@
     getItemByArticleName: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "getCatalogData" },
 
 
-    sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "test", webhookAction: "newSale" },
+    sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "prod", webhookAction: "newSale" },
 
     getMenu: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "Menu" },
     getMySalary:{ source: "n8n", method: "GET", webhook: "prod", webhookAction: "Salary" },
@@ -68,9 +68,10 @@
 
     // Charts services (n8n webhook: /charts)
     getChartsData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "charts" },
+    getChartsSummary: { source: "n8n", method: "GET", webhook: "test", webhookAction: "charts" },
 
     // Sales services (n8n webhook: /sales)
-    getSalesData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sales" },
+    getSalesData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sales" }, 
 
     // Budget services (n8n webhook: /budget)
     // NOTE: backend action can be overridden via params.action (keeps API_ROUTES simple).
@@ -142,19 +143,24 @@
     paramsWithToken,
     timeout = DEFAULT_TIMEOUT,
     mode,
-    contractVersion = API_CONTRACT_VERSION
+    contractVersion = API_CONTRACT_VERSION,
+    opts = {}
   ) {
     const isV2 = Number(contractVersion) >= 2;
+    const dataOnly = !!opts.dataOnly;
     const webhook = getWebHook(mode);
     const qs = new URLSearchParams();
     const payload = paramsWithToken || {};
-    Object.entries(payload).forEach(([key, value]) => {
-      if (value === undefined) return;
-      qs.append(key, typeof value === "string" ? value : JSON.stringify(value));
-    });
+    if (!dataOnly) {
+      Object.entries(payload).forEach(([key, value]) => {
+        if (value === undefined) return;
+        qs.append(key, typeof value === "string" ? value : JSON.stringify(value));
+      });
+    }
     // Legacy n8n workflows may expect parameters inside data.query.*
-    if (!isV2 && !qs.has("data")) {
+    if (!isV2 && (!qs.has("data") || dataOnly)) {
       try {
+        if (qs.has("data")) qs.delete("data");
         qs.append("data", JSON.stringify({ query: payload }));
       } catch (_) {
         // ignore serialization errors
@@ -288,11 +294,13 @@
       console.log("getMySalary payload ->", paramsWithToken);
     }
 
-    const payload = {
-      ...paramsWithToken,
-      action: paramsWithToken?.action || action,
-    };
-    const actionName = payload?.action || action;
+    const includeActionInPayload = !(opts.skipAction && method === "GET");
+    const basePayload = { ...paramsWithToken };
+    if (!includeActionInPayload) delete basePayload.action;
+    const payload = includeActionInPayload
+      ? { ...basePayload, action: basePayload?.action || action }
+      : basePayload;
+    const actionName = payload?.action || basePayload?.action || action;
     const endpointLabel = method === "GET" ? endpoint : (isV2 ? endpoint : targetAction);
     console.info(`[API] ${method} ${endpointLabel} action=${actionName}`);
 
@@ -306,7 +314,8 @@
           payload,
           opts.timeout || DEFAULT_TIMEOUT,
           mode,
-          contractVersion
+          contractVersion,
+          opts
         );
         showPage(overlayId);
         return res;
@@ -760,6 +769,32 @@
   }
 
   generatedApi.setToken = setToken;
+
+  async function getScheduleMetaLegacy(params = {}, opts = {}) {
+    const payload = { ...(params || {}) };
+    payload.action = payload.action || "getScheduleMeta";
+    const mode = normalizeWebhookMode(opts.webhook || opts.webhookMode || opts.mode);
+    const overlayId = opts.overlayId || "schedule";
+    hidePage(overlayId);
+    try {
+      const res = await callN8nGet(
+        "schedule",
+        payload,
+        opts.timeout || DEFAULT_TIMEOUT,
+        mode,
+        1,
+        { dataOnly: true }
+      );
+      showPage(overlayId);
+      return res;
+    } catch (error) {
+      console.error("Ошибка при выполнении getScheduleMeta (legacy GET):", error);
+      showPage(overlayId);
+      return null;
+    }
+  }
+
+  generatedApi.getScheduleMeta = getScheduleMetaLegacy;
 
   async function upsertShifts(rows = [], opts = {}) {
     const normalizedRows = Array.isArray(rows) ? rows : [rows];
