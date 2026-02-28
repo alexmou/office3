@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule</title>
+  <link rel="stylesheet" href="./schedule.css">
+</head>
+<body>
+<div id="global" style="margin-top: -28px;">
+  <div id="main">
+    <div id="myDiv" class="animate-bottom">
+      <div id="content" class="animate-bottom" style="display: inline-grid; ">
+
+        
+<main id="schedule-root">
+  <header class="toolbar">
+    <div class="field">
+      <button id="month_prev" class="ghost" title="Предыдущий месяц">◀</button>
+      <input id="schedule_month" class="month-input" type="text" inputmode="none" autocomplete="off" aria-label="Месяц" readonly>
+      <button id="month_next" class="ghost" title="Следующий месяц">▶</button>
+    </div>
+    <div class="field">
+      <label>Магазин:</label>
+      <select id="schedule_store"></select>
+    </div>
+
+    <div class="spacer"></div>
+          <section id="schedule-legend">
+        <span class="badge plan">Alex: 50ч </span>
+        <span class="badge actual">Ана: 20ч </span>
+        <span class="badge today">Таня: 20ч</span>
+      </section>
+  </header>
+
+
+
+  <section id="calendar" class="calendar"></section>
+
+  <!-- Модальное окно редактирования дня -->
+  <div id="day-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal__dialog">
+      <header class="modal__header">
+        <div class="modal__title">
+          <div id="modal_date_str" class="date"></div>
+          <div id="modal_store_str" class="store"></div>
+        </div>
+        <button id="modal_close" class="ghost">&times;</button>
+      </header>
+      <section class="modal__body">
+        <table class="day-table">
+          <thead>
+            <tr>
+              <th>Магазин</th>
+              <th>Сотрудник</th>
+              <th class="muted">Часы работы</th>
+              <th>Заметка</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="day_rows"></tbody>
+        </table>
+        <button id="add-article-btn" title="Добавить статью" aria-label="Добавить статью">+</button>
+      </section>
+      <footer class="modal__footer">
+        <button id="modal_save" class="save">Сохранить</button>
+        <button id="modal_cancel" class="cancel">Отмена</button>
+      </footer>
+    </div>
+  </div>
+
+  <template id="day-row-tmpl">
+    <tr>
+      <td><select class="cell-store"></select></td>
+      <td>
+        <select class="cell-employee"></select>
+      </td>
+    
+      <td class="actual">
+        <div class="time-row">
+          <select class="cell-actual-start"></select>
+          <span class="sep">–</span>
+          <select class="cell-actual-end"></select>
+        </div>
+      </td>
+      <td><input type="text" class="cell-note" /></td>
+      <td><input type="text" class="cell-Id" style="display: none;" /></td>
+      <td><button class="ghost row-del">✕</button></td>
+    </tr>
+  </template>
+</main>
+
+
+    </div>
+        </div>
+            </div>
+                </div>
+
+<script src="./schedule.js"></script>
+</body>
+</html>

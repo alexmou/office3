@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Администрирование складов</title>
+  <link rel="stylesheet" href="./admin_sklad.css">
+</head>
+<body>
+
+
+ <div id="global">
+
+    <div class="toolbar">
+      <button id="btnSaveAll" class="button button--success">Сохранить</button>
+    </div>
+
+    <div id="warehouseData1" data-warehouse1="[]"></div>
+    <div id="warehouseData2" data-warehouse2="[]"></div>
+
+    <div class="warehouses">
+      <!-- Склад 1 -->
+      <section class="warehouse">
+        <div class="filter-bar">
+          <label><input type="checkbox" id="hideZero1" checked> Скрывать отсутствующие</label>
+          <input id="filter1" class="filter-input" placeholder="Фильтр по всем полям">
+          <button class="button button--primary add-product" data-wid="1">+ Добавить товар</button>
+        </div>
+        <div id="products1-zone" class="warehouse-zone">
+          <span class="zone-label">Склад 1</span>
+          <div id="products1" class="products-container"></div>
+        </div>
+      </section>
+
+      <!-- Склад 2 -->
+      <section class="warehouse">
+        <div class="filter-bar">
+          <label><input type="checkbox" id="hideZero2" checked> Скрывать отсутствующие</label>
+          <input id="filter2" class="filter-input" placeholder="Фильтр по всем полям">
+          <button class="button button--primary add-product" data-wid="2">+ Добавить товар</button>
+        </div>
+        <div id="products2-zone" class="warehouse-zone">
+          <span class="zone-label">Склад 2</span>
+          <div id="products2" class="products-container"></div>
+        </div>
+      </section>
+    </div>
+ 
+
+  <!-- Модалка перемещения -->
+  <div id="quantityModal"
+       class="modal"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="quantityModalLabel"
+       data-persistent="false">
+    <div class="modal-content small">
+      <header class="modal-header">
+        <h3 id="quantityModalLabel">Перенос товара</h3>
+        <button class="modal-close" data-close>×</button>
+      </header>
+      <div class="modal-body">
+        Введите количество (макс. <span id="maxQuantity">0</span>):
+        <input id="transferQuantity" type="number" min="1" value="1">
+      </div>
+      <footer class="modal-footer">
+        <button class="modal-btn" data-close type="button">Отмена</button>
+        <button id="confirmTransfer" class="modal-btn modal-btn--primary">Подтвердить</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Модалка деталей -->
+  <div id="detailsModal"
+       class="modal"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="detailsModalLabel"
+       data-persistent="true">
+    <div class="modal-content large">
+      <header class="modal-header">
+        <h3 id="detailsModalLabel">Редактирование товара</h3>
+        <button class="modal-close" data-close>×</button>
+      </header>
+      <form id="detailsForm">
+        <div id="detailsBody" class="modal-body"
+             data-wid="1" data-is-new="0" data-pid="">
+          <!-- Поля генерируются JS -->
+        </div>
+<footer class="modal-footer">
+  <button class="modal-btn" data-close type="button">Отмена</button>
+  <button id="btnDeleteProduct" class="modal-btn btn-delete" type="button" style="background-color:#e55353; color:#fff; margin-left:10px;">
+    Удалить
+  </button>
+  <button class="modal-btn modal-btn--primary" type="submit">Сохранить</button>
+</footer>
+
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Контейнер для toast-уведомлений -->
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+</div>
+<div id="myDiv">
+
+  <script src="./admin_sklad.js"></script>
+</body>
+</html>

@@ -16,6 +16,17 @@
 
   <div id="overlay"></div>
 
+  <script>
+    (function() {
+      window.APP_ENV = window.APP_ENV || {};
+      if (window.location.pathname.indexOf("/test/") !== -1) {
+        window.APP_ENV.webhookMode = "test";
+        window.APP_ENV.forceWebhookMode = true;
+        window.APP_ENV.label = "TEST";
+      }
+    })();
+  </script>
+
   <script src="../system/system.js"></script>
   <script src="../system/pageConfig.js"></script>
   <script src="../system/app.js"></script>

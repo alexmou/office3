@@ -1,0 +1,245 @@
+<style>
+
+:root {
+  --primary-color: #4361ee;
+  --secondary-color: #3f37c9;
+  --accent-color: #4895ef;
+  --light-bg: rgba(72, 149, 239, 0.1);
+  --chart-color-1: #4361ee;
+  --chart-color-2: #4cc9f0;
+  --chart-color-3: #f72585;
+  --chart-color-4: #7209b7;
+  --text-color: #2b2d42;
+  --text-light: #8d99ae;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Base styles */
+a {
+  text-decoration: none;
+  color: var(--primary-color);
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  text-decoration: underline;
+  color: var(--secondary-color);
+}
+
+img {
+  height: auto;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+/* Charts container */
+.charts-container {
+  display: flex;  
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
+  max-width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Summary blocks */
+.summary-container {
+  display: grid;
+  gap: 20px;
+  padding: 20px;
+  max-width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.summary-card {
+  flex: 1 1 320px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+  box-sizing: border-box;
+  border-left: 6px solid transparent;
+}
+
+.summary-card--green { border-left-color: #4caf50; }
+.summary-card--red { border-left-color: #ef5350; }
+.summary-card--blue { border-left-color: #2196f3; }
+.summary-card--purple { border-left-color: #7b61ff; }
+
+.summary-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  color: var(--text-color);
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.summary-total .value {
+  color: #0f766e;
+}
+
+.summary-list {
+  display: grid;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summary-item .label {
+  color: #374151;
+}
+
+.summary-item .value {
+  font-variant-numeric: tabular-nums;
+  color: #111827;
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.summary-table th,
+.summary-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.summary-table thead th {
+  background: #f8fafc;
+  color: #374151;
+  text-align: left;
+}
+
+.summary-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-table tr.total-row td {
+  font-weight: 700;
+  background: #f1f5f9;
+}
+
+/* Individual chart styling */
+.chart-wrapper {
+  flex: 1 1 400px; /* Минимальная ширина 600px, затем растягивается */
+  min-height: 400px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 350px;
+}
+
+/* Card styles */
+.card {
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  background: white;
+  margin-bottom: 20px;
+}
+
+/* Message styles */
+.message {
+  padding: 12px 20px;
+  font-size: 1em;
+  color: var(--text-color);
+  box-sizing: border-box;
+  margin: 0 0 20px 0;
+  border-radius: 6px;
+  width: 100%;
+  overflow: auto;
+  border: 1px solid transparent;
+}
+
+.error {
+  background-color: #ffebee;
+  border-color: #f44336;
+  color: #d32f2f;
+}
+
+.success {
+  background-color: #e8f5e9;
+  border-color: #4caf50;
+  color: #2e7d32;
+}
+
+/* Utility classes */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.full-width { width: 100%; }
+.cursor-pointer { cursor: pointer; }
+
+.mr-20 { margin-right: 20px; }
+.m-20 { margin: 20px; }
+
+.display-none { display: none; }
+.inline-block { display: inline-block; }
+
+.font-bold { font-weight: bold; }
+
+/* Responsive adjustments */
+@media all and (max-width: 768px) {
+  .chart-wrapper {
+    flex: 1 1 100%; /* На мобильных занимает всю ширину */
+    min-height: 300px;
+  }
+  
+  .tile-container {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .summary-card {
+    flex: 1 1 100%;
+  }
+}
+
+@media all and (max-width: 480px) {
+  .charts-container {
+    padding: 10px;
+  }
+  
+  .chart-wrapper {
+    padding: 15px;
+  }
+  
+  .card {
+    padding: 1rem;
+  }
+}
+
+</style>

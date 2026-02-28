@@ -1,0 +1,532 @@
+const DEFAULT_NAV_ITEMS = [
+  { id: "newsale", label: "New sale", type: "page", level: 0 },
+  { id: "barcode", label: "Tag print", type: "page", level: 0 },
+  { id: "catalog", label: "Catalog", type: "page", level: 0 },
+  { id: "sales", label: "Sales", type: "page", level: 0 },
+  { id: "salary", label: "Salary", type: "page", level: 0 },
+  { id: "cashregister", label: "Cash Register", type: "page", level: 0 },
+  { id: "budget", label: "Budget", type: "page", level: 0 },
+  { id: "statistic", label: "Statistic", type: "page", level: 0 },
+  { id: "settings", label: "Settings", type: "page", level: 0 },
+];
+
+let currentNavItems = [];
+
+const HEADER_FALLBACK_HTML = `
+  <header class="app-header" id="appHeader">
+    <div class="app-topbar">
+      <div class="app-topbar-left">
+        <button class="hamburger" type="button" aria-label="Open menu">&#9776;</button>
+      </div>
+      <div class="app-topbar-center">
+        <div class="brand" aria-label="Button Rouge">Button Rouge</div>
+      </div>
+      <div class="app-topbar-right user-info">
+        <span id="store"></span>
+        <span id="username"></span>
+        <button id="logoutButton" type="button">Logout</button>
+      </div>
+    </div>
+
+    <div class="app-titlebar" aria-label="Page title">
+      <h1 id="pageName"></h1>
+    </div>
+
+    <nav class="sidebar" id="sidebar" aria-label="Menu">
+      <button class="closebtn" type="button" aria-label="Close menu">&times;</button>
+      <ul id="hamburgerMenu"></ul>
+    </nav>
+  </header>
+`;
+
+const loadedAssets = {
+  css: new Map(),
+  js: new Map(),
+};
+
+const pageInitializers = {};
+
+window.registerPageInit = function(pageId, fn) {
+  if (pageId && typeof fn === "function") {
+    pageInitializers[pageId] = fn;
+  }
+};
+
+async function runPageInit(pageId) {
+  const fn = pageInitializers[pageId];
+  if (typeof fn === "function") {
+    try {
+      const res = fn();
+      if (res && typeof res.then === "function") {
+        await res;
+      }
+    } catch (err) {
+      console.error(`Failed to init page ${pageId}`, err);
+    }
+  }
+}
+
+let currentPageScripts = [];
+let currentPageStyles = [];
+const CORE_SCRIPTS = [
+  "../system/n8n.js",
+  "../system/api.js",
+  "../shared/class_TableUI.js",
+];
+
+function extractBodyHtml(htmlText) {
+  const parsed = new DOMParser().parseFromString(htmlText, "text/html");
+  if (!parsed?.body) return htmlText;
+
+  // Strip scripts and comments so JS code is not rendered as text.
+  parsed.body.querySelectorAll("script").forEach((el) => el.remove());
+  if (parsed.createTreeWalker && window.NodeFilter) {
+    const walker = parsed.createTreeWalker(parsed.body, NodeFilter.SHOW_COMMENT);
+    const toRemove = [];
+    while (walker.nextNode()) {
+      toRemove.push(walker.currentNode);
+    }
+    toRemove.forEach((node) => node.parentNode?.removeChild(node));
+  }
+
+  return parsed.body.innerHTML || htmlText;
+}
+
+async function loadCoreScripts() {
+  await ensureScripts(CORE_SCRIPTS, { persistent: true });
+}
+
+async function loadHeader() {
+  const headerRoot = document.getElementById("header-root");
+  if (!headerRoot) return;
+  const cfg = window.PAGE_CONFIG?.header;
+  if (!cfg) return;
+
+  ensureCss(cfg.css);
+  await ensureScripts(cfg.js, { persistent: true });
+
+  let htmlText = null;
+  // `fetch()` for local files is blocked in most browsers; fall back to an inline template.
+  if (window.location.protocol !== "file:") {
+    try {
+      const res = await fetch(cfg.html);
+      if (!res.ok) throw new Error(`Header HTML fetch failed: ${res.status} ${res.statusText}`);
+      htmlText = await res.text();
+    } catch (err) {
+      console.error("Failed to load header HTML", err);
+    }
+  }
+
+  headerRoot.innerHTML = htmlText ? extractBodyHtml(htmlText) : HEADER_FALLBACK_HTML;
+
+  if (!htmlText && window.location.protocol === "file:" && typeof showErrorPopup === "function") {
+    showErrorPopup("Откройте приложение через HTTP-сервер (не file://), иначе загрузка страниц и header через fetch будет заблокирована.");
+  }
+  if (typeof initHeader === "function") {
+    // По умолчанию меню пустое; затем обновляется из API.getMenu().
+    initHeader([]);
+  }
+}
+
+function unwrapMenuResponse(raw) {
+  const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+  if (!parsed) return [];
+  if (Array.isArray(parsed)) return parsed;
+  if (Array.isArray(parsed.data)) return parsed.data;
+  if (parsed.data && Array.isArray(parsed.data.data)) return parsed.data.data;
+  const firstArray = Object.values(parsed).find(Array.isArray);
+  return firstArray || [];
+}
+
+function normalizeMenuItems(items) {
+  return (items || []).map((it) => {
+    const isSection =
+      it?.issection === 1 ||
+      it?.issection === "1" ||
+      it?.issection === true ||
+      it?.isSection === 1 ||
+      it?.isSection === "1" ||
+      it?.isSection === true;
+    const type = (it?.type || "").toString().trim() || (isSection ? "section" : "page");
+    const id = (it?.pageName || it?.id || it?.pageId || "").toString().trim();
+    const label = (it?.text || it?.name || it?.label || id).toString();
+    const rawPos = it?.pos ?? it?.level ?? "";
+    const pos = rawPos === 0 ? "0" : (rawPos == null ? "" : String(rawPos)).trim();
+    const posPath = pos
+      ? pos
+          .split(".")
+          .map((part) => parseInt(String(part).trim(), 10))
+          .filter((n) => Number.isFinite(n))
+      : null;
+    const level = Array.isArray(posPath) ? Math.max(0, posPath.length - 1) : 0;
+    return { id, label, type, level, pos, posPath, isSection };
+  });
+}
+
+function applyNavToHeader(navItems) {
+  if (typeof window.updateMenu === "function") {
+    window.updateMenu(navItems);
+  } else if (typeof initHeader === "function") {
+    initHeader(navItems);
+  }
+}
+
+async function refreshMenu() {
+  const username = String(window.currentLoginName || "").trim();
+  if (!username || !window.API || typeof window.API.getMenu !== "function") {
+    currentNavItems = [];
+    applyNavToHeader([]);
+    if (typeof window.setMenuEnabled === "function") {
+      window.setMenuEnabled(false);
+    }
+    return currentNavItems;
+  }
+
+  try {
+    const raw = await API.getMenu({ username });
+    const items = normalizeMenuItems(unwrapMenuResponse(raw));
+    const filtered = items.filter((it) => it.type !== "page" || !!it.id);
+    currentNavItems = filtered.length > 0 ? filtered : DEFAULT_NAV_ITEMS.slice();
+    applyNavToHeader(currentNavItems);
+    if (typeof window.setMenuEnabled === "function") {
+      window.setMenuEnabled(true);
+    }
+    return currentNavItems;
+  } catch (err) {
+    console.error("Failed to load menu via API.getMenu()", err);
+    currentNavItems = DEFAULT_NAV_ITEMS.slice();
+    applyNavToHeader(currentNavItems);
+    if (typeof window.setMenuEnabled === "function") {
+      window.setMenuEnabled(true);
+    }
+    return currentNavItems;
+  }
+}
+
+function ensureCss(cssList = []) {
+  const head = document.head;
+  return cssList.map((href) => {
+    if (loadedAssets.css.has(href)) {
+      const el = loadedAssets.css.get(href);
+      el.disabled = false;
+      return el;
+    }
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    head.appendChild(link);
+    loadedAssets.css.set(href, link);
+    return link;
+  });
+}
+
+function ensureScripts(scriptList = [], opts = {}) {
+  // Загружаем последовательно, чтобы сохранить порядок зависимостей
+  return scriptList.reduce((prev, src) => {
+    return prev.then(
+      () =>
+        new Promise((resolve, reject) => {
+          // Если уже загружали этот скрипт, просто резолвим.
+          if (loadedAssets.js.has(src)) {
+            return resolve(loadedAssets.js.get(src));
+          }
+
+          const script = document.createElement("script");
+          script.src = src;
+          script.onload = () => {
+            loadedAssets.js.set(src, script);
+            resolve(script);
+          };
+          script.onerror = (err) => reject(err);
+          document.body.appendChild(script);
+          currentPageScripts.push(script);
+        })
+    );
+  }, Promise.resolve());
+}
+
+function cleanupPageAssets() {
+  currentPageScripts.forEach((s) => s.remove());
+  currentPageScripts = [];
+  currentPageStyles.forEach((s) => s.remove());
+  currentPageStyles = [];
+}
+
+async function loadPage(pageId) {
+  const cfg = window.PAGE_CONFIG?.[pageId];
+  if (!cfg) return;
+
+  setPageTitle(cfg.title || pageId);
+  cleanupPageAssets();
+  // always ensure overlay exists before toggling
+  getOverlay();
+  currentPageName = pageId;
+  hidePage(pageId);
+
+  if (cfg.externalCss) {
+    cfg.externalCss.forEach((href) => {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = href;
+      document.head.appendChild(link);
+      currentPageStyles.push(link);
+    });
+  }
+  if (cfg.css) {
+    cfg.css.forEach((href) => {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = href;
+      document.head.appendChild(link);
+      currentPageStyles.push(link);
+    });
+  }
+
+  if (window.location.protocol === "file:") {
+    const pageRoot = document.getElementById("page-root");
+    if (pageRoot) {
+      pageRoot.innerHTML =
+        '<div style="padding:1rem;max-width:60ch">' +
+        "<h2>Нужен HTTP-сервер</h2>" +
+        "<p>Страницы загружаются через <code>fetch()</code>, а в режиме <code>file://</code> браузер обычно блокирует такие запросы.</p>" +
+        "<p>Пример: <code>python3 -m http.server 8123</code> (в корне проекта) и открыть <code>http://127.0.0.1:8123/index/index.html</code>.</p>" +
+        "</div>";
+    }
+    showPage(pageId);
+    return;
+  }
+
+  const res = await fetch(cfg.html);
+  const htmlText = await res.text();
+  const pageRoot = document.getElementById("page-root");
+  pageRoot.innerHTML = extractBodyHtml(htmlText);
+
+  const scriptsToLoad = [];
+  if (cfg.externalJs) {
+    scriptsToLoad.push(...cfg.externalJs);
+  }
+  if (cfg.js) {
+    scriptsToLoad.push(...cfg.js);
+  }
+  await ensureScripts(scriptsToLoad);
+  await runPageInit(pageId);
+  showPage(pageId);
+  const titleEl = document.getElementById("pageName");
+  if (titleEl) titleEl.textContent = cfg.title || pageId;
+  if (typeof window.updateAppHeaderHeight === "function") {
+    window.updateAppHeaderHeight();
+  }
+
+  // На странице логина меню не показываем.
+  if (pageId === "login") {
+    applyNavToHeader([]);
+    if (typeof window.setMenuEnabled === "function") {
+      window.setMenuEnabled(false);
+    }
+  }
+
+  persistCurrentPage(pageId);
+}
+
+function navigateTo(pageId) {
+  if (pageId !== "login" && !window.token) {
+    redirectToLogin();
+    return;
+  }
+  const requiresAuthCheck = pageId !== "login" && !!window.token && !window.__authVerified;
+  const load = () => loadPage(pageId);
+  if (!requiresAuthCheck) {
+    load().catch((err) => {
+      console.error("Failed to load page", pageId, err);
+      showPage(pageId);
+    });
+    return;
+  }
+  ensureValidToken(pageId)
+    .then((ok) => {
+      if (!ok) return;
+      return load();
+    })
+    .catch((err) => {
+      console.error("Failed to load page", pageId, err);
+      showPage(pageId);
+    });
+}
+
+window.navigateTo = navigateTo;
+
+function setPageTitle(title) {
+  const titleEl = document.getElementById("pageName");
+  if (!titleEl) return;
+  titleEl.textContent = title || "";
+}
+
+function getPreferredInitialPage() {
+  const username = String(window.currentLoginName || "").trim();
+  const key = username ? `currentPageName_${username}` : "currentPageName";
+  let raw = null;
+  try {
+    raw = window.localStorage?.getItem(key);
+  } catch (e) {
+    console.warn("Не удалось прочитать текущую страницу из localStorage", e);
+  }
+  const pageId = typeof raw === "string" ? raw.trim() : "";
+  if (!pageId) return null;
+  if (!window.PAGE_CONFIG?.[pageId]) return null;
+  if (Array.isArray(currentNavItems) && currentNavItems.length > 0) {
+    const allowed = currentNavItems.some((item) => item?.type === "page" && item?.id === pageId);
+    if (!allowed) return null;
+  }
+  return pageId;
+}
+window.getPreferredInitialPage = getPreferredInitialPage;
+
+async function persistCurrentPage(pageId) {
+  if (!pageId || pageId === "login") return;
+  const username = String(window.currentLoginName || "").trim();
+  const key = username ? `currentPageName_${username}` : "currentPageName";
+  try {
+    window.localStorage?.setItem(key, pageId);
+  } catch (e) {
+    console.warn("Не удалось сохранить текущую страницу в localStorage", e);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const url = new URL(window.location.href);
+  const urlToken = url.searchParams.get("token");
+  if (urlToken) {
+    window.token = urlToken;
+  }
+
+  const headerTask = loadHeader().catch((err) => {
+    console.error("Header bootstrap failed", err);
+  });
+
+  loadCoreScripts()
+    .then(() => fetchConfigFromN8n())
+    .then(() => fetchUserStoreFromToken())
+    .then(() => headerTask)
+    .then(() => {
+      if (typeof window.applyUserStore === "function") {
+        window.applyUserStore(window.USER_STORE);
+      }
+    })
+    .then(async () => {
+      if (window.token) {
+        const ok = await ensureValidToken("bootstrap");
+        if (!ok) return;
+      }
+      const preferred = getPreferredInitialPage();
+      const fallbackFirst = currentNavItems[0]?.id || DEFAULT_NAV_ITEMS[0]?.id;
+      const initial = (window.token ? (preferred || fallbackFirst) : "login") || "login";
+      if (window.token) {
+        return loadPage(initial);
+      }
+      navigateTo(initial);
+    })
+    .catch((err) => {
+      console.error("App bootstrap failed", err);
+      // Still try to show header if it was requested.
+      return headerTask;
+    });
+});
+
+async function ensureValidToken(pageId) {
+  if (pageId === "login") return true;
+  if (!window.token) {
+    redirectToLogin();
+    return false;
+  }
+  try {
+    const res = await API.getAuthData({ token: window.token });
+    const parsed = typeof res === "string" ? JSON.parse(res) : res;
+    const respToken = parsed?.token;
+    if (respToken && respToken === window.token) {
+      if (!window.__headerHydrated) {
+        await updateHeaderUserInfo(parsed);
+        await refreshMenu();
+        window.__headerHydrated = true;
+      }
+      window.__authVerified = true;
+      return true;
+    }
+  } catch (e) {
+    console.error("Auth check failed", e);
+  }
+  clearTokenAndReload();
+  return false;
+}
+
+async function updateHeaderUserInfo(parsedAuth) {
+  const usernameEl = document.getElementById("username");
+  const storeEl = document.getElementById("store");
+
+  const username =
+    parsedAuth?.username ||
+    parsedAuth?.login ||
+    parsedAuth?.user ||
+    parsedAuth?.email ||
+    parsedAuth?.Name ||
+    window.currentLoginName ||
+    "";
+  if (username) {
+    window.currentLoginName = username;
+  }
+  if (usernameEl && username) {
+    usernameEl.textContent = username;
+  }
+
+  let storeName = parsedAuth?.storeName;
+  const storeId = parsedAuth?.storeId || parsedAuth?.store;
+  if (!storeName && storeId) {
+    storeName = await getStoreNameById(storeId);
+  }
+  if (storeName) {
+    applyUserStore({ storeName });
+  } else if (storeEl && storeId) {
+    storeEl.textContent = storeId;
+  }
+
+  if (typeof window.updateAppHeaderHeight === "function") {
+    window.updateAppHeaderHeight();
+  }
+}
+
+async function getStoreNameById(storeId) {
+  if (!storeId) return null;
+  const numericId = Number(storeId);
+  if (Number.isNaN(numericId)) return null;
+
+  let stores = [];
+  try {
+    const resp = await API.getStores({ token: window.token });
+    const parsed = typeof resp === "string" ? JSON.parse(resp) : resp;
+    stores = parsed?.data || parsed || [];
+  } catch (e) {
+    console.error("Failed to load stores for header", e);
+    return null;
+  }
+
+  const entry = (stores || []).find((s) => {
+    const id = Number(s?.storeId ?? s?.id ?? s?.[0]);
+    return id === numericId;
+  });
+  return entry?.storeName || entry?.name || entry?.[1] || null;
+}
+
+function clearTokenAndReload() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("token");
+  history.replaceState({}, "", url.toString());
+  window.location.reload();
+}
+
+function redirectToLogin() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("token");
+  history.replaceState({}, "", url.toString());
+  if (currentPageName !== "login") {
+    navigateTo("login");
+  }
+}

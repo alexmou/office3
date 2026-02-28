@@ -1,10 +1,42 @@
 
-var WEBHOOK
+var WEBHOOK;
 
+function getRuntimeEnv() {
+  return window.APP_ENV || window.RUNTIME_ENV || window.APP_CONFIG || {};
+}
+
+function normalizeWebhookMode(value) {
+  if (value === undefined || value === null) return "";
+  const mode = String(value).trim().toLowerCase();
+  return mode;
+}
+
+function resolveWebhookMode(explicitMode) {
+  const env = getRuntimeEnv();
+  const envMode = normalizeWebhookMode(
+    env.webhookMode || env.WEBHOOK_MODE || env.mode || env.MODE
+  );
+  const forceRaw =
+    env.forceWebhookMode !== undefined ? env.forceWebhookMode :
+    env.FORCE_WEBHOOK_MODE !== undefined ? env.FORCE_WEBHOOK_MODE :
+    env.webhookForce !== undefined ? env.webhookForce :
+    env.WEBHOOK_FORCE !== undefined ? env.WEBHOOK_FORCE :
+    false;
+  const force =
+    forceRaw === true ||
+    forceRaw === "true" ||
+    forceRaw === 1 ||
+    forceRaw === "1";
+  if (force && envMode) return envMode;
+  const explicit = normalizeWebhookMode(explicitMode);
+  if (explicit) return explicit;
+  if (envMode) return envMode;
+  return "prod";
+}
 
 function getWebHook(mode) {
- // let WEBHOOK;
-  if (mode !== undefined && mode === "test") {
+  const resolvedMode = resolveWebhookMode(mode);
+  if (resolvedMode === "test") {
     WEBHOOK = 'https://buttonrouge.org/n8n/webhook-test/';
   } else {
     WEBHOOK = 'https://buttonrouge.org/n8n/webhook/';
