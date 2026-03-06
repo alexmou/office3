@@ -3,6 +3,7 @@
 
 
 let CASH_REGISTER_VOCAB = { operationTypes: ["Расход", "Приход"], activities: [] };
+let cashRegisterSubmitInProgress = false;
 
 if (typeof registerPageInit === "function") {
   registerPageInit("cashregister", bodyOnLoad);
@@ -60,6 +61,111 @@ function budgetFieldChanged(el){
 function parseMaybeJson(value) {
   if (typeof value !== "string") return value;
   try { return JSON.parse(value); } catch (_) { return value; }
+}
+
+function setCashRegisterSubmitState(isSubmitting) {
+  cashRegisterSubmitInProgress = !!isSubmitting;
+  const submitButton = document.getElementById("submitButton");
+  if (!submitButton) return;
+
+  if (!submitButton.dataset.defaultLabel) {
+    submitButton.dataset.defaultLabel = submitButton.textContent || "Отправить";
+  }
+
+  submitButton.disabled = cashRegisterSubmitInProgress;
+  submitButton.classList.toggle("is-loading", cashRegisterSubmitInProgress);
+  submitButton.textContent = cashRegisterSubmitInProgress
+    ? "Отправка..."
+    : submitButton.dataset.defaultLabel;
+}
+
+function isSuccessfulCashRegisterResponse(raw, depth = 0) {
+  if (depth > 6) return false;
+  if (raw === true) return true;
+  if (raw === false || raw === null || raw === undefined) return false;
+
+  if (typeof raw === "number") return Number.isFinite(raw) && raw !== 0;
+
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if (!trimmed) return false;
+    const lowered = trimmed.toLowerCase();
+    if (["0", "false", "fail", "failed", "error", "null", "undefined"].includes(lowered)) return false;
+    if (["1", "true", "ok", "success", "created", "done"].includes(lowered)) return true;
+    if (
+      lowered.includes("error") ||
+      lowered.includes("fail") ||
+      lowered.includes("ошиб") ||
+      lowered.includes("не удалось")
+    ) return false;
+    if (lowered.includes("успеш")) return true;
+    try {
+      return isSuccessfulCashRegisterResponse(JSON.parse(trimmed), depth + 1);
+    } catch (_) {
+      return true;
+    }
+  }
+
+  if (Array.isArray(raw)) {
+    if (raw.length === 0) return false;
+    return raw.some((item) => isSuccessfulCashRegisterResponse(item, depth + 1));
+  }
+
+  if (typeof raw === "object") {
+    if (raw.error || raw.errors) return false;
+    if (Number.isFinite(raw.statusCode)) return raw.statusCode >= 200 && raw.statusCode < 300;
+
+    const candidates = [
+      raw.success,
+      raw.ok,
+      raw.result,
+      raw.status,
+      raw.data,
+      raw.response,
+      raw.message,
+    ].filter((v) => v !== undefined);
+
+    for (const candidate of candidates) {
+      if (isSuccessfulCashRegisterResponse(candidate, depth + 1)) return true;
+    }
+    return false;
+  }
+
+  return !!raw;
+}
+
+function resetCashRegisterSelectToDefault(selectEl, defaultValue) {
+  if (!selectEl) return;
+
+  const options = Array.from(selectEl.options || []);
+  const normalizedDefault = String(defaultValue || "").trim();
+  if (normalizedDefault) {
+    const matched = options.find((option) => String(option.value).trim() === normalizedDefault);
+    if (matched) {
+      selectEl.value = matched.value;
+      return;
+    }
+  }
+
+  if (options.length > 0) {
+    selectEl.selectedIndex = 0;
+  }
+}
+
+function resetCashRegisterFormToDefaults() {
+  const operationType = document.getElementById("OperationType");
+  const activity = document.getElementById("activityCashRegister");
+  const comment = document.getElementById("Comment");
+  const cashSum = document.getElementById("CashSum");
+
+  const defaultOperationType = extractList(CASH_REGISTER_VOCAB?.operationTypes)[0] || "";
+  const defaultActivity = extractList(CASH_REGISTER_VOCAB?.activities)[0] || "";
+
+  resetCashRegisterSelectToDefault(operationType, defaultOperationType);
+  resetCashRegisterSelectToDefault(activity, defaultActivity);
+
+  if (comment) comment.value = "";
+  if (cashSum) cashSum.value = "";
 }
 
 function extractList(value) {
@@ -345,27 +451,27 @@ function returnCashRegisterRecords(res){
 
 
 function cllearCashRegisterData() {
-const operationType = document.getElementById("OperationType");
-if (operationType) {
-  if (operationType.options && operationType.options.length > 0) operationType.selectedIndex = 0;
-}
-
-const activity = document.getElementById("activityCashRegister");
-if (activity) {
-  if (activity.options && activity.options.length > 0) activity.selectedIndex = 0;
-}
-
-const comment = document.getElementById("Comment");
-if (comment) comment.value = "";
-
-const cashSum = document.getElementById("CashSum");
-if (cashSum) cashSum.value = "";
-
-
+  resetCashRegisterFormToDefaults();
 }
 
 
 function sendDataToCashRegister(){
+if (cashRegisterSubmitInProgress) return;
+
+const operationTypeEl = document.getElementById("OperationType");
+const activityEl = document.getElementById("activityCashRegister");
+const commentEl = document.getElementById("Comment");
+const cashSumEl = document.getElementById("CashSum");
+
+if (!operationTypeEl || !activityEl || !commentEl || !cashSumEl) {
+  if (typeof showErrorPopup === "function") {
+    showErrorPopup("Форма кассы не готова. Обновите страницу и повторите.");
+  }
+  return;
+}
+
+setCashRegisterSubmitState(true);
+
 const BUDGETNAME="BUTTON ROUGE"
 
 
@@ -378,14 +484,14 @@ budgetRecord["Вид"]="Факт"
 budgetRecord["Год"]=now.getFullYear()
 budgetRecord["Месяц"]=now.getMonth() + 1
 
-budgetRecord["Тип"]=document.getElementById("OperationType").value
-budgetRecord["Статья расходов"]=document.getElementById("activityCashRegister").value
+budgetRecord["Тип"]=operationTypeEl.value
+budgetRecord["Статья расходов"]=activityEl.value
 const usernameFromDom = document.getElementById("username")?.textContent;
 const resolvedUsername = String(username || window.currentLoginName || usernameFromDom || "").trim();
 budgetRecord["username"]=resolvedUsername;
 budgetRecord["PaymentCashRegister"]="Касса"
-budgetRecord["Комментарий"]=document.getElementById("Comment").value
-budgetRecord["Сумма"]=document.getElementById("CashSum").value
+budgetRecord["Комментарий"]=commentEl.value
+budgetRecord["Сумма"]=cashSumEl.value
 budgetRecord["countInBudget"]=0;
 const storeElement = document.getElementById("store");
 const storeContext = window.USER_STORE || {};
@@ -460,7 +566,18 @@ let budgetRecord={
   		callbackJSfunctionName: "dataRegistredToCashRegister",
   		params: JSON.stringify(payload)
   	};
-  	runGSfunction(request); 
+  	runGSfunction(request)
+      .catch((error) => {
+        console.error("sendDataToCashRegister failed", error);
+        if (typeof showErrorPopup === "function") {
+          showErrorPopup(CONFIG.errorwritingcash || "Не удалось записать операцию в кассу");
+        }
+      })
+      .finally(() => {
+        if (cashRegisterSubmitInProgress) {
+          setCashRegisterSubmitState(false);
+        }
+      }); 
 
 
 
@@ -468,27 +585,48 @@ let budgetRecord={
 
 function dataRegistredToCashRegister(result){
   const parsed = parseMaybeJson(result);
-  const isEmptyResponse = parsed == null || parsed === "";
-  const ok =
-    parsed === true ||
-    parsed === 1 ||
-    parsed?.ok === true ||
-    parsed?.success === true ||
-    parsed?.result === true ||
-    parsed?.data === true ||
-    parsed?.data === 1 ||
-    parsed?.data?.ok === true ||
-    parsed?.data?.success === true ||
-    parsed?.data?.result === true ||
-    isEmptyResponse;
+  const isPayloadEchoSuccess =
+    Array.isArray(parsed) &&
+    parsed.length > 0 &&
+    parsed.every((row) => {
+      if (!row || typeof row !== "object" || Array.isArray(row)) return false;
+      if (row.error || row.errors) return false;
+      const hasCashRegisterFields =
+        "Дата" in row ||
+        "Время" in row ||
+        "Тип" in row ||
+        "Сумма" in row ||
+        "Статья расходов" in row;
+      return hasCashRegisterFields;
+    });
+  const isEmptyObject =
+    parsed &&
+    typeof parsed === "object" &&
+    !Array.isArray(parsed) &&
+    Object.keys(parsed).length === 0;
+  // Backward compatibility: CashRegister endpoint may return empty body/object on successful write.
+  const isLegacyEmptySuccess =
+    parsed == null ||
+    parsed === "" ||
+    (Array.isArray(parsed) && parsed.length === 0) ||
+    isEmptyObject;
+  const ok = isLegacyEmptySuccess || isPayloadEchoSuccess || isSuccessfulCashRegisterResponse(parsed);
 
   if (ok) {
-    showInformationalPopup(CONFIG.cashRegistred);
-    renderCashRegisterForm(CASH_REGISTER_VOCAB);
-  } else if (CONFIG.errorwritingcash) {
-    showErrorPopup(CONFIG.errorwritingcash);
+    showInformationalPopup(CONFIG.cashRegistred || "Операция в кассе зарегистрирована");
+    resetCashRegisterFormToDefaults();
+  } else {
+    const errorMessage =
+      parsed?.error ||
+      parsed?.message ||
+      parsed?.data?.error ||
+      parsed?.data?.message ||
+      CONFIG.errorwritingcash ||
+      "Не удалось записать операцию в кассу";
+    showErrorPopup(errorMessage);
   }
 
+  setCashRegisterSubmitState(false);
   getBudgetData();
   getCashRegisterRecords();
 }

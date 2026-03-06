@@ -16,6 +16,48 @@ async function initSalesPage() {
     };
   }
 
+  function parseNumberMaybe(value) {
+    if (value === null || value === undefined) return null;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+
+    let normalized = String(value).trim().replace(/\s+/g, "");
+    if (!normalized) return null;
+
+    if (normalized.includes(",") && normalized.includes(".")) {
+      const lastComma = normalized.lastIndexOf(",");
+      const lastDot = normalized.lastIndexOf(".");
+      const decimalPos = Math.max(lastComma, lastDot);
+      const integerPart = normalized.slice(0, decimalPos).replace(/[.,]/g, "");
+      const fractionalPart = normalized.slice(decimalPos + 1).replace(/[.,]/g, "");
+      normalized = `${integerPart}.${fractionalPart}`;
+    } else {
+      normalized = normalized.replace(",", ".");
+    }
+
+    const n = Number(normalized);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function formatPriceValueRu(value) {
+    const n = parseNumberMaybe(value);
+    if (n === null) return value;
+    return n.toLocaleString("ru-RU");
+  }
+
+  function formatSalesPriceColumn(values, header) {
+    const rows = Array.isArray(values) ? values : [];
+    const headers = Array.isArray(header) ? header : [];
+    const priceIndex = headers.findIndex((h) => String(h || "").trim().toLowerCase() === "price");
+    if (priceIndex === -1) return rows;
+
+    return rows.map((row) => {
+      if (!Array.isArray(row)) return row;
+      const next = row.slice();
+      next[priceIndex] = formatPriceValueRu(next[priceIndex]);
+      return next;
+    });
+  }
+
 	var inputName = "articleName";
 	var caption_h1 = "";
 	var initValue = "BUTTON ROUGE" //07-010101-030904-0202;
@@ -38,12 +80,16 @@ async function initSalesPage() {
  //console.log(catalogData)
 
         const data = await window.API.getSalesData({ visible: true }, { overlayId: "sales" });
+        const payload = Array.isArray(data) ? data[0] : data;
+        const header = Array.isArray(payload?.header) ? payload.header : [];
+        const values = formatSalesPriceColumn(payload?.values, header);
+        const filterOptions = Array.isArray(payload?.filterOptions) ? payload.filterOptions : [];
     //   console.log('Ответ GET:', data[0]);
 
   //  catalogData.values =  data[0].values
    //     catalogData.header =  data[0].header
 
-   catalogData.initWithPreloadedData(data[0].values, data[0].header, data[0].filterOptions) 
+   catalogData.initWithPreloadedData(values, header, filterOptions) 
  
 
      /*
@@ -98,7 +144,6 @@ async function initSalesPage() {
 
 
 }
-
 
 
 

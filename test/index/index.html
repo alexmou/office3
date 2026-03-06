@@ -20,7 +20,7 @@
     (function() {
       window.APP_ENV = window.APP_ENV || {};
       if (window.location.pathname.indexOf("/test/") !== -1) {
-        window.APP_ENV.webhookMode = "test";
+        window.APP_ENV.webhookMode = "prod";
         window.APP_ENV.forceWebhookMode = true;
         window.APP_ENV.label = "TEST";
       }

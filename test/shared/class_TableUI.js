@@ -134,6 +134,13 @@ class TableData {
         this._searchIndexRows = null;
     }
 
+    normalizeSearchText(value) {
+        return String(value ?? "")
+            .toLowerCase()
+            .replace(/[\s\u00A0\u202F]+/g, "")
+            .replace(/[.,]/g, "");
+    }
+
     getSearchIndex(rows) {
         if (!Array.isArray(rows)) return [];
         if (this._searchIndex && this._searchIndexRows === rows) {
@@ -144,9 +151,13 @@ class TableData {
             const haystack = Array.isArray(row)
               ? row
               : (row && typeof row === "object" ? Object.values(row) : [row]);
-            return haystack
+            const raw = haystack
               .map((cell) => String(cell ?? "").toLowerCase())
               .join("\t");
+            return {
+                raw,
+                compact: this.normalizeSearchText(raw),
+            };
         });
         return this._searchIndex;
     }
@@ -199,6 +210,7 @@ class TableData {
         });
 
         const needle = String(this.fullTextQuery || "").trim().toLowerCase();
+        const compactNeedle = this.normalizeSearchText(needle);
         const useSearch = !!needle;
         const searchIndex = useSearch ? this.getSearchIndex(rows) : null;
 
@@ -248,8 +260,18 @@ class TableData {
             }
 
             if (useSearch) {
-                const haystack = searchIndex ? searchIndex[i] : "";
-                if (!haystack.includes(needle)) continue;
+                const indexed = searchIndex ? searchIndex[i] : null;
+                const haystackRaw =
+                    indexed && typeof indexed === "object" ? indexed.raw || "" : String(indexed || "");
+                if (haystackRaw.includes(needle)) {
+                    // ok
+                } else {
+                    const haystackCompact =
+                        indexed && typeof indexed === "object"
+                            ? indexed.compact || ""
+                            : this.normalizeSearchText(haystackRaw);
+                    if (!compactNeedle || !haystackCompact.includes(compactNeedle)) continue;
+                }
             }
 
             filtered.push(row);

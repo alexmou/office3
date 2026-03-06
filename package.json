@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@n8n-as-code/core": "^0.4.3",
+    "@n8n-as-code/transformer": "^0.2.2"
+  }
+}

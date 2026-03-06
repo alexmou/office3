@@ -1,0 +1,7 @@
+{
+    "n8n.host": "https://buttonrouge.org/n8n",
+    "n8n.apiKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZDQ2NDVhOS04NGU3LTQ3ZjMtYTQ5OC1lMjI1YWQyOWI2OTgiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzcyNDMzODMzfQ.1Sk_C2gFxx45u0wdQ2e1iMPGaNcVEklRf_4jrYjoJLQ",
+    "n8n.syncFolder": "workflows",
+    "n8n.projectId": "Cbzeqxofr5KXht6P",
+    "n8n.projectName": "Personal"
+}

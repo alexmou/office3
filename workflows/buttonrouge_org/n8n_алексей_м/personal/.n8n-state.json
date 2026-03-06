@@ -1,0 +1,114 @@
+{
+  "workflows": {
+    "1rSHNYY8DuXZQJ1Y": {
+      "lastSyncedHash": "b0c1d72dd259f9d36898b49a234f59706122dfefe456351d0534ee128fb3f207",
+      "lastSyncedAt": "2025-08-07T19:10:28.000Z",
+      "filename": "button_sklad.workflow.ts"
+    },
+    "3LCBZYvdR3KjR1ia": {
+      "lastSyncedHash": "1fb564e76089e20be04739b450048090b5e7a305e0b5583e112578e81bb5f3d2",
+      "lastSyncedAt": "2025-04-28T05:56:14.000Z",
+      "filename": "Get Repository.workflow.ts"
+    },
+    "5ELOA9aauQoT17x0": {
+      "filename": "Отправка Telegram.workflow.ts"
+    },
+    "7pC8RxgVHa1G7N7PsT9W4": {
+      "lastSyncedHash": "b8f73352cc5f9fa2bd3c2e5b5b3f7c29f2d3d046e03e0eeb0de50f8c9d659bc5",
+      "lastSyncedAt": "2026-02-21T12:55:14.394Z"
+    },
+    "9z0Gg2KId6ieywKg": {
+      "filename": "button_schedule.workflow.ts"
+    },
+    "GJQ5EyXqLMJAK0uU": {
+      "filename": "button_Auth.workflow.ts"
+    },
+    "HsZVUPBWEBAbEowI": {
+      "filename": "Button_Rouge.workflow.ts"
+    },
+    "KN61eAn35hWsHkUJ": {
+      "filename": "button_users.workflow.ts"
+    },
+    "LIxwQGlx4rxTzDRl": {
+      "filename": "update n8n.workflow.ts"
+    },
+    "LnFR3805UOxKmVlx": {
+      "filename": "button_getStores.workflow.ts"
+    },
+    "Pl6Oqey2z3gYBNA7": {
+      "filename": "Settings.workflow.ts"
+    },
+    "S8psazYZnXdCAT0B": {
+      "filename": "sales.workflow.ts"
+    },
+    "TBIyzil82lShTiqx": {
+      "filename": "button_tags.workflow.ts"
+    },
+    "TTxnAmbqpk1QPvwx": {
+      "filename": "button_triggers.workflow.ts"
+    },
+    "VQqCy60thr6dzBum": {
+      "filename": "Read logs.workflow.ts"
+    },
+    "VSQwF8modN3kIuz9": {
+      "filename": "button_charts.workflow.ts"
+    },
+    "WhIBbNPzGBQ8PvMw": {
+      "filename": "Button_Settings.workflow.ts"
+    },
+    "YkZM90oFpg4KB4eR": {
+      "filename": "Chat_Monitor.workflow.ts"
+    },
+    "ZdvNHW0oFoJSqbjT": {
+      "filename": "button_stores.workflow.ts"
+    },
+    "ahgQOGww8odU2X9H": {
+      "filename": "My workflow 3.workflow.ts"
+    },
+    "bT8hmBOQFVQk7iJ9": {
+      "filename": "button_config.workflow.ts"
+    },
+    "ctS2yQ9DRLM5d3Gl": {
+      "filename": "Button_Rouge copy.workflow.ts"
+    },
+    "fuVOKVDO1YUzkVye": {
+      "filename": "_getFilesFromDisk.workflow.ts"
+    },
+    "hUNAzAUPzoSKPnVfY5hCx": {
+      "filename": "getCatalogData.workflow.ts"
+    },
+    "hwR6rUBEyPfH3zRl": {
+      "filename": "Menu.workflow.ts"
+    },
+    "jyqgaRvgPCMMLPjZ": {
+      "filename": "button_budget.workflow.ts"
+    },
+    "lcTnjXz7ItCVZbVW": {
+      "filename": "SalaryFix.workflow.ts"
+    },
+    "qSnbVCKDo9anIhNr": {
+      "filename": "My workflow 2.workflow.ts"
+    },
+    "rIjQhZPR3nLFhiNX": {
+      "filename": "salary.workflow.ts"
+    },
+    "rVWIEki714lPBFxf": {
+      "filename": "My workflow.workflow.ts"
+    },
+    "t6SVNT2eaJMzNH1e": {
+      "filename": "CashRegister.workflow.ts"
+    },
+    "ump9qpAGWN9PDtqk": {
+      "filename": "vietnam_translate_bot.workflow.ts"
+    },
+    "w56q5GdHlbgzpE7E": {
+      "filename": "getCurrentPage.workflow.ts"
+    },
+    "w7ilpb0gihr586F8": {
+      "filename": "optimus_sausisus.workflow.ts"
+    },
+    "zJQKJCDHBbVqaEsU": {
+      "filename": "Cache.workflow.ts"
+    }
+  }
+}
