@@ -299,7 +299,8 @@
       RUB: CONFIG.currencyRUB,
       KZT: CONFIG.currencyKZT,
       USD: CONFIG.currencyUSD,
-      CNY: CONFIG.currencyCNY
+      CNY: CONFIG.currencyCNY,
+      KRW: CONFIG.currencyKRW
     };
 
 	    const curs = currencyMap[cartUI.currency];
@@ -323,6 +324,8 @@
     productTable = new SalesTableUI();
     // Legacy newsales_classes.js relies on global productTable/cartUI during async header load.
     window.productTable = productTable;
+    // CartUI.update() resolves updateSale as a global function.
+    window.updateSale = updateSale;
     const inputName = ARTICLE_INPUT_ID;
     const caption_h1 = "";
     const initValue = "";

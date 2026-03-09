@@ -78,3 +78,32 @@
 #catalog-list {
   width: 100%;
 }
+
+.catalog-add-cell {
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.catalog-add-button {
+  min-width: 112px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.catalog-add-button:hover:not(:disabled) {
+  border-color: #db3455;
+  color: #db3455;
+}
+
+.catalog-add-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

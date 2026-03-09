@@ -166,7 +166,15 @@ this.DEFAULT_CURRENCY_AFTER_SUBMIT = "VND"
 
 
     update() {
-       updateSale()
+       if (typeof window !== "undefined" && typeof window.updateSale === "function") {
+           window.updateSale();
+           return;
+       }
+       if (typeof updateSale === "function") {
+           updateSale();
+           return;
+       }
+       console.error("updateSale is not defined");
 
     }
 

@@ -3,6 +3,7 @@ const PAGE_ID = "catalog";
 const INITIAL_QUERY = "All";
 const DATA_FUNCTION_NAME = "getAllItemsFromCatalogByQuery";
 const TABLEID = "catalog-list";
+const NEWSALE_DRAFT_STORAGE_PREFIX = "newsaleDraft.v1";
 const COLUMNS_TO_KEEP = [
   "article",
   "Brand",
@@ -30,6 +31,63 @@ function debounce(fn, ms) {
 function parseMaybeJson(value) {
   if (typeof value !== "string") return value;
   try { return JSON.parse(value); } catch (_) { return value; }
+}
+
+function getNewsaleDraftStorage() {
+  try {
+    return window.sessionStorage || null;
+  } catch (error) {
+    console.warn("Catalog: newsale draft storage unavailable", error);
+    return null;
+  }
+}
+
+function getNewsaleDraftKey() {
+  const envTag = window.location?.pathname?.includes("/test/") ? "test" : "prod";
+  const storeTag = String(
+    window.USER_STORE?.storeId ?? window.USER_STORE?.id ?? window.USER_STORE?.store ?? "store"
+  ).trim();
+  const userTag = String(window.currentLoginName || window.token || "anonymous").trim();
+  return `${NEWSALE_DRAFT_STORAGE_PREFIX}:${envTag}:${storeTag}:${userTag}`;
+}
+
+function readNewsaleDraftFromStorage() {
+  const storage = getNewsaleDraftStorage();
+  if (!storage) return null;
+  const raw = storage.getItem(getNewsaleDraftKey());
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch (error) {
+    console.warn("Catalog: failed to parse newsale draft", error);
+    return null;
+  }
+}
+
+function writeNewsaleDraftToStorage(draft) {
+  const storage = getNewsaleDraftStorage();
+  if (!storage) return false;
+  storage.setItem(getNewsaleDraftKey(), JSON.stringify(draft));
+  return true;
+}
+
+function appendCatalogItemToNewsaleDraft(itemData) {
+  if (!itemData || typeof itemData !== "object" || Array.isArray(itemData)) return false;
+  const currentDraft = readNewsaleDraftFromStorage() || {};
+  const rawData = Array.isArray(currentDraft.rawData) ? currentDraft.rawData.slice() : [];
+  rawData.push({ ...itemData, id: String(rawData.length) });
+
+  const nextDraft = {
+    ...currentDraft,
+    rawData,
+    cart:
+      currentDraft.cart && typeof currentDraft.cart === "object" && !Array.isArray(currentDraft.cart)
+        ? currentDraft.cart
+        : {},
+    savedAt: Date.now(),
+  };
+  return writeNewsaleDraftToStorage(nextDraft);
 }
 
 function unwrapArrayPayload(raw) {
@@ -373,6 +431,102 @@ function createCatalogColorizeOptions() {
   };
 }
 
+function asNumber(value) {
+  if (value === null || value === undefined) return null;
+  const normalized = String(value).trim().replace(/\s+/g, "").replace(",", ".");
+  if (!normalized) return null;
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : null;
+}
+
+function convertCatalogRowToDraftItem(header, row) {
+  const item = {};
+  header.forEach((fieldName, index) => {
+    item[fieldName] = row?.[index] ?? "";
+  });
+  return item;
+}
+
+function patchCatalogTableActions(catalogData) {
+  if (!catalogData || !Array.isArray(catalogData.header)) return;
+  const table = document.getElementById("flowTable");
+  if (!table) return;
+
+  const headerRow = table.querySelector("thead tr.table-header-row");
+  if (headerRow && !headerRow.querySelector("th[data-role='catalog-add-header']")) {
+    const actionHeader = document.createElement("th");
+    actionHeader.setAttribute("scope", "col");
+    actionHeader.setAttribute("data-role", "catalog-add-header");
+    actionHeader.className = "px-6 py-3";
+    actionHeader.textContent =
+      typeof window.localizeUiText === "function"
+        ? window.localizeUiText("Добавить", "Добавить")
+        : "Add";
+    headerRow.appendChild(actionHeader);
+  }
+
+  const filteredRows = catalogData.filterByCurrentQuery();
+  const quantityIdx = catalogData.header.findIndex((h) => String(h || "").trim().toLowerCase() === "quantity");
+  const tbodyRows = table.querySelectorAll("tbody tr");
+
+  tbodyRows.forEach((tr, index) => {
+    let actionCell = tr.querySelector("td[data-role='catalog-add-cell']");
+    if (!actionCell) {
+      actionCell = document.createElement("td");
+      actionCell.setAttribute("data-role", "catalog-add-cell");
+      actionCell.className = "catalog-add-cell";
+      tr.appendChild(actionCell);
+    }
+
+    const rowData = Array.isArray(filteredRows[index]) ? filteredRows[index] : [];
+    const qtyValue = quantityIdx >= 0 ? rowData[quantityIdx] : null;
+    const qtyNumber = asNumber(qtyValue);
+    const outOfStock = qtyNumber !== null ? qtyNumber <= 0 : String(qtyValue ?? "").trim() === "0";
+
+    const addButton = document.createElement("button");
+    addButton.type = "button";
+    addButton.className = "catalog-add-button";
+    addButton.textContent =
+      typeof window.localizeUiText === "function"
+        ? window.localizeUiText("В корзину", "В корзину")
+        : "Add to cart";
+    addButton.disabled = outOfStock;
+    addButton.title = outOfStock
+      ? (typeof window.localizeUiText === "function"
+          ? window.localizeUiText("Товар закончился", "Товар закончился")
+          : "Out of stock")
+      : "";
+
+    addButton.addEventListener("click", () => {
+      const item = convertCatalogRowToDraftItem(catalogData.header, rowData);
+      const ok = appendCatalogItemToNewsaleDraft(item);
+      if (!ok) {
+        if (typeof showErrorPopup === "function") {
+          showErrorPopup(
+            typeof window.localizeUiText === "function"
+              ? window.localizeUiText("Не удалось добавить товар в корзину", "Не удалось добавить товар в корзину")
+              : "Failed to add item to cart"
+          );
+        }
+        return;
+      }
+
+      if (typeof showInformationalPopup === "function") {
+        const article = String(item.article || "").trim();
+        const msg = article
+          ? `Добавлено в корзину: ${article}`
+          : "Товар добавлен в корзину";
+        showInformationalPopup(
+          typeof window.localizeUiText === "function" ? window.localizeUiText(msg, msg) : msg
+        );
+      }
+    });
+
+    actionCell.textContent = "";
+    actionCell.appendChild(addButton);
+  });
+}
+
 async function initCatalogPage() {
   const contentEl = document.getElementById("content");
   const listEl = document.getElementById(TABLEID);
@@ -415,6 +569,11 @@ async function initCatalogPage() {
 
     catalogUI = new TableUI(TABLEID, catalogData);
     catalogUI.colorizeRowsOptions = createCatalogColorizeOptions();
+    const baseUpdateTable = catalogUI.updateTable.bind(catalogUI);
+    catalogUI.updateTable = () => {
+      baseUpdateTable();
+      patchCatalogTableActions(catalogData);
+    };
     catalogUI.drawAll();
     catalogUI.updateTable();
   };

@@ -44,8 +44,8 @@ window.PAGE_CONFIG = {
   catalog: {
     title: "Catalog",
     html: "../catalog/catalog.html",
-    js: ["../catalog/catalog.js"],
-    css: ["../shared/table.css", "../catalog/catalog.css"]
+    js: ["../catalog/catalog.js?v=20260309-2"],
+    css: ["../shared/table.css", "../catalog/catalog.css?v=20260309-2"]
   },
   sales: {
     title: "Sales",
