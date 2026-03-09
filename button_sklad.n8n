@@ -1,0 +1,5896 @@
+{
+  "updatedAt": "2025-08-07T19:10:28.000Z",
+  "createdAt": "2025-06-14T07:07:07.472Z",
+  "id": "1rSHNYY8DuXZQJ1Y",
+  "name": "button/sklad",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "sklad",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "ALL"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1580,
+        740
+      ],
+      "id": "6c1f72e0-8e63-4609-8de9-58798f9e693f",
+      "name": "Webhook",
+      "webhookId": "3c99632a-6787-434e-9366-99e25da801e3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.data }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        580,
+        -201.5
+      ],
+      "id": "0cbfab3b-a099-4175-a4fb-cdb739630986",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
+                    "rightValue": "getArticle",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "50880f5c-2526-4969-9728-daa1323817a4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getArticle"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0f9b14f9-bbf6-454a-857e-e3c27ba2f225",
+                    "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
+                    "rightValue": "getSkladData",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getSkladData"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "424c332f-6747-495e-ade8-26932dc313aa",
+                    "leftValue": "={{ $json.query.action }}",
+                    "rightValue": "editItem",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "editItem"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ca396694-ab72-4a0c-afd7-249fbe643565",
+                    "leftValue": "={{ $json.query.action }}",
+                    "rightValue": "addItem",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "addItem"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5377f5f8-1ee2-4f86-a1b5-88d3378dd8f1",
+                    "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
+                    "rightValue": "getVocabulary",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getVocabulary"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a1b3ee6c-7ad1-49fb-9994-3eb32e87202b",
+                    "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
+                    "rightValue": "getSkladHeader",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getSkladHeader"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5cbeb4ab-cd22-4fb0-85dd-d5fd3956d263",
+                    "leftValue": "={{ $json.query.action }}",
+                    "rightValue": "deleteItem",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "deleteItem"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7424ebf1-5451-48b4-bcc0-e7d0081fc560",
+                    "leftValue": "={{ $json.query.action }}",
+                    "rightValue": "=getHeader",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=getHeader"
+            }
+          ]
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -960,
+        892
+      ],
+      "id": "5b463381-2981-4d30-bbc5-b08d43e322cf",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.skladName1 }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -300,
+        -301.5
+      ],
+      "id": "97a4af4f-8e4c-44cf-ba66-899f97456397",
+      "name": "getAllItemsFromSklad1",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1560,
+        1560
+      ],
+      "id": "7b322a3b-bc9c-4b69-a4bc-e49bbde33efc",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.skladName2 }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -300,
+        -101.5
+      ],
+      "id": "28c010db-a9c0-442b-aeea-130843366710",
+      "name": "getAllItemsFromSklad",
+      "executeOnce": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "data1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -300
+      ],
+      "id": "8f72b40f-873a-45f4-9f1e-af41b04a2799",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "data2",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -101.5
+      ],
+      "id": "29c06ce9-3acd-4a56-a7d1-0a33c485ad16",
+      "name": "Aggregate2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        140,
+        -201.5
+      ],
+      "id": "5c2ea194-bcfa-49f2-87f6-d323edda44c6",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        360,
+        -201.5
+      ],
+      "id": "b88780ba-6f51-4b0c-b960-57d0b3ac07f6",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn $input.first().json.body.data"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -520,
+        800
+      ],
+      "id": "e526169c-7c72-4a09-bfd9-1bca465849b5",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sklad",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "ALL"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1580,
+        900
+      ],
+      "id": "c7601b4d-5917-4cf2-a39a-0989ed9dead3",
+      "name": "Webhook2",
+      "webhookId": "3c99632a-6787-434e-9366-99e25da801e3"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Какой склад?').item.json.SkladName }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "num"
+          ],
+          "schema": [
+            {
+              "id": "num",
+              "displayName": "num",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "article",
+              "displayName": "article",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Brand",
+              "displayName": "Brand",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subtype",
+              "displayName": "subtype",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fabric",
+              "displayName": "fabric",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "color",
+              "displayName": "color",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "size",
+              "displayName": "size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "manufacturer",
+              "displayName": "manufacturer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "netprice",
+              "displayName": "netprice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Delivery_date",
+              "displayName": "Delivery_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "quantity",
+              "displayName": "quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "crope price",
+              "displayName": "crope price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "discount_%",
+              "displayName": "discount_%",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "discount_Fix",
+              "displayName": "discount_Fix",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Comments",
+              "displayName": "Comments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "netpriceFull",
+              "displayName": "netpriceFull",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "scladprice",
+              "displayName": "scladprice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salePrice",
+              "displayName": "salePrice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Зал",
+              "displayName": "Зал",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Склад",
+              "displayName": "Склад",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Склад-вешалка",
+              "displayName": "Склад-вешалка",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Дом",
+              "displayName": "Дом",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Улица",
+              "displayName": "Улица",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "производитель",
+              "displayName": "производитель",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "отгрузка",
+              "displayName": "отгрузка",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "col_7",
+              "displayName": "col_7",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        160,
+        780
+      ],
+      "id": "3301c338-5be1-4bc6-a398-451c7f0b0ca7",
+      "name": "updateRow",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn $input.first().json.body"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        300
+      ],
+      "id": "2a7fba4f-d741-4176-8abf-50449d6d7c94",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Какой склад?').item.json.SkladName }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "num",
+              "displayName": "num",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "article",
+              "displayName": "article",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Brand",
+              "displayName": "Brand",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "subtype",
+              "displayName": "subtype",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "fabric",
+              "displayName": "fabric",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "color",
+              "displayName": "color",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "size",
+              "displayName": "size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "manufacturer",
+              "displayName": "manufacturer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "netprice",
+              "displayName": "netprice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Delivery_date",
+              "displayName": "Delivery_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "quantity",
+              "displayName": "quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "crope price",
+              "displayName": "crope price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "made in",
+              "displayName": "made in",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "discount_%",
+              "displayName": "discount_%",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "discount_Fix",
+              "displayName": "discount_Fix",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Comments",
+              "displayName": "Comments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "netpriceFull",
+              "displayName": "netpriceFull",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "scladprice",
+              "displayName": "scladprice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "salePrice",
+              "displayName": "salePrice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Зал",
+              "displayName": "Зал",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Склад",
+              "displayName": "Склад",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Склад-вешалка",
+              "displayName": "Склад-вешалка",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Дом",
+              "displayName": "Дом",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Улица",
+              "displayName": "Улица",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1700,
+        440
+      ],
+      "id": "105ebc3e-de49-45f5-97a7-45c545d663fc",
+      "name": "updateRow1",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.data }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        1900,
+        480
+      ],
+      "id": "272f2f32-686f-4840-aba0-b209df4043c6",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Какой склад?').item.json.SkladName }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -520,
+        373.5
+      ],
+      "id": "5495bbda-e583-4ce3-a6f7-b1560f761b95",
+      "name": "getAllItemsFromSklad2",
+      "executeOnce": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "max",
+              "field": "num"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        -300,
+        330
+      ],
+      "id": "19b713cb-e278-4372-9a54-97010de82835",
+      "name": "Summarize"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e828fa3-6da6-4403-a918-48fb062f9a19",
+              "name": "num",
+              "value": "={{ $input.last().json.max_num.toNumber() +1 }}",
+              "type": "string"
+            },
+            {
+              "id": "d11c3f90-89ef-4264-b1c9-36d8327324b6",
+              "name": "row_number",
+              "value": "={{ $input.first().json.max_row_number +1  }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        280
+      ],
+      "id": "20744f5b-e91b-4629-b78a-56336534872e",
+      "name": "Edit Fields1",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -20,
+        320
+      ],
+      "id": "d95943ba-8bb8-4af9-a4db-346b0f920ca0",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "max",
+              "field": "row_number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        -300,
+        520
+      ],
+      "id": "8d4ad8a3-7433-41e2-9bb8-fe2554c64527",
+      "name": "Summarize1"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 4332114,
+          "mode": "list",
+          "cachedResultName": "type",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=4332114"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRange"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -740,
+        1130
+      ],
+      "id": "190da8f1-89f3-4bf6-acb1-9b5a8d16ac58",
+      "name": "getTypes",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        580,
+        1173.5
+      ],
+      "id": "11b10faa-2503-4209-86bd-e757e84325aa",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 745164943,
+          "mode": "list",
+          "cachedResultName": "subtype",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=745164943"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRange"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -740,
+        1330
+      ],
+      "id": "3a8f32f9-f910-43c6-8b11-d87ccb7997b8",
+      "name": "getSubTypes",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -80,
+        1173.5
+      ],
+      "id": "191c3f59-1b23-40a1-8068-5c3e0facf09d",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "={{$json.keys()[1]}}"
+            },
+            {
+              "fieldToAggregate": "={{$json.keys()[3]}}"
+            }
+          ]
+        },
+        "options": {
+          "mergeLists": true
+        }
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        1330
+      ],
+      "id": "5dbbbe1c-cce0-461e-ae6a-03034a459846",
+      "name": "Aggregate4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем все элементы, пришедшие в ноду\nconst items = $input.all();\n\nfor (const item of items) {\n  // Проходим по всем полям объекта item.json\n  for (const [key, value] of Object.entries(item.json)) {\n    // Очищаем только те поля, которые являются массивами\n    if (Array.isArray(value)) {\n      // .filter(Boolean) убирает '', null, undefined, false\n      // Если хотите сохранить числа 0, замените на (v) => v !== '' && v != null\n      item.json[key] = value.filter(Boolean);\n    }\n  }\n}\n\n// Отдаём результат\nreturn items;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -300,
+        1130
+      ],
+      "id": "c9c71d50-a6d8-462e-afb1-760f802557f8",
+      "name": "Удаляем пустые значения"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        140,
+        1173.5
+      ],
+      "id": "943eb675-d423-4463-8901-9482af5316e9",
+      "name": "Aggregate6"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем все элементы, пришедшие в ноду\nconst items = $input.all();\n\nfor (const item of items) {\n  // Проходим по всем полям объекта item.json\n  for (const [key, value] of Object.entries(item.json)) {\n    // Очищаем только те поля, которые являются массивами\n    if (Array.isArray(value)) {\n      // .filter(Boolean) убирает '', null, undefined, false\n      // Если хотите сохранить числа 0, замените на (v) => v !== '' && v != null\n      item.json[key] = value.filter(Boolean);\n    }\n  }\n}\n\n// Отдаём результат\nreturn items;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -300,
+        1330
+      ],
+      "id": "da48530a-bae4-4e84-8036-547bcf67df7a",
+      "name": "Удаляем пустые значения1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const out = {};\nfor (const o of $json[\"\"] || []) {\n  for (const [k, v] of Object.entries(o)) {\n    if (Array.isArray(v))\n      out[k] = [...(out[k] || []), ...v.filter(Boolean)];\n  }\n}\nfor (const k of Object.keys(out)) out[k] = [...new Set(out[k])];\nreturn [{ json: out }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        360,
+        1173.5
+      ],
+      "id": "d93b4f2a-0409-4a09-9fac-10b256031353",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "={{$json.keys()[1]}}"
+            },
+            {
+              "fieldToAggregate": "={{$json.keys()[3]}}"
+            },
+            {
+              "fieldToAggregate": "={{$json.keys()[5]}}"
+            },
+            {
+              "fieldToAggregate": "={{$json.keys()[7]}}"
+            },
+            {
+              "fieldToAggregate": "={{$json.keys()[9]}}"
+            },
+            {
+              "fieldToAggregate": "={{$json.keys()[11]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        1130
+      ],
+      "id": "c747f77d-0db8-4206-b12e-f28523b4a2e9",
+      "name": "Aggregate5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ff0d2757-b4c0-4496-a5a2-a2bb2556de82",
+              "name": "=sklad_header",
+              "value": "={{ $json.keys() }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -520,
+        1560
+      ],
+      "id": "c4fb368b-2a15-4305-9f6e-a15b39906f5e",
+      "name": "sklad_header"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -300,
+        1555
+      ],
+      "id": "5875d335-2203-4114-838a-4a8cd4fe90bf",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1769905694,
+          "mode": "list",
+          "cachedResultName": "Sklad",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=1769905694"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "num",
+              "lookupValue": "001"
+            }
+          ]
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRange"
+            }
+          },
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -740,
+        1560
+      ],
+      "id": "1390f726-7692-484f-bb16-ac9b5886445f",
+      "name": "getSkladHeader",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0",
+              "name": "skladName1",
+              "value": "Sklad3",
+              "type": "string"
+            },
+            {
+              "id": "3de5d333-7354-419d-94be-1b296c953f71",
+              "name": "skladName2",
+              "value": "Sklad4",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -520,
+        -320
+      ],
+      "id": "c452a4f6-1858-403c-9729-6ef8839c33b9",
+      "name": "getTestEnvironment"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0",
+              "name": "skladName1",
+              "value": "Sklad",
+              "type": "string"
+            },
+            {
+              "id": "3de5d333-7354-419d-94be-1b296c953f71",
+              "name": "skladName2",
+              "value": "Sklad2",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -520,
+        -20
+      ],
+      "id": "471bc019-beb1-4758-ab40-c4a93ab82eb1",
+      "name": "getProdEnvironment1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7cddd27c-1676-49ec-85ea-7f01deaccfeb",
+              "leftValue": "={{ $json.query.data.parseJson().query.TESTING }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -740,
+        -201.5
+      ],
+      "id": "25a1237b-0bd6-4619-896c-089548996cfc",
+      "name": "Тест или прод?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.data }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        780
+      ],
+      "id": "8823b7c5-2809-478b-9bdb-017686c5068e",
+      "name": "Respond to Webhook5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7cddd27c-1676-49ec-85ea-7f01deaccfeb",
+              "leftValue": "={{ $json.body.query.TESTING }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1600,
+        1200
+      ],
+      "id": "fa00430e-e8e8-4012-bbab-ae9631b0c72a",
+      "name": "Тест или прод?2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0",
+              "name": "skladName1",
+              "value": "Sklad3",
+              "type": "string"
+            },
+            {
+              "id": "3de5d333-7354-419d-94be-1b296c953f71",
+              "name": "skladName2",
+              "value": "Sklad4",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1320,
+        1120
+      ],
+      "id": "aa194e78-1b66-4340-9f86-615bbbc8401f",
+      "name": "getTestEnvironment2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0",
+              "name": "skladName1",
+              "value": "Sklad",
+              "type": "string"
+            },
+            {
+              "id": "3de5d333-7354-419d-94be-1b296c953f71",
+              "name": "skladName2",
+              "value": "Sklad2",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1320,
+        1380
+      ],
+      "id": "12ec611d-fcee-44f5-9c34-c5920a7a2deb",
+      "name": "getProdEnvironment2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cb0c171d-9a59-40e7-b739-7ef99c1be280",
+              "name": "=SkladName",
+              "value": "={{ $json[\"skladName\"+$json.body.query.wid] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1100,
+        1220
+      ],
+      "id": "ec26b859-5241-48d6-8f1a-b68adb50a867",
+      "name": "Какой склад?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd97c45b-4c25-41df-b9d5-7e6520a76b7a",
+              "name": "article",
+              "value": "={{'=IFERROR(VLOOKUP(C'+$json.row_number+';type!A:B;2;0)&\"\"&VLOOKUP(D'+$json.row_number+';subtype!A:B;2;0)&VLOOKUP(E'+$json.row_number+';subtype!C:D;2;0)&G'+$json.row_number+'&\"\"&A'+$json.row_number+')'\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        340,
+        280
+      ],
+      "id": "e7023931-9027-430a-9a96-cb89e774b6ad",
+      "name": "Формула для aarticle"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd97c45b-4c25-41df-b9d5-7e6520a76b7a",
+              "name": "article",
+              "value": "={{'=IFERROR(VLOOKUP(C'+$json.row_number+';type!A:B;2;0)&\"\"&VLOOKUP(D'+$json.row_number+';subtype!A:B;2;0)&VLOOKUP(E'+$json.row_number+';subtype!C:D;2;0)&G'+$json.row_number+'&\"\"&A'+$json.row_number+')'\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        800
+      ],
+      "id": "63e01d99-6939-42cd-a928-fd71306cef49",
+      "name": "Формула для aarticle1"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn $input.first().json.body.data"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -580,
+        1800
+      ],
+      "id": "22514198-b461-45bd-989f-4f94ab18f3cb",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Какой склад?').item.json.SkladName }}",
+          "mode": "name"
+        },
+        "startIndex": "={{ $json.row_number }}"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -220,
+        1820
+      ],
+      "id": "25874216-a9db-4517-a4f8-36bf895a3d19",
+      "name": "updateRow2",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.data }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        1840
+      ],
+      "id": "d1087e62-9fd5-4065-b84f-8763b954283e",
+      "name": "Respond to Webhook6"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Какой склад?').item.json.SkladName }}",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "article",
+              "lookupValue": "={{ $json.article }}"
+            }
+          ]
+        },
+        "combineFilters": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -460,
+        1940
+      ],
+      "id": "4a59e96e-40f2-4e72-9e35-c47d7963c892",
+      "name": "updateRow3",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        180,
+        540
+      ],
+      "id": "42538c41-273e-44ef-91a1-5cb0fca1f38c",
+      "name": "Aggregate8"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "113a9d79-acd7-4cff-9f66-62bcb7ad3357",
+              "name": "data.num",
+              "value": "={{ $json.num }}",
+              "type": "string"
+            },
+            {
+              "id": "69b85ba7-a95c-4f1d-9023-34670dacf47e",
+              "name": "data.article",
+              "value": "={{ $json.article }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": false
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        560,
+        60
+      ],
+      "id": "b0b69bb5-43a4-4f46-926a-1ecf70fffcb3",
+      "name": "Формула для aarticle2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a7601c47-9be7-4157-b4aa-efcba695e248",
+              "name": "data2",
+              "value": "={{ $json.data.first().toJsonString() }}\n",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        580
+      ],
+      "id": "3b17aee3-778a-4491-afe7-c272b16886b1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        700,
+        340
+      ],
+      "id": "4af3f97b-801b-4a8a-8c91-0f47785671a8",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0e8e8eeb-f93c-4efb-828b-98695694b7c1",
+              "name": "[\"\"][1].data2.article",
+              "value": "={{ $json[\"\"][0].data.article }}",
+              "type": "string"
+            },
+            {
+              "id": "4cf40556-7354-4547-b720-5ba9b4dc7f7b",
+              "name": "[\"\"][1].data2.num",
+              "value": "={{ $json[\"\"][0].data.num }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "ignoreConversionErrors": false
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        960,
+        520
+      ],
+      "id": "dc96dcf8-fdfd-4cdc-8264-cc1874801324",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        800,
+        540
+      ],
+      "id": "0023fc07-8f8d-4028-9301-0dd3128443a4",
+      "name": "Aggregate9"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "264ff8dc-41a8-45bb-a900-1bbb77c460a2",
+              "name": "",
+              "value": "={{ $json[\"\"][1].data2 }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": false
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1180,
+        520
+      ],
+      "id": "48f9a006-3c9b-4df5-92a9-ed476cf63c8b",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json[\"\"] }}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        500
+      ],
+      "id": "c131504c-fe63-46b7-ba33-6b49b9e74a0b",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ff0d2757-b4c0-4496-a5a2-a2bb2556de82",
+              "name": "=sklad_header",
+              "value": "={{ $json.keys() }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1080,
+        2000
+      ],
+      "id": "26fee2cd-d7fa-4cd1-9cc7-1ed18019cf6f",
+      "name": "sklad_header1"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -960,
+        2380
+      ],
+      "id": "67251164-154b-4524-b589-fbde027f605a",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1769905694,
+          "mode": "list",
+          "cachedResultName": "Sklad",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=1769905694"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "detectAutomatically"
+            }
+          },
+          "returnFirstMatch": false
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1000,
+        1660
+      ],
+      "id": "712ba83d-d5ec-4f8e-8794-146ee77de4c7",
+      "name": "getSkladHeader1",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Тест или прод?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "getTypes",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "getSubTypes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "getSkladHeader",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "getSkladHeader1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getAllItemsFromSklad1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "getSkladHeader1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getAllItemsFromSklad": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Формула для aarticle1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Тест или прод?2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateRow": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "getAllItemsFromSklad2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "updateRow1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getAllItemsFromSklad2": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Summarize1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Формула для aarticle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getTypes": {
+      "main": [
+        [
+          {
+            "node": "Aggregate5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getSubTypes": {
+      "main": [
+        [
+          {
+            "node": "Aggregate4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate4": {
+      "main": [
+        [
+          {
+            "node": "Удаляем пустые значения1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Удаляем пустые значения": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate6": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Удаляем пустые значения1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook2": {
+      "main": [
+        []
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate5": {
+      "main": [
+        [
+          {
+            "node": "Удаляем пустые значения",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sklad_header": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getSkladHeader": {
+      "main": [
+        [
+          {
+            "node": "sklad_header",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook3": {
+      "main": [
+        []
+      ]
+    },
+    "getProdEnvironment1": {
+      "main": [
+        [
+          {
+            "node": "getAllItemsFromSklad1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "getAllItemsFromSklad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getTestEnvironment": {
+      "main": [
+        [
+          {
+            "node": "getAllItemsFromSklad1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "getAllItemsFromSklad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Тест или прод?": {
+      "main": [
+        [
+          {
+            "node": "getTestEnvironment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "getProdEnvironment1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Тест или прод?2": {
+      "main": [
+        [
+          {
+            "node": "getTestEnvironment2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "getProdEnvironment2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getTestEnvironment2": {
+      "main": [
+        [
+          {
+            "node": "Какой склад?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getProdEnvironment2": {
+      "main": [
+        [
+          {
+            "node": "Какой склад?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Какой склад?": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Формула для aarticle": {
+      "main": [
+        [
+          {
+            "node": "Формула для aarticle2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Формула для aarticle1": {
+      "main": [
+        [
+          {
+            "node": "updateRow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "updateRow3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateRow2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateRow3": {
+      "main": [
+        [
+          {
+            "node": "updateRow2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate8": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Формула для aarticle2": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Aggregate9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate9": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "updateRow1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sklad_header1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getSkladHeader1": {
+      "main": [
+        [
+          {
+            "node": "sklad_header1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "2eb19078-8b62-499e-94f1-95effc11bf22",
+  "activeVersionId": "2eb19078-8b62-499e-94f1-95effc11bf22",
+  "versionCounter": 7,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2025-06-14T07:07:07.484Z",
+      "createdAt": "2025-06-14T07:07:07.484Z",
+      "role": "workflow:owner",
+      "workflowId": "1rSHNYY8DuXZQJ1Y",
+      "projectId": "Cbzeqxofr5KXht6P",
+      "project": {
+        "updatedAt": "2025-03-07T10:59:25.834Z",
+        "createdAt": "2025-03-05T10:47:17.258Z",
+        "id": "Cbzeqxofr5KXht6P",
+        "name": "Алексей Мурыгин <l.murygin@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-03-05T10:47:17.259Z",
+            "createdAt": "2025-03-05T10:47:17.259Z",
+            "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+            "projectId": "Cbzeqxofr5KXht6P",
+            "user": {
+              "updatedAt": "2026-03-09T09:59:17.000Z",
+              "createdAt": "2025-03-05T10:47:16.542Z",
+              "id": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+              "email": "l.murygin@gmail.com",
+              "firstName": "Алексей",
+              "lastName": "Мурыгин",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "rVWIEki714lPBFxf",
+                "userActivatedAt": 1741418880091,
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-09",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-01-05T17:44:16.723Z",
+    "createdAt": "2026-01-05T17:44:16.723Z",
+    "versionId": "2eb19078-8b62-499e-94f1-95effc11bf22",
+    "workflowId": "1rSHNYY8DuXZQJ1Y",
+    "nodes": [
+      {
+        "parameters": {
+          "path": "sklad",
+          "responseMode": "responseNode",
+          "options": {
+            "allowedOrigins": "*",
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "ALL"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -1580,
+          740
+        ],
+        "id": "6c1f72e0-8e63-4609-8de9-58798f9e693f",
+        "name": "Webhook",
+        "webhookId": "3c99632a-6787-434e-9366-99e25da801e3"
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json.data }}",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.2,
+        "position": [
+          580,
+          -201.5
+        ],
+        "id": "0cbfab3b-a099-4175-a4fb-cdb739630986",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
+                      "rightValue": "getArticle",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "50880f5c-2526-4969-9728-daa1323817a4"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "getArticle"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "0f9b14f9-bbf6-454a-857e-e3c27ba2f225",
+                      "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
+                      "rightValue": "getSkladData",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "getSkladData"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "424c332f-6747-495e-ade8-26932dc313aa",
+                      "leftValue": "={{ $json.query.action }}",
+                      "rightValue": "editItem",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "editItem"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "ca396694-ab72-4a0c-afd7-249fbe643565",
+                      "leftValue": "={{ $json.query.action }}",
+                      "rightValue": "addItem",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "addItem"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "5377f5f8-1ee2-4f86-a1b5-88d3378dd8f1",
+                      "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
+                      "rightValue": "getVocabulary",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "getVocabulary"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "a1b3ee6c-7ad1-49fb-9994-3eb32e87202b",
+                      "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
+                      "rightValue": "getSkladHeader",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "getSkladHeader"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "5cbeb4ab-cd22-4fb0-85dd-d5fd3956d263",
+                      "leftValue": "={{ $json.query.action }}",
+                      "rightValue": "deleteItem",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "deleteItem"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "7424ebf1-5451-48b4-bcc0-e7d0081fc560",
+                      "leftValue": "={{ $json.query.action }}",
+                      "rightValue": "=getHeader",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "=getHeader"
+              }
+            ]
+          },
+          "options": {
+            "ignoreCase": true
+          }
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          -960,
+          892
+        ],
+        "id": "5b463381-2981-4d30-bbc5-b08d43e322cf",
+        "name": "Switch"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "={{ $json.skladName1 }}",
+            "mode": "name"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -300,
+          -301.5
+        ],
+        "id": "97a4af4f-8e4c-44cf-ba66-899f97456397",
+        "name": "getAllItemsFromSklad1",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          -1560,
+          1560
+        ],
+        "id": "7b322a3b-bc9c-4b69-a4bc-e49bbde33efc",
+        "name": "When clicking ‘Test workflow’"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "={{ $json.skladName2 }}",
+            "mode": "name"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -300,
+          -101.5
+        ],
+        "id": "28c010db-a9c0-442b-aeea-130843366710",
+        "name": "getAllItemsFromSklad",
+        "executeOnce": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "destinationFieldName": "data1",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -80,
+          -300
+        ],
+        "id": "8f72b40f-873a-45f4-9f1e-af41b04a2799",
+        "name": "Aggregate1"
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "destinationFieldName": "data2",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -80,
+          -101.5
+        ],
+        "id": "29c06ce9-3acd-4a56-a7d1-0a33c485ad16",
+        "name": "Aggregate2"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.1,
+        "position": [
+          140,
+          -201.5
+        ],
+        "id": "5c2ea194-bcfa-49f2-87f6-d323edda44c6",
+        "name": "Merge"
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          360,
+          -201.5
+        ],
+        "id": "b88780ba-6f51-4b0c-b960-57d0b3ac07f6",
+        "name": "Aggregate"
+      },
+      {
+        "parameters": {
+          "jsCode": "\nreturn $input.first().json.body.data"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -520,
+          800
+        ],
+        "id": "e526169c-7c72-4a09-bfd9-1bca465849b5",
+        "name": "Code"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "sklad",
+          "responseMode": "responseNode",
+          "options": {
+            "allowedOrigins": "*",
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "ALL"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -1580,
+          900
+        ],
+        "id": "c7601b4d-5917-4cf2-a39a-0989ed9dead3",
+        "name": "Webhook2",
+        "webhookId": "3c99632a-6787-434e-9366-99e25da801e3"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "operation": "update",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "={{ $('Какой склад?').item.json.SkladName }}",
+            "mode": "name"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [
+              "num"
+            ],
+            "schema": [
+              {
+                "id": "num",
+                "displayName": "num",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "article",
+                "displayName": "article",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Brand",
+                "displayName": "Brand",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "type",
+                "displayName": "type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "subtype",
+                "displayName": "subtype",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "description",
+                "displayName": "description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Name",
+                "displayName": "Name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "fabric",
+                "displayName": "fabric",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "color",
+                "displayName": "color",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "size",
+                "displayName": "size",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "manufacturer",
+                "displayName": "manufacturer",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "netprice",
+                "displayName": "netprice",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Delivery_date",
+                "displayName": "Delivery_date",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "quantity",
+                "displayName": "quantity",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "crope price",
+                "displayName": "crope price",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "price",
+                "displayName": "price",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "discount_%",
+                "displayName": "discount_%",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "discount_Fix",
+                "displayName": "discount_Fix",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Comments",
+                "displayName": "Comments",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "netpriceFull",
+                "displayName": "netpriceFull",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "scladprice",
+                "displayName": "scladprice",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "salePrice",
+                "displayName": "salePrice",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Зал",
+                "displayName": "Зал",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Склад",
+                "displayName": "Склад",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Склад-вешалка",
+                "displayName": "Склад-вешалка",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Дом",
+                "displayName": "Дом",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Улица",
+                "displayName": "Улица",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "производитель",
+                "displayName": "производитель",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "отгрузка",
+                "displayName": "отгрузка",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "col_7",
+                "displayName": "col_7",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "data",
+                "displayName": "data",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "query",
+                "displayName": "query",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "row_number",
+                "displayName": "row_number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          160,
+          780
+        ],
+        "id": "3301c338-5be1-4bc6-a398-451c7f0b0ca7",
+        "name": "updateRow",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "\nreturn $input.first().json.body"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -720,
+          300
+        ],
+        "id": "2a7fba4f-d741-4176-8abf-50449d6d7c94",
+        "name": "Code1"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "={{ $('Какой склад?').item.json.SkladName }}",
+            "mode": "name"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "num",
+                "displayName": "num",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "article",
+                "displayName": "article",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Brand",
+                "displayName": "Brand",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "type",
+                "displayName": "type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "subtype",
+                "displayName": "subtype",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "description",
+                "displayName": "description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Name",
+                "displayName": "Name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "fabric",
+                "displayName": "fabric",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "color",
+                "displayName": "color",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "size",
+                "displayName": "size",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "manufacturer",
+                "displayName": "manufacturer",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "netprice",
+                "displayName": "netprice",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Delivery_date",
+                "displayName": "Delivery_date",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "quantity",
+                "displayName": "quantity",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "crope price",
+                "displayName": "crope price",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "price",
+                "displayName": "price",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "made in",
+                "displayName": "made in",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "discount_%",
+                "displayName": "discount_%",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "discount_Fix",
+                "displayName": "discount_Fix",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Comments",
+                "displayName": "Comments",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "netpriceFull",
+                "displayName": "netpriceFull",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "scladprice",
+                "displayName": "scladprice",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "salePrice",
+                "displayName": "salePrice",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Зал",
+                "displayName": "Зал",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Склад",
+                "displayName": "Склад",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Склад-вешалка",
+                "displayName": "Склад-вешалка",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Дом",
+                "displayName": "Дом",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Улица",
+                "displayName": "Улица",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          1700,
+          440
+        ],
+        "id": "105ebc3e-de49-45f5-97a7-45c545d663fc",
+        "name": "updateRow1",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json.data }}",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.2,
+        "position": [
+          1900,
+          480
+        ],
+        "id": "272f2f32-686f-4840-aba0-b209df4043c6",
+        "name": "Respond to Webhook1"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "={{ $('Какой склад?').item.json.SkladName }}",
+            "mode": "name"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -520,
+          373.5
+        ],
+        "id": "5495bbda-e583-4ce3-a6f7-b1560f761b95",
+        "name": "getAllItemsFromSklad2",
+        "executeOnce": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "fieldsToSummarize": {
+            "values": [
+              {
+                "aggregation": "max",
+                "field": "num"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.summarize",
+        "typeVersion": 1.1,
+        "position": [
+          -300,
+          330
+        ],
+        "id": "19b713cb-e278-4372-9a54-97010de82835",
+        "name": "Summarize"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "8e828fa3-6da6-4403-a918-48fb062f9a19",
+                "name": "num",
+                "value": "={{ $input.last().json.max_num.toNumber() +1 }}",
+                "type": "string"
+              },
+              {
+                "id": "d11c3f90-89ef-4264-b1c9-36d8327324b6",
+                "name": "row_number",
+                "value": "={{ $input.first().json.max_row_number +1  }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          160,
+          280
+        ],
+        "id": "20744f5b-e91b-4629-b78a-56336534872e",
+        "name": "Edit Fields1",
+        "executeOnce": true
+      },
+      {
+        "parameters": {
+          "numberInputs": 3
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          -20,
+          320
+        ],
+        "id": "d95943ba-8bb8-4af9-a4db-346b0f920ca0",
+        "name": "Merge1"
+      },
+      {
+        "parameters": {
+          "fieldsToSummarize": {
+            "values": [
+              {
+                "aggregation": "max",
+                "field": "row_number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.summarize",
+        "typeVersion": 1.1,
+        "position": [
+          -300,
+          520
+        ],
+        "id": "8d4ad8a3-7433-41e2-9bb8-fe2554c64527",
+        "name": "Summarize1"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 4332114,
+            "mode": "list",
+            "cachedResultName": "type",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=4332114"
+          },
+          "options": {
+            "dataLocationOnSheet": {
+              "values": {
+                "rangeDefinition": "specifyRange"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -740,
+          1130
+        ],
+        "id": "190da8f1-89f3-4bf6-acb1-9b5a8d16ac58",
+        "name": "getTypes",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "allIncomingItems",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.2,
+        "position": [
+          580,
+          1173.5
+        ],
+        "id": "11b10faa-2503-4209-86bd-e757e84325aa",
+        "name": "Respond to Webhook2"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 745164943,
+            "mode": "list",
+            "cachedResultName": "subtype",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=745164943"
+          },
+          "options": {
+            "dataLocationOnSheet": {
+              "values": {
+                "rangeDefinition": "specifyRange"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -740,
+          1330
+        ],
+        "id": "3a8f32f9-f910-43c6-8b11-d87ccb7997b8",
+        "name": "getSubTypes",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          -80,
+          1173.5
+        ],
+        "id": "191c3f59-1b23-40a1-8068-5c3e0facf09d",
+        "name": "Merge2"
+      },
+      {
+        "parameters": {
+          "fieldsToAggregate": {
+            "fieldToAggregate": [
+              {
+                "fieldToAggregate": "={{$json.keys()[1]}}"
+              },
+              {
+                "fieldToAggregate": "={{$json.keys()[3]}}"
+              }
+            ]
+          },
+          "options": {
+            "mergeLists": true
+          }
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -520,
+          1330
+        ],
+        "id": "5dbbbe1c-cce0-461e-ae6a-03034a459846",
+        "name": "Aggregate4"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Получаем все элементы, пришедшие в ноду\nconst items = $input.all();\n\nfor (const item of items) {\n  // Проходим по всем полям объекта item.json\n  for (const [key, value] of Object.entries(item.json)) {\n    // Очищаем только те поля, которые являются массивами\n    if (Array.isArray(value)) {\n      // .filter(Boolean) убирает '', null, undefined, false\n      // Если хотите сохранить числа 0, замените на (v) => v !== '' && v != null\n      item.json[key] = value.filter(Boolean);\n    }\n  }\n}\n\n// Отдаём результат\nreturn items;\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -300,
+          1130
+        ],
+        "id": "c9c71d50-a6d8-462e-afb1-760f802557f8",
+        "name": "Удаляем пустые значения"
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "destinationFieldName": "",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          140,
+          1173.5
+        ],
+        "id": "943eb675-d423-4463-8901-9482af5316e9",
+        "name": "Aggregate6"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Получаем все элементы, пришедшие в ноду\nconst items = $input.all();\n\nfor (const item of items) {\n  // Проходим по всем полям объекта item.json\n  for (const [key, value] of Object.entries(item.json)) {\n    // Очищаем только те поля, которые являются массивами\n    if (Array.isArray(value)) {\n      // .filter(Boolean) убирает '', null, undefined, false\n      // Если хотите сохранить числа 0, замените на (v) => v !== '' && v != null\n      item.json[key] = value.filter(Boolean);\n    }\n  }\n}\n\n// Отдаём результат\nreturn items;\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -300,
+          1330
+        ],
+        "id": "da48530a-bae4-4e84-8036-547bcf67df7a",
+        "name": "Удаляем пустые значения1"
+      },
+      {
+        "parameters": {
+          "jsCode": "const out = {};\nfor (const o of $json[\"\"] || []) {\n  for (const [k, v] of Object.entries(o)) {\n    if (Array.isArray(v))\n      out[k] = [...(out[k] || []), ...v.filter(Boolean)];\n  }\n}\nfor (const k of Object.keys(out)) out[k] = [...new Set(out[k])];\nreturn [{ json: out }];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          360,
+          1173.5
+        ],
+        "id": "d93b4f2a-0409-4a09-9fac-10b256031353",
+        "name": "Code2"
+      },
+      {
+        "parameters": {
+          "fieldsToAggregate": {
+            "fieldToAggregate": [
+              {
+                "fieldToAggregate": "={{$json.keys()[1]}}"
+              },
+              {
+                "fieldToAggregate": "={{$json.keys()[3]}}"
+              },
+              {
+                "fieldToAggregate": "={{$json.keys()[5]}}"
+              },
+              {
+                "fieldToAggregate": "={{$json.keys()[7]}}"
+              },
+              {
+                "fieldToAggregate": "={{$json.keys()[9]}}"
+              },
+              {
+                "fieldToAggregate": "={{$json.keys()[11]}}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -520,
+          1130
+        ],
+        "id": "c747f77d-0db8-4206-b12e-f28523b4a2e9",
+        "name": "Aggregate5"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "ff0d2757-b4c0-4496-a5a2-a2bb2556de82",
+                "name": "=sklad_header",
+                "value": "={{ $json.keys() }}",
+                "type": "array"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -520,
+          1560
+        ],
+        "id": "c4fb368b-2a15-4305-9f6e-a15b39906f5e",
+        "name": "sklad_header"
+      },
+      {
+        "parameters": {
+          "respondWith": "allIncomingItems",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.2,
+        "position": [
+          -300,
+          1555
+        ],
+        "id": "5875d335-2203-4114-838a-4a8cd4fe90bf",
+        "name": "Respond to Webhook3"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1769905694,
+            "mode": "list",
+            "cachedResultName": "Sklad",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=1769905694"
+          },
+          "filtersUI": {
+            "values": [
+              {
+                "lookupColumn": "num",
+                "lookupValue": "001"
+              }
+            ]
+          },
+          "options": {
+            "dataLocationOnSheet": {
+              "values": {
+                "rangeDefinition": "specifyRange"
+              }
+            },
+            "returnFirstMatch": true
+          }
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -740,
+          1560
+        ],
+        "id": "1390f726-7692-484f-bb16-ac9b5886445f",
+        "name": "getSkladHeader",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0",
+                "name": "skladName1",
+                "value": "Sklad3",
+                "type": "string"
+              },
+              {
+                "id": "3de5d333-7354-419d-94be-1b296c953f71",
+                "name": "skladName2",
+                "value": "Sklad4",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -520,
+          -320
+        ],
+        "id": "c452a4f6-1858-403c-9729-6ef8839c33b9",
+        "name": "getTestEnvironment"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0",
+                "name": "skladName1",
+                "value": "Sklad",
+                "type": "string"
+              },
+              {
+                "id": "3de5d333-7354-419d-94be-1b296c953f71",
+                "name": "skladName2",
+                "value": "Sklad2",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -520,
+          -20
+        ],
+        "id": "471bc019-beb1-4758-ab40-c4a93ab82eb1",
+        "name": "getProdEnvironment1"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "7cddd27c-1676-49ec-85ea-7f01deaccfeb",
+                "leftValue": "={{ $json.query.data.parseJson().query.TESTING }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -740,
+          -201.5
+        ],
+        "id": "25a1237b-0bd6-4619-896c-089548996cfc",
+        "name": "Тест или прод?"
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json.data }}",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.2,
+        "position": [
+          400,
+          780
+        ],
+        "id": "8823b7c5-2809-478b-9bdb-017686c5068e",
+        "name": "Respond to Webhook5"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "7cddd27c-1676-49ec-85ea-7f01deaccfeb",
+                "leftValue": "={{ $json.body.query.TESTING }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -1600,
+          1200
+        ],
+        "id": "fa00430e-e8e8-4012-bbab-ae9631b0c72a",
+        "name": "Тест или прод?2"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0",
+                "name": "skladName1",
+                "value": "Sklad3",
+                "type": "string"
+              },
+              {
+                "id": "3de5d333-7354-419d-94be-1b296c953f71",
+                "name": "skladName2",
+                "value": "Sklad4",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -1320,
+          1120
+        ],
+        "id": "aa194e78-1b66-4340-9f86-615bbbc8401f",
+        "name": "getTestEnvironment2"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0",
+                "name": "skladName1",
+                "value": "Sklad",
+                "type": "string"
+              },
+              {
+                "id": "3de5d333-7354-419d-94be-1b296c953f71",
+                "name": "skladName2",
+                "value": "Sklad2",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -1320,
+          1380
+        ],
+        "id": "12ec611d-fcee-44f5-9c34-c5920a7a2deb",
+        "name": "getProdEnvironment2"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "cb0c171d-9a59-40e7-b739-7ef99c1be280",
+                "name": "=SkladName",
+                "value": "={{ $json[\"skladName\"+$json.body.query.wid] }}",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -1100,
+          1220
+        ],
+        "id": "ec26b859-5241-48d6-8f1a-b68adb50a867",
+        "name": "Какой склад?"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "bd97c45b-4c25-41df-b9d5-7e6520a76b7a",
+                "name": "article",
+                "value": "={{'=IFERROR(VLOOKUP(C'+$json.row_number+';type!A:B;2;0)&\"\"&VLOOKUP(D'+$json.row_number+';subtype!A:B;2;0)&VLOOKUP(E'+$json.row_number+';subtype!C:D;2;0)&G'+$json.row_number+'&\"\"&A'+$json.row_number+')'\n}}",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          340,
+          280
+        ],
+        "id": "e7023931-9027-430a-9a96-cb89e774b6ad",
+        "name": "Формула для aarticle"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "bd97c45b-4c25-41df-b9d5-7e6520a76b7a",
+                "name": "article",
+                "value": "={{'=IFERROR(VLOOKUP(C'+$json.row_number+';type!A:B;2;0)&\"\"&VLOOKUP(D'+$json.row_number+';subtype!A:B;2;0)&VLOOKUP(E'+$json.row_number+';subtype!C:D;2;0)&G'+$json.row_number+'&\"\"&A'+$json.row_number+')'\n}}",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -240,
+          800
+        ],
+        "id": "63e01d99-6939-42cd-a928-fd71306cef49",
+        "name": "Формула для aarticle1"
+      },
+      {
+        "parameters": {
+          "jsCode": "\nreturn $input.first().json.body.data"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -580,
+          1800
+        ],
+        "id": "22514198-b461-45bd-989f-4f94ab18f3cb",
+        "name": "Code3"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "operation": "delete",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "={{ $('Какой склад?').item.json.SkladName }}",
+            "mode": "name"
+          },
+          "startIndex": "={{ $json.row_number }}"
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -220,
+          1820
+        ],
+        "id": "25874216-a9db-4517-a4f8-36bf895a3d19",
+        "name": "updateRow2",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json.data }}",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.2,
+        "position": [
+          140,
+          1840
+        ],
+        "id": "d1087e62-9fd5-4065-b84f-8763b954283e",
+        "name": "Respond to Webhook6"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "={{ $('Какой склад?').item.json.SkladName }}",
+            "mode": "name"
+          },
+          "filtersUI": {
+            "values": [
+              {
+                "lookupColumn": "article",
+                "lookupValue": "={{ $json.article }}"
+              }
+            ]
+          },
+          "combineFilters": "=",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -460,
+          1940
+        ],
+        "id": "4a59e96e-40f2-4e72-9e35-c47d7963c892",
+        "name": "updateRow3",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "fieldsToAggregate": {
+            "fieldToAggregate": [
+              {
+                "fieldToAggregate": "data"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          180,
+          540
+        ],
+        "id": "42538c41-273e-44ef-91a1-5cb0fca1f38c",
+        "name": "Aggregate8"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "113a9d79-acd7-4cff-9f66-62bcb7ad3357",
+                "name": "data.num",
+                "value": "={{ $json.num }}",
+                "type": "string"
+              },
+              {
+                "id": "69b85ba7-a95c-4f1d-9023-34670dacf47e",
+                "name": "data.article",
+                "value": "={{ $json.article }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {
+            "ignoreConversionErrors": false
+          }
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          560,
+          60
+        ],
+        "id": "b0b69bb5-43a4-4f46-926a-1ecf70fffcb3",
+        "name": "Формула для aarticle2"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "a7601c47-9be7-4157-b4aa-efcba695e248",
+                "name": "data2",
+                "value": "={{ $json.data.first().toJsonString() }}\n",
+                "type": "object"
+              }
+            ]
+          },
+          "options": {
+            "ignoreConversionErrors": true
+          }
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          440,
+          580
+        ],
+        "id": "3b17aee3-778a-4491-afe7-c272b16886b1",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          700,
+          340
+        ],
+        "id": "4af3f97b-801b-4a8a-8c91-0f47785671a8",
+        "name": "Merge3"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "0e8e8eeb-f93c-4efb-828b-98695694b7c1",
+                "name": "[\"\"][1].data2.article",
+                "value": "={{ $json[\"\"][0].data.article }}",
+                "type": "string"
+              },
+              {
+                "id": "4cf40556-7354-4547-b720-5ba9b4dc7f7b",
+                "name": "[\"\"][1].data2.num",
+                "value": "={{ $json[\"\"][0].data.num }}",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {
+            "ignoreConversionErrors": false
+          }
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          960,
+          520
+        ],
+        "id": "dc96dcf8-fdfd-4cdc-8264-cc1874801324",
+        "name": "Edit Fields2"
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "destinationFieldName": "",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          800,
+          540
+        ],
+        "id": "0023fc07-8f8d-4028-9301-0dd3128443a4",
+        "name": "Aggregate9"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "264ff8dc-41a8-45bb-a900-1bbb77c460a2",
+                "name": "",
+                "value": "={{ $json[\"\"][1].data2 }}",
+                "type": "object"
+              }
+            ]
+          },
+          "options": {
+            "ignoreConversionErrors": false
+          }
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1180,
+          520
+        ],
+        "id": "48f9a006-3c9b-4df5-92a9-ed476cf63c8b",
+        "name": "Edit Fields3"
+      },
+      {
+        "parameters": {
+          "mode": "raw",
+          "jsonOutput": "={{ $json[\"\"] }}\n\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1440,
+          500
+        ],
+        "id": "c131504c-fe63-46b7-ba33-6b49b9e74a0b",
+        "name": "Edit Fields4"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "ff0d2757-b4c0-4496-a5a2-a2bb2556de82",
+                "name": "=sklad_header",
+                "value": "={{ $json.keys() }}",
+                "type": "array"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -1080,
+          2000
+        ],
+        "id": "26fee2cd-d7fa-4cd1-9cc7-1ed18019cf6f",
+        "name": "sklad_header1"
+      },
+      {
+        "parameters": {
+          "respondWith": "allIncomingItems",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.2,
+        "position": [
+          -960,
+          2380
+        ],
+        "id": "67251164-154b-4524-b589-fbde027f605a",
+        "name": "Respond to Webhook4"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1769905694,
+            "mode": "list",
+            "cachedResultName": "Sklad",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=1769905694"
+          },
+          "options": {
+            "dataLocationOnSheet": {
+              "values": {
+                "rangeDefinition": "detectAutomatically"
+              }
+            },
+            "returnFirstMatch": false
+          }
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -1000,
+          1660
+        ],
+        "id": "712ba83d-d5ec-4f8e-8794-146ee77de4c7",
+        "name": "getSkladHeader1",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Тест или прод?",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Code",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Code1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "getTypes",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "getSubTypes",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "getSkladHeader",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Code3",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "getSkladHeader1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getAllItemsFromSklad1": {
+        "main": [
+          [
+            {
+              "node": "Aggregate1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When clicking ‘Test workflow’": {
+        "main": [
+          [
+            {
+              "node": "getSkladHeader1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getAllItemsFromSklad": {
+        "main": [
+          [
+            {
+              "node": "Aggregate2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate1": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate2": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge": {
+        "main": [
+          [
+            {
+              "node": "Aggregate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code": {
+        "main": [
+          [
+            {
+              "node": "Формула для aarticle1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook2": {
+        "main": [
+          [
+            {
+              "node": "Тест или прод?2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "updateRow": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook5",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code1": {
+        "main": [
+          [
+            {
+              "node": "getAllItemsFromSklad2",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Merge1",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "updateRow1": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getAllItemsFromSklad2": {
+        "main": [
+          [
+            {
+              "node": "Summarize",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Summarize1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Summarize": {
+        "main": [
+          [
+            {
+              "node": "Merge1",
+              "type": "main",
+              "index": 2
+            }
+          ]
+        ]
+      },
+      "Merge1": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields1",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Aggregate8",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields1": {
+        "main": [
+          [
+            {
+              "node": "Формула для aarticle",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Summarize1": {
+        "main": [
+          [
+            {
+              "node": "Merge1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getTypes": {
+        "main": [
+          [
+            {
+              "node": "Aggregate5",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getSubTypes": {
+        "main": [
+          [
+            {
+              "node": "Aggregate4",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge2": {
+        "main": [
+          [
+            {
+              "node": "Aggregate6",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate4": {
+        "main": [
+          [
+            {
+              "node": "Удаляем пустые значения1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Удаляем пустые значения": {
+        "main": [
+          [
+            {
+              "node": "Merge2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate6": {
+        "main": [
+          [
+            {
+              "node": "Code2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Удаляем пустые значения1": {
+        "main": [
+          [
+            {
+              "node": "Merge2",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Respond to Webhook2": {
+        "main": [
+          []
+        ]
+      },
+      "Code2": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate5": {
+        "main": [
+          [
+            {
+              "node": "Удаляем пустые значения",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "sklad_header": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getSkladHeader": {
+        "main": [
+          [
+            {
+              "node": "sklad_header",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Respond to Webhook3": {
+        "main": [
+          []
+        ]
+      },
+      "getProdEnvironment1": {
+        "main": [
+          [
+            {
+              "node": "getAllItemsFromSklad1",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "getAllItemsFromSklad",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getTestEnvironment": {
+        "main": [
+          [
+            {
+              "node": "getAllItemsFromSklad1",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "getAllItemsFromSklad",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Тест или прод?": {
+        "main": [
+          [
+            {
+              "node": "getTestEnvironment",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "getProdEnvironment1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Тест или прод?2": {
+        "main": [
+          [
+            {
+              "node": "getTestEnvironment2",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "getProdEnvironment2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getTestEnvironment2": {
+        "main": [
+          [
+            {
+              "node": "Какой склад?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getProdEnvironment2": {
+        "main": [
+          [
+            {
+              "node": "Какой склад?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Какой склад?": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Формула для aarticle": {
+        "main": [
+          [
+            {
+              "node": "Формула для aarticle2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Формула для aarticle1": {
+        "main": [
+          [
+            {
+              "node": "updateRow",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code3": {
+        "main": [
+          [
+            {
+              "node": "updateRow3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "updateRow2": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook6",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "updateRow3": {
+        "main": [
+          [
+            {
+              "node": "updateRow2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate8": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Формула для aarticle2": {
+        "main": [
+          [
+            {
+              "node": "Merge3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "Merge3",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge3": {
+        "main": [
+          [
+            {
+              "node": "Aggregate9",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate9": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields2": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields3": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields4",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields4": {
+        "main": [
+          [
+            {
+              "node": "updateRow1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "sklad_header1": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook4",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getSkladHeader1": {
+        "main": [
+          [
+            {
+              "node": "sklad_header1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "system migration",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2025-08-07T19:10:28.000Z",
+        "id": 2,
+        "workflowId": "1rSHNYY8DuXZQJ1Y",
+        "versionId": "2eb19078-8b62-499e-94f1-95effc11bf22",
+        "event": "activated",
+        "userId": null
+      }
+    ]
+  }
+}

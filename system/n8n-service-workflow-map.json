@@ -1,0 +1,392 @@
+{
+  "_meta": {
+    "generatedAtUTC": "2026-03-09T12:52:19.778Z",
+    "sourceApiRoutes": "system/api.js",
+    "syncFolder": "workflows/buttonrouge_org/n8n_алексей_м/personal",
+    "trackedWorkflows": 37,
+    "totalWorkflows": 37,
+    "usage": "Open this file first for fast service->workflow lookup."
+  },
+  "serviceToWorkflow": {
+    "addBudgetRecord": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "addBudgetRecord",
+      "workflowId": null,
+      "workflowName": null,
+      "workflowFile": null
+    },
+    "addCacheRegisterRecord": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "CashRegister",
+      "workflowId": "t6SVNT2eaJMzNH1e",
+      "workflowName": "CashRegister",
+      "workflowFile": "CashRegister.workflow.ts"
+    },
+    "addSkladItem": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "sklad",
+      "workflowId": "1rSHNYY8DuXZQJ1Y",
+      "workflowName": "button/sklad",
+      "workflowFile": "button_sklad.workflow.ts"
+    },
+    "deleteSkladItem": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "sklad",
+      "workflowId": "1rSHNYY8DuXZQJ1Y",
+      "workflowName": "button/sklad",
+      "workflowFile": "button_sklad.workflow.ts"
+    },
+    "editSkladItem": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "sklad",
+      "workflowId": "1rSHNYY8DuXZQJ1Y",
+      "workflowName": "button/sklad",
+      "workflowFile": "button_sklad.workflow.ts"
+    },
+    "getAllItemsFromCatalogByQuery": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "getCatalogData",
+      "workflowId": "hUNAzAUPzoSKPnVfY5hCx",
+      "workflowName": "getCatalogData",
+      "workflowFile": "getCatalogData.workflow.ts"
+    },
+    "getAuthData": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "Auth",
+      "workflowId": "GJQ5EyXqLMJAK0uU",
+      "workflowName": "button/Auth",
+      "workflowFile": "button_Auth.workflow.ts"
+    },
+    "getBudgetData": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "budget",
+      "workflowId": "jyqgaRvgPCMMLPjZ",
+      "workflowName": "button/budget",
+      "workflowFile": "button_budget.workflow.ts"
+    },
+    "getBudgetVocabulary": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "budget",
+      "workflowId": "jyqgaRvgPCMMLPjZ",
+      "workflowName": "button/budget",
+      "workflowFile": "button_budget.workflow.ts"
+    },
+    "getCash": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "CashRegister",
+      "workflowId": "t6SVNT2eaJMzNH1e",
+      "workflowName": "CashRegister",
+      "workflowFile": "CashRegister.workflow.ts"
+    },
+    "getCashRegisterRecords": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "CashRegister",
+      "workflowId": "t6SVNT2eaJMzNH1e",
+      "workflowName": "CashRegister",
+      "workflowFile": "CashRegister.workflow.ts"
+    },
+    "getChartsData": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "charts",
+      "workflowId": "VSQwF8modN3kIuz9",
+      "workflowName": "button/charts",
+      "workflowFile": "button_charts.workflow.ts"
+    },
+    "getChartsSummary": {
+      "method": "GET",
+      "mode": "test",
+      "action": "charts",
+      "workflowId": "VSQwF8modN3kIuz9",
+      "workflowName": "button/charts",
+      "workflowFile": "button_charts.workflow.ts"
+    },
+    "getConfig": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "config",
+      "workflowId": "bT8hmBOQFVQk7iJ9",
+      "workflowName": "button/config",
+      "workflowFile": "button_config.workflow.ts"
+    },
+    "getHeader": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "getCatalogData",
+      "workflowId": "hUNAzAUPzoSKPnVfY5hCx",
+      "workflowName": "getCatalogData",
+      "workflowFile": "getCatalogData.workflow.ts"
+    },
+    "getItemByArticleName": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "getCatalogData",
+      "workflowId": "hUNAzAUPzoSKPnVfY5hCx",
+      "workflowName": "getCatalogData",
+      "workflowFile": "getCatalogData.workflow.ts"
+    },
+    "getMenu": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "Menu",
+      "workflowId": "hwR6rUBEyPfH3zRl",
+      "workflowName": "Menu",
+      "workflowFile": "Menu.workflow.ts"
+    },
+    "getMonthsSummary": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "budget",
+      "workflowId": "jyqgaRvgPCMMLPjZ",
+      "workflowName": "button/budget",
+      "workflowFile": "button_budget.workflow.ts"
+    },
+    "getMySalary": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "Salary",
+      "workflowId": "rIjQhZPR3nLFhiNX",
+      "workflowName": "salary",
+      "workflowFile": "salary.workflow.ts"
+    },
+    "getSalaryFix": {
+      "method": "GET",
+      "mode": "test",
+      "action": "SalaryFix",
+      "workflowId": "lcTnjXz7ItCVZbVW",
+      "workflowName": "SalaryFix",
+      "workflowFile": "SalaryFix.workflow.ts"
+    },
+    "getSalesData": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "sales",
+      "workflowId": "S8psazYZnXdCAT0B",
+      "workflowName": "sales",
+      "workflowFile": "sales.workflow.ts"
+    },
+    "getSchedule": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "schedule",
+      "workflowId": "9z0Gg2KId6ieywKg",
+      "workflowName": "button/schedule",
+      "workflowFile": "button_schedule.workflow.ts"
+    },
+    "getScheduleMeta": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "schedule",
+      "workflowId": "9z0Gg2KId6ieywKg",
+      "workflowName": "button/schedule",
+      "workflowFile": "button_schedule.workflow.ts"
+    },
+    "getSkladData": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "sklad",
+      "workflowId": "1rSHNYY8DuXZQJ1Y",
+      "workflowName": "button/sklad",
+      "workflowFile": "button_sklad.workflow.ts"
+    },
+    "getSkladHeader": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "sklad",
+      "workflowId": "1rSHNYY8DuXZQJ1Y",
+      "workflowName": "button/sklad",
+      "workflowFile": "button_sklad.workflow.ts"
+    },
+    "getSkladVocabulary": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "sklad",
+      "workflowId": "1rSHNYY8DuXZQJ1Y",
+      "workflowName": "button/sklad",
+      "workflowFile": "button_sklad.workflow.ts"
+    },
+    "getStores": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "stores",
+      "workflowId": "LnFR3805UOxKmVlx",
+      "workflowName": "button/getStores",
+      "workflowFile": "button_getStores.workflow.ts"
+    },
+    "getTagsConfig": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "tags",
+      "workflowId": "TBIyzil82lShTiqx",
+      "workflowName": "button/tags",
+      "workflowFile": "button_tags.workflow.ts"
+    },
+    "getToken": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "getToken",
+      "workflowId": null,
+      "workflowName": null,
+      "workflowFile": null
+    },
+    "getUserStoreByToken": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "stores",
+      "workflowId": "LnFR3805UOxKmVlx",
+      "workflowName": "button/getStores",
+      "workflowFile": "button_getStores.workflow.ts"
+    },
+    "getVocabulary": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "CashRegister",
+      "workflowId": "t6SVNT2eaJMzNH1e",
+      "workflowName": "CashRegister",
+      "workflowFile": "CashRegister.workflow.ts"
+    },
+    "saveBudgetChanges": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "budget",
+      "workflowId": "jyqgaRvgPCMMLPjZ",
+      "workflowName": "button/budget",
+      "workflowFile": "button_budget.workflow.ts"
+    },
+    "saveSkladChanges": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "sklad",
+      "workflowId": "1rSHNYY8DuXZQJ1Y",
+      "workflowName": "button/sklad",
+      "workflowFile": "button_sklad.workflow.ts"
+    },
+    "saveTagsConfig": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "tags",
+      "workflowId": "TBIyzil82lShTiqx",
+      "workflowName": "button/tags",
+      "workflowFile": "button_tags.workflow.ts"
+    },
+    "sendSalesToSheet": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "newSale",
+      "workflowId": "7pC8RxgVHa1G7N7PsT9W4",
+      "workflowName": "newSale",
+      "workflowFile": "newSale.workflow.ts"
+    },
+    "setToken": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "Auth",
+      "workflowId": "GJQ5EyXqLMJAK0uU",
+      "workflowName": "button/Auth",
+      "workflowFile": "button_Auth.workflow.ts"
+    },
+    "updateConfig": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "config",
+      "workflowId": "bT8hmBOQFVQk7iJ9",
+      "workflowName": "button/config",
+      "workflowFile": "button_config.workflow.ts"
+    },
+    "upsertShifts": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "schedule",
+      "workflowId": "9z0Gg2KId6ieywKg",
+      "workflowName": "button/schedule",
+      "workflowFile": "button_schedule.workflow.ts"
+    }
+  },
+  "workflowToServices": {
+    "__UNRESOLVED__": [
+      "addBudgetRecord",
+      "getToken"
+    ],
+    "CashRegister.workflow.ts": [
+      "addCacheRegisterRecord",
+      "getCash",
+      "getCashRegisterRecords",
+      "getVocabulary"
+    ],
+    "button_sklad.workflow.ts": [
+      "addSkladItem",
+      "deleteSkladItem",
+      "editSkladItem",
+      "getSkladData",
+      "getSkladHeader",
+      "getSkladVocabulary",
+      "saveSkladChanges"
+    ],
+    "getCatalogData.workflow.ts": [
+      "getAllItemsFromCatalogByQuery",
+      "getHeader",
+      "getItemByArticleName"
+    ],
+    "button_Auth.workflow.ts": [
+      "getAuthData",
+      "setToken"
+    ],
+    "button_budget.workflow.ts": [
+      "getBudgetData",
+      "getBudgetVocabulary",
+      "getMonthsSummary",
+      "saveBudgetChanges"
+    ],
+    "button_charts.workflow.ts": [
+      "getChartsData",
+      "getChartsSummary"
+    ],
+    "button_config.workflow.ts": [
+      "getConfig",
+      "updateConfig"
+    ],
+    "Menu.workflow.ts": [
+      "getMenu"
+    ],
+    "salary.workflow.ts": [
+      "getMySalary"
+    ],
+    "SalaryFix.workflow.ts": [
+      "getSalaryFix"
+    ],
+    "sales.workflow.ts": [
+      "getSalesData"
+    ],
+    "button_schedule.workflow.ts": [
+      "getSchedule",
+      "getScheduleMeta",
+      "upsertShifts"
+    ],
+    "button_getStores.workflow.ts": [
+      "getStores",
+      "getUserStoreByToken"
+    ],
+    "button_tags.workflow.ts": [
+      "getTagsConfig",
+      "saveTagsConfig"
+    ],
+    "newSale.workflow.ts": [
+      "sendSalesToSheet"
+    ]
+  },
+  "unresolvedServices": [
+    "addBudgetRecord",
+    "getToken"
+  ]
+}

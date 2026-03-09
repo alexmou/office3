@@ -32,6 +32,9 @@
     - setToken -> { token: "MOCK_TOKEN", globalUrl: "https://buttonrouge.org/store/?" }
     - updateBudgetData -> true
   */
+  // Fast n8n lookup for integration edits:
+  // See system/n8n-service-workflow-map.json (service -> webhookAction -> workflow id/name/file).
+  // Generated after full sync on 2026-03-09; unresolved legacy services: addBudgetRecord, getToken.
   let API_ROUTES = {
     addBudgetRecord: { source: "n8n", webhook: "prod" },
 
