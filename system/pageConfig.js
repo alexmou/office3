@@ -27,7 +27,7 @@ window.PAGE_CONFIG = {
   newsale: {
     title: "New sale",
     html: "../newsale/newsale.html",
-    js: ["../newsale/newsales_classes.js", "../newsale/newsale.js"],
+    js: ["../newsale/newsales_classes.js?v=20260309-1", "../newsale/newsale.js?v=20260309-1"],
     css: ["../shared/table.css", "../newsale/newsale.css"]
   },
   barcode: {
