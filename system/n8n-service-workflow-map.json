@@ -1,10 +1,10 @@
 {
   "_meta": {
-    "generatedAtUTC": "2026-03-09T12:52:19.778Z",
+    "generatedAtUTC": "2026-03-09T15:58:00.000Z",
     "sourceApiRoutes": "system/api.js",
     "syncFolder": "workflows/buttonrouge_org/n8n_алексей_м/personal",
-    "trackedWorkflows": 37,
-    "totalWorkflows": 37,
+    "trackedWorkflows": 38,
+    "totalWorkflows": 38,
     "usage": "Open this file first for fast service->workflow lookup."
   },
   "serviceToWorkflow": {
@@ -135,6 +135,14 @@
       "workflowId": "hUNAzAUPzoSKPnVfY5hCx",
       "workflowName": "getCatalogData",
       "workflowFile": "getCatalogData.workflow.ts"
+    },
+    "getLocalizationDictionary": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "localization",
+      "workflowId": "fJVdhXr3rGXg0TsB",
+      "workflowName": "localization",
+      "workflowFile": "localization.workflow.ts"
     },
     "getMenu": {
       "method": "GET",
@@ -358,6 +366,9 @@
     ],
     "Menu.workflow.ts": [
       "getMenu"
+    ],
+    "localization.workflow.ts": [
+      "getLocalizationDictionary"
     ],
     "salary.workflow.ts": [
       "getMySalary"

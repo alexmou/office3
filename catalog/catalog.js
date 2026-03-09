@@ -315,6 +315,8 @@ async function fetchStoresForCatalog() {
 }
 
 function ensureCatalogControls(contentEl, listEl) {
+  const tr = (text, fallback = text) =>
+    typeof window.localizeUiText === "function" ? window.localizeUiText(text, fallback) : fallback;
   let toolbar = document.getElementById("catalogToolbar");
   if (!toolbar) {
     toolbar = document.createElement("div");
@@ -325,10 +327,10 @@ function ensureCatalogControls(contentEl, listEl) {
         <label class="catalog-store-label" for="catalogStoreSelect">Store</label>
         <select id="catalogStoreSelect" class="catalog-store-select"></select>
       </div>
-      <input id="catalogFullTextSearch" type="text" placeholder="Поиск по каталогу..." />
+      <input id="catalogFullTextSearch" type="text" placeholder="${tr("Поиск по каталогу...", "Поиск по каталогу...")}" />
       <label class="catalog-stock-label">
         <input id="catalogInStockOnly" type="checkbox" checked />
-        показывать товар в наличии
+        ${tr("показывать товар в наличии", "показывать товар в наличии")}
       </label>
     `;
     contentEl.insertBefore(toolbar, listEl);

@@ -2,8 +2,10 @@
 
 
 
-let CASH_REGISTER_VOCAB = { operationTypes: ["Расход", "Приход"], activities: [] };
+let CASH_REGISTER_VOCAB = { operationTypes: ["Encashment", "Sale"], activities: [] };
 let cashRegisterSubmitInProgress = false;
+const tr = (text, fallback = text) =>
+  typeof window.localizeUiText === "function" ? window.localizeUiText(text, fallback) : fallback;
 
 if (typeof registerPageInit === "function") {
   registerPageInit("cashregister", bodyOnLoad);
@@ -227,7 +229,7 @@ function extractVocabularyFromRowObjects(rows) {
   if (!hasOperationType && !hasActivity) return null;
 
   const operationValues = uniqueNonEmptyOrdered(
-    rows.map((row) => row["Тип операции"] ?? row["Тип"] ?? "")
+    rows.map((row) => row["Тип операции"] ?? row["Type"] ?? "")
   );
   const activityValues = uniqueNonEmptyOrdered(
     rows.map((row) => row["activityCashRegister"] ?? row["Статья расходов"] ?? "")
@@ -254,20 +256,20 @@ function renderCashRegisterForm({ operationTypes, activities }) {
   const contentRight = document.getElementById("content_right");
   if (!contentRight) return;
 
-  contentRight.innerHTML = "<p><strong>Операция с Кассой</strong></p>";
+  contentRight.innerHTML = `<p><strong>${tr("Операция с Кассой")}</strong></p>`;
 
   const opTypes = extractList(operationTypes);
   const activityList = extractList(activities);
 
-  createNewChoice(opTypes, "OperationType", "Тип операции", "budgetFieldChanged", "content_right");
-  createNewChoice(activityList, "activityCashRegister", "Статья расходов", "budgetFieldChanged", "content_right");
-  createNewInput("CashSum", "Сумма " + "(" + CONFIG.currency + ")", "", "budgetFieldChanged", "content_right");
+  createNewChoice(opTypes, "OperationType", tr("Тип операции"), "budgetFieldChanged", "content_right");
+  createNewChoice(activityList, "activityCashRegister", tr("Статья расходов"), "budgetFieldChanged", "content_right");
+  createNewInput("CashSum", `${tr("Сумма")} (${CONFIG.currency})`, "", "budgetFieldChanged", "content_right");
 
   let attributes = { id: "Comment", onclick: "" };
   createElement("textarea", "", attributes, contentRight);
 
   attributes = { id: "submitButton", class: "button-24", onclick: "sendDataToCashRegister()" };
-  createElement("button", "Отправить", attributes, contentRight);
+  createElement("button", tr("Отправить"), attributes, contentRight);
 
   CASH_REGISTER_VOCAB = {
     operationTypes: opTypes.length ? opTypes : ["Расход", "Приход"],
@@ -309,7 +311,7 @@ console.log(parsed)
     const matrixVocabulary = extractMatrixVocabulary(parsed);
     if (matrixVocabulary) {
       renderCashRegisterForm({
-        operationTypes: matrixVocabulary["Тип операции"] || matrixVocabulary["Тип"] || ["Расход", "Приход"],
+        operationTypes: matrixVocabulary["Тип операции"] || matrixVocabulary["Type"] || ["Расход", "Приход"],
         activities: matrixVocabulary["activityCashRegister"] || matrixVocabulary["Статья расходов"] || [],
       });
       return;
@@ -320,7 +322,7 @@ console.log(parsed)
       (Array.isArray(parsed) && parsed.length > 0 && parsed[0] && typeof parsed[0] === "object" ? parsed[0] : null) ||
       (parsed && typeof parsed === "object" ? parsed : null);
     if (firstObject) {
-      const operationTypes = firstObject["Тип операции"] || firstObject["Тип"];
+      const operationTypes = firstObject["Тип операции"] || firstObject["Type"];
       const activities = firstObject["activityCashRegister"] || firstObject["Статья расходов"];
       if (extractList(operationTypes).length || extractList(activities).length) {
         renderCashRegisterForm({ operationTypes: operationTypes || ["Расход", "Приход"], activities: activities || [] });
@@ -393,13 +395,13 @@ function returnCashRegisterRecords(res){
 	    // If server returned array of objects, normalize to matrix.
 	    if (Array.isArray(rows) && rows.length > 0 && rows.every((r) => r && typeof r === "object" && !Array.isArray(r))) {
 	      const preferredOrder = [
-	        "Дата",
-	        "Время",
-	        "Тип",
-	        "Сумма",
+	        "Date",
+	        "Time",
+	        "Type",
+	        "Amount",
 	        "Статья расходов",
-	        "Комментарий",
-	        "username",
+	        "Comment",
+	        "User",
 	        "Бюджет",
 	        "PaymentCashRegister",
 	        "Вид",
@@ -409,7 +411,7 @@ function returnCashRegisterRecords(res){
 	        "row_number",
 	        "countInBudget",
 	      ];
-	
+      
 	      const headerSet = new Set();
 	      rows.forEach((row) => Object.keys(row).forEach((k) => headerSet.add(k)));
 	      const header = [];
@@ -583,6 +585,8 @@ let budgetRecord={
 
 }
 
+
+
 function dataRegistredToCashRegister(result){
   const parsed = parseMaybeJson(result);
   const isPayloadEchoSuccess =
@@ -592,10 +596,10 @@ function dataRegistredToCashRegister(result){
       if (!row || typeof row !== "object" || Array.isArray(row)) return false;
       if (row.error || row.errors) return false;
       const hasCashRegisterFields =
-        "Дата" in row ||
-        "Время" in row ||
-        "Тип" in row ||
-        "Сумма" in row ||
+        "Date" in row ||
+        "Time" in row ||
+        "Type" in row ||
+        "Amount" in row ||
         "Статья расходов" in row;
       return hasCashRegisterFields;
     });

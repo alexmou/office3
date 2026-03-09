@@ -120,11 +120,15 @@ async function loadHeader() {
   headerRoot.innerHTML = htmlText ? extractBodyHtml(htmlText) : HEADER_FALLBACK_HTML;
 
   if (!htmlText && window.location.protocol === "file:" && typeof showErrorPopup === "function") {
-    showErrorPopup("Откройте приложение через HTTP-сервер (не file://), иначе загрузка страниц и header через fetch будет заблокирована.");
+    const msg = "Откройте приложение через HTTP-сервер (не file://), иначе загрузка страниц и header через fetch будет заблокирована.";
+    showErrorPopup(typeof window.localizeUiText === "function" ? window.localizeUiText(msg, msg) : msg);
   }
   if (typeof initHeader === "function") {
     // По умолчанию меню пустое; затем обновляется из API.getMenu().
     initHeader([]);
+  }
+  if (typeof window.localizeDomTree === "function") {
+    window.localizeDomTree(headerRoot);
   }
 }
 
@@ -149,7 +153,11 @@ function normalizeMenuItems(items) {
       it?.isSection === true;
     const type = (it?.type || "").toString().trim() || (isSection ? "section" : "page");
     const id = (it?.pageName || it?.id || it?.pageId || "").toString().trim();
-    const label = (it?.text || it?.name || it?.label || id).toString();
+    const rawLabel = (it?.text || it?.name || it?.label || id).toString();
+    const label =
+      typeof window.localizeUiText === "function"
+        ? window.localizeUiText(rawLabel, rawLabel)
+        : rawLabel;
     const rawPos = it?.pos ?? it?.level ?? "";
     const pos = rawPos === 0 ? "0" : (rawPos == null ? "" : String(rawPos)).trim();
     const posPath = pos
@@ -291,6 +299,9 @@ async function loadPage(pageId) {
         "<p>Страницы загружаются через <code>fetch()</code>, а в режиме <code>file://</code> браузер обычно блокирует такие запросы.</p>" +
         "<p>Пример: <code>python3 -m http.server 8123</code> (в корне проекта) и открыть <code>http://127.0.0.1:8123/index/index.html</code>.</p>" +
         "</div>";
+      if (typeof window.localizeDomTree === "function") {
+        window.localizeDomTree(pageRoot);
+      }
     }
     showPage(pageId);
     return;
@@ -300,6 +311,9 @@ async function loadPage(pageId) {
   const htmlText = await res.text();
   const pageRoot = document.getElementById("page-root");
   pageRoot.innerHTML = extractBodyHtml(htmlText);
+  if (typeof window.localizeDomTree === "function") {
+    window.localizeDomTree(pageRoot);
+  }
 
   const scriptsToLoad = [];
   if (cfg.externalJs) {
@@ -310,9 +324,18 @@ async function loadPage(pageId) {
   }
   await ensureScripts(scriptsToLoad);
   await runPageInit(pageId);
+  if (typeof window.localizeDomTree === "function") {
+    window.localizeDomTree(pageRoot);
+  }
   showPage(pageId);
   const titleEl = document.getElementById("pageName");
-  if (titleEl) titleEl.textContent = cfg.title || pageId;
+  if (titleEl) {
+    const rawTitle = cfg.title || pageId;
+    titleEl.textContent =
+      typeof window.localizeUiText === "function"
+        ? window.localizeUiText(rawTitle, rawTitle)
+        : rawTitle;
+  }
   if (typeof window.updateAppHeaderHeight === "function") {
     window.updateAppHeaderHeight();
   }
@@ -358,7 +381,11 @@ window.navigateTo = navigateTo;
 function setPageTitle(title) {
   const titleEl = document.getElementById("pageName");
   if (!titleEl) return;
-  titleEl.textContent = title || "";
+  const rawTitle = title || "";
+  titleEl.textContent =
+    typeof window.localizeUiText === "function"
+      ? window.localizeUiText(rawTitle, rawTitle)
+      : rawTitle;
 }
 
 function getPreferredInitialPage() {
@@ -392,6 +419,20 @@ async function persistCurrentPage(pageId) {
   }
 }
 
+async function preloadLocalizationDictionary() {
+  if (typeof window.loadLocalizationFromN8n !== "function") return null;
+  try {
+    return await window.loadLocalizationFromN8n({
+      token: window.token,
+      lang: window.APP_LANG || window.CONFIG?.APP_LANG || "en",
+      scope: "ui",
+    });
+  } catch (e) {
+    console.warn("Не удалось загрузить словарь локализации из n8n", e);
+    return null;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const url = new URL(window.location.href);
   const urlToken = url.searchParams.get("token");
@@ -406,6 +447,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCoreScripts()
     .then(() => fetchConfigFromN8n())
     .then(() => fetchUserStoreFromToken())
+    .then(() => preloadLocalizationDictionary())
     .then(() => headerTask)
     .then(() => {
       if (typeof window.applyUserStore === "function") {

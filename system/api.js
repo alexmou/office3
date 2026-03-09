@@ -59,6 +59,8 @@
     sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "prod", webhookAction: "newSale" },
 
     getMenu: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "Menu" },
+    // Localization services (n8n workflow: localization, id: fJVdhXr3rGXg0TsB, webhook: /localization)
+    getLocalizationDictionary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "localization" },
     getMySalary:{ source: "n8n", method: "GET", webhook: "prod", webhookAction: "Salary" },
 
         getSalaryFix:{ source: "n8n", method: "GET", webhook: "test", webhookAction: "SalaryFix" },
@@ -479,6 +481,54 @@
     return unwrap(parsed);
   }
 
+  function normalizeLocalizationResponse(raw) {
+    let parsed = raw;
+    if (typeof parsed === "string") {
+      try {
+        parsed = JSON.parse(parsed);
+      } catch (_) {
+        return {};
+      }
+    }
+
+    const candidate =
+      parsed?.data?.translations ??
+      parsed?.translations ??
+      parsed?.data?.dictionary ??
+      parsed?.dictionary ??
+      parsed?.data?.items ??
+      parsed?.items ??
+      parsed?.data ??
+      parsed;
+
+    if (!candidate) return {};
+
+    if (Array.isArray(candidate)) {
+      const map = {};
+      candidate.forEach((item) => {
+        if (!item) return;
+        if (Array.isArray(item) && item.length >= 2) {
+          const key = String(item[0] ?? "").trim();
+          if (!key) return;
+          map[key] = item[1];
+          return;
+        }
+        if (typeof item === "object") {
+          const key = String(item.key ?? item.id ?? item.name ?? "").trim();
+          if (!key) return;
+          map[key] = item.value ?? item.text ?? item.translation ?? item.label ?? "";
+        }
+      });
+      return map;
+    }
+
+    if (candidate && typeof candidate === "object") {
+      return { ...candidate };
+    }
+
+    return {};
+  }
+
   async function getAuthData(params = {}, opts = {}) {
     const payload = {
       action: params.action || "getAuthData",
@@ -571,6 +621,32 @@
 
 
   generatedApi.getStores = getStores;
+
+  async function getLocalizationDictionary(params = {}, opts = {}) {
+    const payload = {
+      action: params.action || "getLocalizationDictionary",
+      token: params.token || window.token,
+      lang: params.lang || params.locale || window.APP_LANG || "en",
+      scope: params.scope || "ui",
+      namespace: params.namespace,
+      page: params.page,
+      version: params.version,
+    };
+    try {
+      const method = opts.method || API_ROUTES.getLocalizationDictionary?.method || "GET";
+      const data = await requestViaN8nOrMock("getLocalizationDictionary", payload, {
+        ...opts,
+        method,
+        contractVersion: 2,
+        skipAction: true,
+      });
+      return normalizeLocalizationResponse(data);
+    } catch (error) {
+      console.error("Не удалось получить словарь локализации из n8n", error);
+      return {};
+    }
+  }
+  generatedApi.getLocalizationDictionary = getLocalizationDictionary;
 
   async function getItemByArticleName(params = {}, opts = {}) {
     const article =

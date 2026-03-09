@@ -119,16 +119,20 @@ async function initSalesPage() {
 	        // Полнотекстовый поиск по таблице продаж (как в Catalog)
 	        const contentEl = document.getElementById("content");
 	        const listEl = document.getElementById(TABLEID);
-	        if (contentEl && listEl && !document.getElementById("salesFullTextSearch")) {
-	          const wrap = document.createElement("div");
-	          wrap.className = "table-toolbar";
-	          wrap.innerHTML = `
-	            <input
-	              id="salesFullTextSearch"
-	              type="text"
-	              placeholder="Поиск по продажам..."
-	            />
-	          `;
+		        if (contentEl && listEl && !document.getElementById("salesFullTextSearch")) {
+		          const salesSearchPlaceholder =
+                    typeof window.localizeUiText === "function"
+                      ? window.localizeUiText("Поиск по продажам...", "Поиск по продажам...")
+                      : "Поиск по продажам...";
+		          const wrap = document.createElement("div");
+		          wrap.className = "table-toolbar";
+		          wrap.innerHTML = `
+		            <input
+		              id="salesFullTextSearch"
+		              type="text"
+		              placeholder="${salesSearchPlaceholder}"
+		            />
+		          `;
 	          contentEl.insertBefore(wrap, listEl);
 
 	          const input = document.getElementById("salesFullTextSearch");
@@ -144,7 +148,6 @@ async function initSalesPage() {
 
 
 }
-
 
 
 

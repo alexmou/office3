@@ -141,7 +141,11 @@ function renderWarehouses() {
     cont.innerHTML = '';
     const list = filterProducts(warehouses[wid], wid);
     if (!list.length) {
-      cont.innerHTML = '<div class="zone-empty">Нет товаров для отображения</div>';
+      const emptyText =
+        typeof window.localizeUiText === "function"
+          ? window.localizeUiText("Нет товаров для отображения", "Нет товаров для отображения")
+          : "Нет товаров для отображения";
+      cont.innerHTML = `<div class="zone-empty">${emptyText}</div>`;
       return;
     }
     list.forEach(p => buildCard(p, wid, cont));

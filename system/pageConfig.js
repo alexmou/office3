@@ -13,7 +13,7 @@ window.PAGE_CONFIG = {
     externalJs: ["../vendor/chartjs-4.4.1.umd.min.js"]
   },
   admin_sklad: {
-    title: "Администрирование складов",
+    title: "Warehouse administration",
     html: "../admin_sklad/admin_sklad.html",
     js: ["../admin_sklad/admin_sklad.js"],
     css: ["../admin_sklad/admin_sklad.css"]

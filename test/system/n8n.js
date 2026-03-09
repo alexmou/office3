@@ -77,7 +77,11 @@ async function getDataFromN8n(action, paramsObj = {}, mode){
     //return text
         } catch (error) {
         console.error('Ошибка при GET-запросе:', error);
-        showErrorPopup("ERROR. НЕ УДАЛОСЬ ПОЛУЧИТЬ ДАННЫЕ С СЕРВЕРА")
+        const msg =
+          typeof window.localizeUiText === "function"
+            ? window.localizeUiText("ERROR. НЕ УДАЛОСЬ ПОЛУЧИТЬ ДАННЫЕ С СЕРВЕРА", "ERROR. НЕ УДАЛОСЬ ПОЛУЧИТЬ ДАННЫЕ С СЕРВЕРА")
+            : "ERROR. НЕ УДАЛОСЬ ПОЛУЧИТЬ ДАННЫЕ С СЕРВЕРА";
+        showErrorPopup(msg)
         showPage(action)
     }
 }

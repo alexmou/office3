@@ -110,7 +110,11 @@
       focusArticleInput();
     } else {
       console.error("sendSalesToSheet_done: unexpected response ->", res);
-      systemError("ОШИБКА: Продажи не записались или записались частично");
+      const msg =
+        typeof window.localizeUiText === "function"
+          ? window.localizeUiText("ОШИБКА: Продажи не записались или записались частично", "ОШИБКА: Продажи не записались или записались частично")
+          : "ОШИБКА: Продажи не записались или записались частично";
+      systemError(msg);
     }
   }
 

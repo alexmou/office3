@@ -5,11 +5,15 @@ const bgColor = [
   'rgba(214, 39, 40, 0.4)',
   'rgba(148, 103, 189, 0.4)'
 ];
+const APP_LANG = String(window.APP_LANG || window.CONFIG?.APP_LANG || "en").toLowerCase();
+const UI_LOCALE = APP_LANG.startsWith("ru") ? "ru-RU" : "en-US";
 
 // Поддерживаемые метрики
 const availableFields = ['sum_finalPriceVND', 'sum_price', 'sum_discount','count_article', "sum_amount_to_supplier",	"sum_Profit","count_article"];
 
-const MONTH_LABELS_RU = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+const MONTH_LABELS_RU = UI_LOCALE === "ru-RU"
+  ? ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек']
+  : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const pad2 = (n) => String(n).padStart(2, '0');
 
 function toISODate(d) {
@@ -31,7 +35,7 @@ function formatDateRu(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return String(iso);
-  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return d.toLocaleDateString(UI_LOCALE, { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function formatMoney(value) {

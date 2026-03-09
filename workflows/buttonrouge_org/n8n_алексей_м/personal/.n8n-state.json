@@ -183,6 +183,11 @@
       "lastSyncedHash": "7e9f0d66fc274d5c76214a4e738b2f81f82e906632c33391ec1f32c790d989b7",
       "lastSyncedAt": "2026-03-09T11:55:22.777Z",
       "filename": "interfaceWebhookProbe.workflow.ts"
+    },
+    "fJVdhXr3rGXg0TsB": {
+      "lastSyncedHash": "4e9470ee49216e6bbb5685cba2a3126bd2cdd5fdfc6cdc2499c9af7041c6b352",
+      "lastSyncedAt": "2026-03-09T16:19:58.183Z",
+      "filename": "localization.workflow.ts"
     }
   }
 }

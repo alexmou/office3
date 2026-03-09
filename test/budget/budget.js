@@ -16,6 +16,8 @@ var TIP_COLUMN_INDEX
 
 var VOCABULARY
     const fmt = (n, c) => new Intl.NumberFormat('ru-RU', { style:'currency', currency:c }).format(n ?? 0);
+    const tr = (text, fallback = text) =>
+      typeof window.localizeUiText === "function" ? window.localizeUiText(text, fallback) : fallback;
     const ymKey = s => s?.slice(0,7);
     const groupBy = (arr, keyFn) => arr.reduce((a,x)=>{(a[keyFn(x)] ||= []).push(x);return a;},{});
 
@@ -23,14 +25,14 @@ var VOCABULARY
     const demo = {
       currency:'VND',
       items:[
-        { id:'i0501', date:'2025-05-05', kind:'income',  category:'Продажи',   title:'Розница', amount:157000000, editable:true },
-        { id:'e0502', date:'2025-05-03', kind:'expense', category:'ФОТ',       title:'Оклады',  amount:32000000,  editable:true },
-        { id:'i0601', date:'2025-06-04', kind:'income',  category:'Продажи',   title:'Розница', amount:141960990, editable:true },
-        { id:'e0602', date:'2025-06-03', kind:'expense', category:'ФОТ',       title:'Оклады',  amount:31000000,  editable:true },
-        { id:'i0701', date:'2025-07-05', kind:'income',  category:'Продажи',   title:'Розница', amount:187943000, editable:true },
-        { id:'e0702', date:'2025-07-04', kind:'expense', category:'ФОТ',       title:'Оклады',  amount:33500000,  editable:true },
-        { id:'e0703', date:'2025-07-07', kind:'expense', category:'Коммунальные', title:'Электроэнергия', amount:3400000, editable:true },
-        { id:'e0704', date:'2025-07-10', kind:'expense', category:'Аренда',    title:'ТЦ Новый', amount:45000000, editable:false }
+        { id:'i0501', date:'2025-05-05', kind:'income',  category: tr('Продажи'),   title: tr('Розница'), amount:157000000, editable:true },
+        { id:'e0502', date:'2025-05-03', kind:'expense', category: tr('ФОТ'),       title: tr('Оклады'),  amount:32000000,  editable:true },
+        { id:'i0601', date:'2025-06-04', kind:'income',  category: tr('Продажи'),   title: tr('Розница'), amount:141960990, editable:true },
+        { id:'e0602', date:'2025-06-03', kind:'expense', category: tr('ФОТ'),       title: tr('Оклады'),  amount:31000000,  editable:true },
+        { id:'i0701', date:'2025-07-05', kind:'income',  category: tr('Продажи'),   title: tr('Розница'), amount:187943000, editable:true },
+        { id:'e0702', date:'2025-07-04', kind:'expense', category: tr('ФОТ'),       title: tr('Оклады'),  amount:33500000,  editable:true },
+        { id:'e0703', date:'2025-07-07', kind:'expense', category: tr('Коммунальные'), title: tr('Электроэнергия'), amount:3400000, editable:true },
+        { id:'e0704', date:'2025-07-10', kind:'expense', category: tr('Аренда'),    title: tr('ТЦ Новый'), amount:45000000, editable:false }
       ]
     };
 

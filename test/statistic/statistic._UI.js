@@ -57,7 +57,10 @@ function drawChart_Pie(salesData) {
       function drawChart() {
         var data = google.visualization.arrayToDataTable(salesData);
       const options = {
-        title: "Статистика по продажам",
+        title:
+          typeof window.localizeUiText === "function"
+            ? window.localizeUiText("Статистика по продажам", "Статистика по продажам")
+            : "Статистика по продажам",
         is3D: true,
         width: '100%',
         chartArea: { width: "94%", height: "94%" }, // Увеличиваем область диаграммы
@@ -408,7 +411,6 @@ function generateMainTabContent() {
     tabPane.appendChild(contentLeft);
     tabPane.appendChild(contentRight);
 }
-
 
 
 

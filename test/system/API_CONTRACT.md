@@ -87,3 +87,37 @@
    - сейчас workflow пишет ключ `action`, если он приходит в body
    - в v2 надо писать **только `payload`**, а `action` использовать только для роутинга
 
+## Localization dictionary (added 2026-03-09)
+
+- n8n workflow: `localization` (`fJVdhXr3rGXg0TsB`)
+- Webhook: `GET /localization`
+- Front service: `API.getLocalizationDictionary(params, opts)` in `test/system/api.js`
+- Route mapping: `getLocalizationDictionary -> webhookAction: localization`
+- Bootstrap usage: `test/system/app.js` calls `preloadLocalizationDictionary()` during app startup.
+- Runtime access helpers: `window.i18n(key, fallback)` and `window.i18nList(key, fallback)` in `test/system/system.js`.
+- Runtime auto-localization: `window.localizeDomTree(root)` and `window.localizeUiText(text, fallback)` in `test/system/system.js`.
+- `test/system/app.js` now calls `localizeDomTree()` for header and each loaded page, so static HTML and dynamic UI blocks can be translated without per-file rewrite.
+
+Request example:
+
+`GET /localization?lang=en&scope=ui`
+
+Response shape:
+
+```json
+{
+  "ok": true,
+  "source": "n8n.localization",
+  "version": "2026-03-09",
+  "lang": "en",
+  "scope": "ui",
+  "translations": {
+    "global.error.reload": "An error occurred. Please reload the page."
+  }
+}
+```
+
+Operational note:
+
+- Production webhook registration depends on `webhookId` in the n8n node internals (current value in prod: `0bc22536-3a3e-4fcf-8ac9-a0b810d725b9`).
+- If `/n8n/webhook/localization` starts returning `404 The requested webhook ... is not registered`, reactivate workflow `fJVdhXr3rGXg0TsB`.

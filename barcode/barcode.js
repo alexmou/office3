@@ -47,7 +47,11 @@ async function init() {
     makeFocus(elName);
   } catch (error) {
     console.error("Barcode init error:", error);
-    showErrorPopup("Произошла ошибка. Перезагрузите страницу");
+    const msg =
+      typeof window.localizeUiText === "function"
+        ? window.localizeUiText("Произошла ошибка. Перезагрузите страницу", "Произошла ошибка. Перезагрузите страницу")
+        : "Произошла ошибка. Перезагрузите страницу";
+    showErrorPopup(msg);
     return;
   }
 

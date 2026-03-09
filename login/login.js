@@ -142,7 +142,11 @@
       showStoresChoice(stores);
     } catch (e) {
       console.error("Failed to load stores", e);
-      showErrorPopup("Ошибка загрузки списка магазинов");
+      const msg =
+        typeof window.localizeUiText === "function"
+          ? window.localizeUiText("Ошибка загрузки списка магазинов", "Ошибка загрузки списка магазинов")
+          : "Ошибка загрузки списка магазинов";
+      showErrorPopup(msg);
     }
     bindLoginForm();
   }
@@ -167,7 +171,11 @@
     const resp = await API.setToken(payload);
     const parsed = typeof resp === "string" ? JSON.parse(resp) : resp;
     if (!parsed || !parsed.token) {
-      showErrorPopup("Неверный логин или пароль");
+      const msg =
+        typeof window.localizeUiText === "function"
+          ? window.localizeUiText("Неверный логин или пароль", "Неверный логин или пароль")
+          : "Неверный логин или пароль";
+      showErrorPopup(msg);
       return null;
     }
     return parsed;
@@ -180,7 +188,11 @@
       }
     } catch (e) {
       console.error("Не удалось распарсить ответ getAuthData", e);
-      showErrorPopup("Ошибка авторизации: некорректный ответ");
+      const msg =
+        typeof window.localizeUiText === "function"
+          ? window.localizeUiText("Ошибка авторизации: некорректный ответ", "Ошибка авторизации: некорректный ответ")
+          : "Ошибка авторизации: некорректный ответ";
+      showErrorPopup(msg);
       return;
     }
 
@@ -193,7 +205,11 @@
         : null;
       navigateTo(preferred || "newsale");
     } else {
-      alert("Неверный логин или пароль");
+      const msg =
+        typeof window.localizeUiText === "function"
+          ? window.localizeUiText("Неверный логин или пароль", "Неверный логин или пароль")
+          : "Неверный логин или пароль";
+      alert(msg);
     }
   }
 
@@ -205,7 +221,11 @@
       }
     } catch (e) {
       console.error("Login failed", e);
-      showErrorPopup("Ошибка авторизации");
+      const msg =
+        typeof window.localizeUiText === "function"
+          ? window.localizeUiText("Ошибка авторизации", "Ошибка авторизации")
+          : "Ошибка авторизации";
+      showErrorPopup(msg);
     }
   }
 

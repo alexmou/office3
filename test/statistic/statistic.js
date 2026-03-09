@@ -4,8 +4,8 @@
 
 
   const brand = "BUTTON ROUGE";
-    const METRICS= ["Brand","Name", "производитель","type",	"subtype", "month", "weekday", "time", "currency", "salary", "username", "paymentmethod"]
-    const METRICS_VALUE=["finalPriceVND","price", "Количество" ]
+    const METRICS= ["Brand","Name", "производитель","manufacturer","type",	"subtype", "month", "weekday", "time", "currency", "salary", "username", "paymentmethod"]
+    const METRICS_VALUE=["finalPriceVND","price", "Количество", "Quantity" ]
 
 function joinTwoTables(inventory, sales){
 
@@ -604,7 +604,6 @@ chart.setAttribute("style",'min-width: -webkit-fill-available; height: 500px;')
 
 
 }
-
 
 
 

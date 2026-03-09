@@ -4,6 +4,231 @@ var username;
 var currentPageName;
 var CONFIG = window.CONFIG || {};
 var GLOBAL_EXECUTION_TESTING = CONFIG.GLOBAL_EXECUTION_TESTING || 0;
+var I18N_DICTIONARY =
+  window.I18N_DICTIONARY && typeof window.I18N_DICTIONARY === "object" && !Array.isArray(window.I18N_DICTIONARY)
+    ? window.I18N_DICTIONARY
+    : {};
+const I18N_MISSING = Symbol("i18n_missing");
+const LOCALIZABLE_ATTRIBUTES = ["placeholder", "title", "aria-label", "alt"];
+const I18N_TEXT_NODE_SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA", "CODE", "PRE"]);
+let i18nDomObserver = null;
+
+window.I18N_DICTIONARY = I18N_DICTIONARY;
+
+function getLocalizationRawValue(key) {
+  if (!key) return I18N_MISSING;
+  if (Object.prototype.hasOwnProperty.call(I18N_DICTIONARY, key)) {
+    return I18N_DICTIONARY[key];
+  }
+  const parts = String(key).split(".");
+  let cur = I18N_DICTIONARY;
+  for (const part of parts) {
+    if (!cur || typeof cur !== "object" || !Object.prototype.hasOwnProperty.call(cur, part)) {
+      return I18N_MISSING;
+    }
+    cur = cur[part];
+  }
+  return cur;
+}
+
+function setLocalizationDictionary(dictionary = {}) {
+  if (!dictionary || typeof dictionary !== "object" || Array.isArray(dictionary)) return I18N_DICTIONARY;
+  I18N_DICTIONARY = { ...I18N_DICTIONARY, ...dictionary };
+  window.I18N_DICTIONARY = I18N_DICTIONARY;
+  try {
+    if (typeof document !== "undefined") {
+      localizeDomTree(document);
+      ensureI18nDomObserver();
+    }
+  } catch (_) {}
+  return I18N_DICTIONARY;
+}
+
+function getLocalizationValue(key, fallback = "") {
+  const value = getLocalizationRawValue(key);
+  return value === I18N_MISSING ? fallback : value;
+}
+
+function getLocalizationList(key, fallback = []) {
+  const value = getLocalizationValue(key, fallback);
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (_) {}
+  }
+  return fallback;
+}
+
+function localizeUiText(input, fallback = input) {
+  if (input === null || input === undefined) return fallback;
+  const raw = String(input);
+  const trimmed = raw.trim();
+  if (!trimmed) return raw;
+
+  const leadingWhitespace = raw.match(/^\s*/)?.[0] || "";
+  const trailingWhitespace = raw.match(/\s*$/)?.[0] || "";
+  const collapsed = trimmed.replace(/\s+/g, " ");
+  const candidates = [trimmed];
+  if (collapsed !== trimmed) candidates.push(collapsed);
+
+  for (const candidate of candidates) {
+    const translated = getLocalizationRawValue(candidate);
+    if (translated === I18N_MISSING || translated === null || translated === undefined) continue;
+    const translatedText =
+      typeof translated === "string"
+        ? translated
+        : (typeof translated === "number" || typeof translated === "boolean")
+          ? String(translated)
+          : "";
+    if (!translatedText) continue;
+    return `${leadingWhitespace}${translatedText}${trailingWhitespace}`;
+  }
+
+  return fallback;
+}
+
+function localizeElementAttributes(el) {
+  if (!el || el.nodeType !== 1) return;
+
+  const key = el.getAttribute("data-i18n");
+  if (key) {
+    const fallbackText = (el.textContent || "").trim();
+    const translatedByKey = getLocalizationValue(key, fallbackText);
+    if (translatedByKey !== undefined && translatedByKey !== null) {
+      el.textContent = String(translatedByKey);
+    }
+  }
+
+  const attrsSpec = el.getAttribute("data-i18n-attrs");
+  if (attrsSpec) {
+    attrsSpec
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .forEach((chunk) => {
+        const parts = chunk.split(":");
+        const attrName = (parts[0] || "").trim();
+        const attrKey = (parts[1] || "").trim();
+        if (!attrName || !attrKey) return;
+        const fallbackValue = el.getAttribute(attrName) || "";
+        const translated = getLocalizationValue(attrKey, fallbackValue);
+        if (translated !== undefined && translated !== null) {
+          el.setAttribute(attrName, String(translated));
+        }
+      });
+  }
+
+  LOCALIZABLE_ATTRIBUTES.forEach((attrName) => {
+    const attrValue = el.getAttribute(attrName);
+    if (!attrValue) return;
+    const translated = localizeUiText(attrValue, attrValue);
+    if (translated !== attrValue) el.setAttribute(attrName, translated);
+  });
+
+  if (
+    el.tagName === "INPUT" &&
+    /^(button|submit|reset)$/i.test(el.getAttribute("type") || "") &&
+    typeof el.value === "string"
+  ) {
+    const translatedValue = localizeUiText(el.value, el.value);
+    if (translatedValue !== el.value) el.value = translatedValue;
+  }
+}
+
+function shouldSkipTextNode(node) {
+  if (!node || node.nodeType !== 3) return true;
+  const parent = node.parentElement;
+  if (!parent) return true;
+  if (parent.closest?.("[data-no-i18n='1']")) return true;
+  if (I18N_TEXT_NODE_SKIP_TAGS.has(parent.tagName)) return true;
+  return false;
+}
+
+function localizeTextNode(node) {
+  if (shouldSkipTextNode(node)) return;
+  const original = node.nodeValue;
+  if (!original || !original.trim()) return;
+  const translated = localizeUiText(original, original);
+  if (translated !== original) {
+    node.nodeValue = translated;
+  }
+}
+
+function localizeDomTree(root = document) {
+  if (typeof document === "undefined" || !root) return;
+  const base = root.nodeType === 9 ? root.documentElement : root;
+  if (!base) return;
+
+  try {
+    if (base.nodeType === 1) {
+      localizeElementAttributes(base);
+    }
+    if (base.querySelectorAll) {
+      base.querySelectorAll("*").forEach(localizeElementAttributes);
+    }
+  } catch (_) {}
+
+  if (!document.createTreeWalker || typeof NodeFilter === "undefined") return;
+  try {
+    const walker = document.createTreeWalker(base, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) {
+      textNodes.push(walker.currentNode);
+    }
+    textNodes.forEach(localizeTextNode);
+  } catch (_) {}
+}
+
+function ensureI18nDomObserver() {
+  if (typeof document === "undefined" || !document.body) return;
+  if (typeof MutationObserver === "undefined") return;
+  if (i18nDomObserver) return;
+
+  i18nDomObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (!mutation.addedNodes || mutation.addedNodes.length === 0) return;
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === 1 || node.nodeType === 9) {
+          localizeDomTree(node);
+          return;
+        }
+        if (node.nodeType === 3) {
+          localizeTextNode(node);
+        }
+      });
+    });
+  });
+
+  i18nDomObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+async function loadLocalizationFromN8n(params = {}, opts = {}) {
+  if (!window.API || typeof window.API.getLocalizationDictionary !== "function") return I18N_DICTIONARY;
+  try {
+    const dictionary = await window.API.getLocalizationDictionary(params, opts);
+    if (dictionary && typeof dictionary === "object" && !Array.isArray(dictionary)) {
+      setLocalizationDictionary(dictionary);
+    }
+    return I18N_DICTIONARY;
+  } catch (error) {
+    console.warn("Не удалось загрузить локализацию из n8n", error);
+    return I18N_DICTIONARY;
+  }
+}
+
+window.setLocalizationDictionary = setLocalizationDictionary;
+window.getLocalizationValue = getLocalizationValue;
+window.getLocalizationList = getLocalizationList;
+window.loadLocalizationFromN8n = loadLocalizationFromN8n;
+window.localizeUiText = localizeUiText;
+window.localizeDomTree = localizeDomTree;
+window.ensureI18nDomObserver = ensureI18nDomObserver;
+window.translate = localizeUiText;
+window.i18n = getLocalizationValue;
+window.i18nList = getLocalizationList;
+window.tr = localizeUiText;
 
 function showToast(message, type = 'info') {
   const container = document.getElementById('toastContainer');
@@ -60,7 +285,10 @@ console.error = function (...args) {
   logError(args);
 };
 
-const GLOBAL_ERROR_POPUP_TEXT = "Произошла ошибка. Перезагрузите страницу";
+const GLOBAL_ERROR_POPUP_TEXT_FALLBACK = "Произошла ошибка. Перезагрузите страницу";
+function getGlobalErrorPopupText() {
+  return getLocalizationValue("global.error.reload", GLOBAL_ERROR_POPUP_TEXT_FALLBACK);
+}
 let lastGlobalErrorPopupAt = 0;
 let lastGlobalErrorPopupMessage = "";
 let pendingGlobalErrorPopupMessage = null;
@@ -68,7 +296,7 @@ let globalErrorDomReadyHooked = false;
 
 function sanitizeErrorPopupMessage(message) {
   const s = String(message || "").trim();
-  if (!s) return GLOBAL_ERROR_POPUP_TEXT;
+  if (!s) return getGlobalErrorPopupText();
   if (s.length > 220) return s.slice(0, 220) + "...";
   return s;
 }
@@ -125,7 +353,8 @@ function logError(error) {
   try {
     const args = Array.isArray(error) ? error : [error];
     const firstText = args.find((v) => typeof v === "string" && v.trim());
-    const msg = firstText ? `${GLOBAL_ERROR_POPUP_TEXT}: ${firstText}` : GLOBAL_ERROR_POPUP_TEXT;
+    const baseText = getGlobalErrorPopupText();
+    const msg = firstText ? `${baseText}: ${firstText}` : baseText;
     showGlobalErrorPopupSafely(msg);
   } catch (_) {}
 }
@@ -133,7 +362,8 @@ function logError(error) {
 // Also catch uncaught errors that may not go through console.error
 window.addEventListener("error", (event) => {
   try {
-    const msg = event?.message ? `${GLOBAL_ERROR_POPUP_TEXT}: ${event.message}` : GLOBAL_ERROR_POPUP_TEXT;
+    const baseText = getGlobalErrorPopupText();
+    const msg = event?.message ? `${baseText}: ${event.message}` : baseText;
     showGlobalErrorPopupSafely(msg);
   } catch (_) {}
 });
@@ -141,9 +371,10 @@ window.addEventListener("error", (event) => {
 window.addEventListener("unhandledrejection", (event) => {
   try {
     const reason = event?.reason;
+    const baseText = getGlobalErrorPopupText();
     const msg = reason?.message
-      ? `${GLOBAL_ERROR_POPUP_TEXT}: ${reason.message}`
-      : GLOBAL_ERROR_POPUP_TEXT;
+      ? `${baseText}: ${reason.message}`
+      : baseText;
     showGlobalErrorPopupSafely(msg);
   } catch (_) {}
 });

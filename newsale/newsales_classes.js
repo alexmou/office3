@@ -133,9 +133,12 @@ this.DEFAULT_CURRENCY_AFTER_SUBMIT = "VND"
         // Создание элемента <i>
         const tooltipIcon = document.createElement('i');
         tooltipIcon.className = 'tooltip-icon';
-           tooltipIcon.id = 'tooltip-currency-icon';
-           tooltipIcon.setAttribute("style","visibility: hidden");
-          var tooltipText = "Это пример подсказки";
+	           tooltipIcon.id = 'tooltip-currency-icon';
+	           tooltipIcon.setAttribute("style","visibility: hidden");
+	          var tooltipText =
+                typeof window.localizeUiText === "function"
+                  ? window.localizeUiText("Это пример подсказки", "Это пример подсказки")
+                  : "Это пример подсказки";
         tooltipIcon.innerText = 'ℹ'; // Используем символ информации
         // Создание элемента подсказки
         const tooltip = document.createElement('span');

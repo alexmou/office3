@@ -21,7 +21,11 @@ function bodyOnLoad() {
   ).trim();
 
   if (!resolvedUsername) {
-    showErrorPopup("Не удалось определить пользователя для расчёта зарплаты");
+    const msg =
+      typeof window.localizeUiText === "function"
+        ? window.localizeUiText("Не удалось определить пользователя для расчёта зарплаты", "Не удалось определить пользователя для расчёта зарплаты")
+        : "Не удалось определить пользователя для расчёта зарплаты";
+    showErrorPopup(msg);
     return;
   }
 

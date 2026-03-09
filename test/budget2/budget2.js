@@ -16,6 +16,9 @@ var DATE_COLUMN_INDEX
 var TIP_COLUMN_INDEX
 
 var VOCABULARY
+const UI_LOCALE = window.APP_LANG === "en" ? "en-US" : "ru-RU";
+const tr = (text, fallback = text) =>
+  typeof window.localizeUiText === "function" ? window.localizeUiText(text, fallback) : fallback;
 
   (async function() {
 
@@ -28,20 +31,20 @@ var VOCABULARY
 /* 
      
       [
-    "Ведение фирмы","Содержание магазина","Зарплата фикс","Прочее","Возврат","Отшив",
-    "Зарплата бухгалтеру","Обслуживание магазина","Налоги","Аренда","Закупка ткани",
-    "Закупка товара","Визиран","Маркетинг","Логистика","IT-обслуживание"
+    "Company management","Store maintenance","Fixed salaries","Miscellaneous","Refund","Tailoring",
+    "Accountant salary","Store service","Taxes","Rent","Fabric purchase",
+    "Goods purchase","Visual merchandising","Marketing","Logistics","IT support"
   ];
 
 */
   function formatMonth(dateStr) {
     const d = new Date(dateStr);
-    return d.toLocaleString('ru-RU', { year: 'numeric', month: 'long' });
+    return d.toLocaleString(UI_LOCALE, { year: 'numeric', month: 'long' });
   }
   function formatNumber(amount) {
     const num = Number(amount);
     if (isNaN(num)) return amount;
-    return num.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return num.toLocaleString(UI_LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 function getNumberClass(num) {
   const n = Number(num);
@@ -301,7 +304,7 @@ function renderArticles() {
 
     const badge = document.createElement('span');
     badge.className = 'payment-status ' + (paid ? 'paid' : 'not-paid');
-    badge.textContent = paid ? 'Оплачено' : 'Не оплачено';
+    badge.textContent = paid ? tr('Оплачено') : tr('Не оплачено', 'Не оплачено');
 
     artCell.appendChild(titleSpan);
     artCell.appendChild(badge);
@@ -784,7 +787,5 @@ function isPastMonth(dateStr) {
 
   await init();
 })();
-
-
 
 
