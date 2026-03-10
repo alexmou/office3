@@ -479,21 +479,21 @@ const BUDGETNAME="BUTTON ROUGE"
 
 var budgetRecord={}
 const now = new Date();
-budgetRecord["Дата"]=getCurrentDate()
-budgetRecord["Время"]=getCurrentTime()
+budgetRecord["Date"]=getCurrentDate()
+budgetRecord["Time"]=getCurrentTime()
 budgetRecord["Бюджет"]=BUDGETNAME
 budgetRecord["Вид"]="Факт"
 budgetRecord["Год"]=now.getFullYear()
 budgetRecord["Месяц"]=now.getMonth() + 1
 
-budgetRecord["Тип"]=operationTypeEl.value
+budgetRecord["Type"]=operationTypeEl.value
 budgetRecord["Статья расходов"]=activityEl.value
 const usernameFromDom = document.getElementById("username")?.textContent;
 const resolvedUsername = String(username || window.currentLoginName || usernameFromDom || "").trim();
 budgetRecord["username"]=resolvedUsername;
 budgetRecord["PaymentCashRegister"]="Касса"
-budgetRecord["Комментарий"]=commentEl.value
-budgetRecord["Сумма"]=cashSumEl.value
+budgetRecord["Comment"]=commentEl.value
+budgetRecord["Amount"]=cashSumEl.value
 budgetRecord["countInBudget"]=0;
 const storeElement = document.getElementById("store");
 const storeContext = window.USER_STORE || {};
