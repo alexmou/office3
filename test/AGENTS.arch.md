@@ -2,6 +2,8 @@
 
 Architecture summary.
 
+Canonical architecture notes live in `test/local/README.md` and inherit from `../local/README.md`.
+
 - Static SPA with page HTML/JS/CSS loaded via `fetch()` (see `system/app.js`).
 - Auth token is passed via URL query and kept in `window.token`.
 - Config comes from `API.getConfig()` and is stored in `window.CONFIG`.

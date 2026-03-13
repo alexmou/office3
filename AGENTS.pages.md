@@ -2,6 +2,8 @@
 
 Page map (pageId -> folder/files).
 
+Canonical page/runtime context lives in `local/README.md`.
+
 - login -> `login/login.html`, `login/login.js`
 - newsale -> `newsale/newsale.html`, `newsale/newsale.js`
 - barcode -> `barcode/barcode.html`, `barcode/barcode.js`

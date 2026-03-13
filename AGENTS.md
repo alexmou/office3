@@ -2,6 +2,14 @@
 
 Quick context for Codex (keep short; load this first).
 
+Read order for non-trivial tasks:
+- `AGENTS.md`
+- `local/README.md`
+- `.memory_bank/active-context.md`
+- the matching domain file in `.memory_bank/`
+- only then the target source files
+
+Bootstrap facts:
 - Entry point: `index/index.html` loads `system/system.js`, `system/pageConfig.js`, `system/app.js`.
 - SPA loader: `system/app.js` + `window.PAGE_CONFIG` from `system/pageConfig.js`.
 - API client: `system/api.js` + `system/n8n.js` (n8n webhooks, prod/test).
@@ -9,7 +17,9 @@ Quick context for Codex (keep short; load this first).
 - Shared tables: `shared/class_TableUI.js` (TableData + TableUI).
 - No build step; serve from repo root via a simple HTTP server.
 
-See also: `AGENTS.arch.md`, `AGENTS.pages.md`.
+Canonical project context lives in `local/README.md`.
+Durable project memory lives in `.memory_bank/`.
+Helper extracts remain in `AGENTS.arch.md` and `AGENTS.pages.md`.
 
 ## Project System Prompt (Pinned)
 

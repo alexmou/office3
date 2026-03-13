@@ -2,13 +2,24 @@
 
 Quick context for Codex (keep short; load this first).
 
+Read order for non-trivial tasks:
+- `test/AGENTS.md`
+- `test/local/README.md`
+- `test/.memory_bank/active-context.md`
+- the matching test memory note or the root project note if no local override exists
+- only then the target source files
+
+Bootstrap facts:
 - Entry point: `index/index.html` loads `system/system.js`, `system/pageConfig.js`, `system/app.js`.
 - SPA loader: `system/app.js` + `window.PAGE_CONFIG` from `system/pageConfig.js`.
 - API client: `system/api.js` + `system/n8n.js` (n8n webhooks, prod/test).
 - Shared tables: `shared/class_TableUI.js` (TableData + TableUI).
 - No build step; serve from repo root via a simple HTTP server.
 
-See also: `AGENTS.arch.md`, `AGENTS.pages.md`.
+Canonical test-workspace context lives in `test/local/README.md`.
+Durable test-workspace memory lives in `test/.memory_bank/`.
+Upstream project context lives in `../local/README.md`.
+Helper extracts remain in `test/AGENTS.arch.md` and `test/AGENTS.pages.md`.
 
 ## Project System Prompt (Pinned)
 
