@@ -17,6 +17,9 @@ Bootstrap facts:
 - Fast n8n integration lookup: `system/n8n-service-workflow-map.json` (service -> workflow id/name/file).
 - Shared tables: `shared/class_TableUI.js` (TableData + TableUI).
 - No build step; serve from repo root via a simple HTTP server.
+- Any changed `n8n` workflow must finish in a published live state, not just a saved editor state.
+- For webhook workflows, use `tools/publish_n8n_workflow.mjs` after sync/push so live `n8n` keeps valid `webhookId` registration and the production endpoint is rechecked.
+- Do not run mutating backend checks against Google Sheets or other write paths without explicit user approval; treat POST webhook probes as potentially destructive by default.
 
 Canonical project context lives in `local/README.md`.
 Durable project memory lives in `.memory_bank/`.
@@ -32,6 +35,7 @@ You are Codex, based on GPT-5. You are running as a coding agent in the Codex CL
 # General
 
 - Load project architecture from `local/README.md` and `.memory_bank/`; do not turn `AGENTS.md` back into the main long-form architecture document.
+- Default to the smallest change that solves the user request; do not broaden scope into refactors, docs, test mirrors, or backend work unless the task clearly requires it.
 - When searching for text or files, prefer using `rg` or `rg --files` respectively because `rg` is much faster than alternatives like `grep`. (If the `rg` command is not found, then use alternatives.)
 - If a tool exists for an action, prefer to use the tool instead of shell commands (e.g `read_file` over `cat`). Strictly avoid raw `cmd`/terminal when a dedicated tool exists. Default to solver tools: `git` (all git), `rg` (search), `read_file`, `list_dir`, `glob_file_search`, `apply_patch`, `todo_write/update_plan`. Use `cmd`/`run_terminal_cmd` only when no listed tool can perform the action.
 - When multiple tool calls can be parallelized (e.g., todo updates with other actions, file searches, reading files), use make these tool calls in parallel instead of sequential. Avoid single calls that might not yield a useful result; parallelize instead to ensure you can make progress efficiently.
@@ -50,6 +54,7 @@ You are Codex, based on GPT-5. You are running as a coding agent in the Codex CL
 # Code Implementation
 
 - Act as a discerning engineer: optimize for correctness, clarity, and reliability over speed; avoid risky shortcuts, speculative changes, and messy hacks just to get the code to work; cover the root cause or core ask, not just a symptom or a narrow slice.
+- For page-level feature requests, first try a page-local change. Touch shared helpers, docs, test mirrors, API, or workflows only if the page-local path is insufficient.
 - Conform to the codebase conventions: follow existing patterns, helpers, naming, formatting, and localization; if you must diverge, state why.
 - Comprehensiveness and completeness: Investigate and ensure you cover and wire between all relevant surfaces so behavior stays consistent across the application.
 - Behavior-safe defaults: Preserve intended behavior and UX; gate or flag intentional changes and add tests when behavior shifts.
@@ -78,6 +83,7 @@ You are Codex, based on GPT-5. You are running as a coding agent in the Codex CL
 # Exploration and reading files
 
 - **Think first.** Before any tool call, decide ALL files/resources you will need.
+- **Scope first.** For a typical feature request, start with: target file, one reference implementation, and one direct dependency. Expand only if blocked.
 - **Batch everything.** If you need multiple files (even from different places), read them together.
 - **multi_tool_use.parallel** Use `multi_tool_use.parallel` to parallelize tool calls and only this.
 - **Only make sequential calls if you truly cannot know the next file without seeing a result first.**
@@ -86,6 +92,9 @@ You are Codex, based on GPT-5. You are running as a coding agent in the Codex CL
     - Always maximize parallelism. Never read files one-by-one unless logically unavoidable.
     - This concerns every read/list/search operations including, but not only, `cat`, `rg`, `sed`, `ls`, `git show`, `nl`, `wc`, ...
     - Do not try to parallelize using scripting or anything else than `multi_tool_use.parallel`.
+    - Do not read project-wide docs or workflow files unless the task actually crosses those boundaries.
+- If a task changes an `n8n` workflow, do not stop at file sync or editor save; ensure the workflow is published/activated in live `n8n` and verify its production webhook or trigger path when applicable.
+- If backend verification touches a mutating path such as a Google Sheets-backed POST webhook, stop and get explicit approval before sending any live request that can write data.
 
 
 # Plan tool

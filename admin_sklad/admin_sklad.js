@@ -1,14 +1,418 @@
+const PAGE_ID = 'admin_sklad';
 const MAIN_FIELDS   = ['article','Brand','Name','price'];
 const EXTRA_FIELDS  = ['description','color','size'];
 const HIDDEN_FIELDS = ['row_number']; 
 
 let ALL_FIELDS = [];
+let availableStores = [];
+let selectedSourceStore = null;
+let selectedTargetStore = null;
+let pageListenersBound = false;
+
+function parseMaybeJson(value) {
+  if (typeof value !== 'string') return value;
+  try { return JSON.parse(value); } catch (_) { return value; }
+}
+
+function unwrapArrayPayload(raw) {
+  const parsed = parseMaybeJson(raw);
+  if (Array.isArray(parsed)) return parsed;
+  if (Array.isArray(parsed?.data?.data)) return parsed.data.data;
+  if (Array.isArray(parsed?.data)) return parsed.data;
+  if (Array.isArray(parsed?.items)) return parsed.items;
+  return [];
+}
+
+function toNumericId(value) {
+  if (value === null || value === undefined || String(value).trim() === '') return '';
+  const n = Number(value);
+  return Number.isFinite(n) ? n : '';
+}
+
+function normalizeStoreItem(store, index) {
+  if (store == null) return null;
+
+  let storeIdRaw = '';
+  let storeNameRaw = '';
+  let sheetNameSkladRaw = '';
+  let sheetNameSklad2Raw = '';
+  let sheetNameAccountingRaw = '';
+
+  if (Array.isArray(store)) {
+    storeIdRaw = store?.[0];
+    storeNameRaw = store?.[1];
+    sheetNameSkladRaw = store?.[2];
+    sheetNameSklad2Raw = store?.[3];
+    sheetNameAccountingRaw = store?.[4];
+  } else if (typeof store === 'object') {
+    storeIdRaw = store?.storeId ?? store?.id ?? store?.store ?? '';
+    storeNameRaw = store?.storeName ?? store?.name ?? '';
+    sheetNameSkladRaw = store?.sheetName_sklad ?? store?.sklad ?? '';
+    sheetNameSklad2Raw = store?.sheetName_sklad_2 ?? store?.sklad2 ?? '';
+    sheetNameAccountingRaw = store?.sheetName_accounting ?? store?.accounting ?? '';
+  } else {
+    storeNameRaw = store;
+  }
+
+  const storeId = toNumericId(storeIdRaw);
+  const storeName = String(storeNameRaw || '').trim();
+  const sheetNameSklad = String(sheetNameSkladRaw || '').trim();
+  const sheetNameSklad2 = String(sheetNameSklad2Raw || '').trim();
+  const sheetNameAccounting = String(sheetNameAccountingRaw || '').trim();
+  const baseName = storeName || sheetNameSklad;
+
+  if (!baseName) return null;
+
+  return {
+    key: storeId !== '' ? `id:${storeId}` : `name:${String(baseName).toLowerCase()}#${index}`,
+    storeId,
+    storeName: storeName || baseName,
+    sheetName_sklad: sheetNameSklad,
+    sheetName_sklad_2: sheetNameSklad2,
+    sheetName_accounting: sheetNameAccounting,
+    label: storeName || baseName,
+  };
+}
+
+function unwrapConfigStores(value) {
+  const parsed = parseMaybeJson(value);
+  if (!parsed) return [];
+  if (Array.isArray(parsed)) return parsed;
+  if (Array.isArray(parsed?.items)) return parsed.items;
+  if (Array.isArray(parsed?.stores)) return parsed.stores;
+  if (Array.isArray(parsed?.warehouses)) return parsed.warehouses;
+  if (typeof parsed !== 'object') return [];
+
+  return Object.entries(parsed).map(([key, entry]) => {
+    if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+      return {
+        storeName: entry.storeName || entry.name || key,
+        ...entry,
+      };
+    }
+    return {
+      storeName: key,
+      sheetName_sklad: entry,
+    };
+  });
+}
+
+function getConfiguredStoreEntries() {
+  const cfg = window.CONFIG || {};
+  const candidateKeys = [
+    'ADMIN_SKLAD_STORES',
+    'adminSkladStores',
+    'ADMIN_SKLAD_STORE_MAP',
+    'adminSkladStoreMap',
+    'WAREHOUSE_STORE_MAP',
+    'warehouseStoreMap',
+    'STORE_SKLAD_MAP',
+    'storeSkladMap',
+    'SKLAD_STORE_OPTIONS',
+    'skladStoreOptions',
+    'WAREHOUSE_OPTIONS',
+    'warehouseOptions',
+    'stores',
+  ];
+
+  for (const key of candidateKeys) {
+    const entries = unwrapConfigStores(cfg[key]);
+    if (entries.length > 0) return dedupeStores(entries);
+  }
+
+  return [];
+}
+
+function mergeStoreSources(configStores, serviceStores) {
+  const merged = [];
+  const indexByKey = new Map();
+
+  [...serviceStores, ...configStores].forEach((entry, index) => {
+    const normalized = normalizeStoreItem(entry, index);
+    if (!normalized) return;
+    const key = normalized.storeId !== ''
+      ? `id:${normalized.storeId}`
+      : `name:${String(normalized.storeName).trim().toLowerCase()}`;
+    const prevIndex = indexByKey.get(key);
+    if (prevIndex === undefined) {
+      indexByKey.set(key, merged.length);
+      merged.push({ ...normalized, key });
+      return;
+    }
+
+    merged[prevIndex] = {
+      ...merged[prevIndex],
+      ...Object.fromEntries(Object.entries(normalized).filter(([, value]) => value !== '')),
+      key,
+    };
+  });
+
+  return merged.filter((entry) => entry.sheetName_sklad || entry.storeName);
+}
+
+function dedupeStores(stores) {
+  const deduped = [];
+  const seen = new Set();
+
+  stores.forEach((entry, index) => {
+    const normalized = normalizeStoreItem(entry, index);
+    if (!normalized) return;
+    const dedupeKey = normalized.storeId !== ''
+      ? `id:${normalized.storeId}`
+      : `name:${String(normalized.storeName).trim().toLowerCase()}`;
+    if (seen.has(dedupeKey)) return;
+    seen.add(dedupeKey);
+    normalized.key = dedupeKey;
+    deduped.push(normalized);
+  });
+
+  return deduped;
+}
+
+function getCurrentUserStore() {
+  const current = window.USER_STORE || {};
+  const headerStoreName = String(document.getElementById('store')?.textContent || '').trim();
+  const storeId = toNumericId(current.storeId ?? current.store ?? current.id);
+  const storeName = String(current.storeName || current.name || current.store || headerStoreName || '').trim();
+  const sheetNameSklad = String(current.sheetName_sklad || current.sklad || '').trim();
+  const sheetNameSklad2 = String(current.sheetName_sklad_2 || current.sklad2 || '').trim();
+  const sheetNameAccounting = String(current.sheetName_accounting || current.accounting || '').trim();
+  const baseName = storeName || sheetNameSklad;
+  if (storeId === '' && !baseName) return null;
+
+  return {
+    key: storeId !== '' ? `id:${storeId}` : `name:${String(baseName).toLowerCase()}`,
+    storeId,
+    storeName: storeName || baseName,
+    sheetName_sklad: sheetNameSklad,
+    sheetName_sklad_2: sheetNameSklad2,
+    sheetName_accounting: sheetNameAccounting,
+    label: storeName || baseName || `Store ${storeId}`,
+  };
+}
+
+function findDefaultStore(stores, currentStore) {
+  if (!Array.isArray(stores) || stores.length === 0) return currentStore || null;
+
+  if (currentStore) {
+    if (currentStore.storeId !== '') {
+      const byId = stores.find((store) => store.storeId !== '' && Number(store.storeId) === Number(currentStore.storeId));
+      if (byId) return byId;
+    }
+
+    const names = [
+      currentStore.storeName,
+      currentStore.sheetName_sklad,
+      currentStore.label,
+    ]
+      .map((value) => String(value || '').trim().toLowerCase())
+      .filter(Boolean);
+
+    if (names.length > 0) {
+      const byName = stores.find((store) => {
+        const fields = [
+          store.storeName,
+          store.sheetName_sklad,
+          store.label,
+        ].map((value) => String(value || '').trim().toLowerCase());
+        return fields.some((field) => names.includes(field));
+      });
+      if (byName) return byName;
+    }
+  }
+
+  return stores[0];
+}
+
+function findAlternativeStore(stores, excludedKey) {
+  return (stores || []).find((store) => store.key !== excludedKey) || null;
+}
+
+function buildSelectedStoreQuery(baseQuery = {}) {
+  const query = { ...baseQuery };
+  const source = selectedSourceStore || getCurrentUserStore();
+  const target = selectedTargetStore || findAlternativeStore(availableStores, source?.key) || source;
+  if (!source && !target) return query;
+
+  if (source?.storeId !== '') {
+    query.store = source.storeId;
+    query.storeId = query.storeId || source.storeId;
+  }
+  if (source?.storeName) {
+    query.storeName = source.storeName;
+  }
+  if (source?.sheetName_sklad) {
+    query.sheetName_sklad = source.sheetName_sklad;
+    query.sklad = source.sheetName_sklad;
+    query.skladName1 = source.sheetName_sklad;
+  }
+  if (source?.sheetName_accounting) {
+    query.sheetName_accounting = source.sheetName_accounting;
+  }
+
+  if (target?.storeId !== '') {
+    query.store2 = target.storeId;
+    query.storeId2 = target.storeId;
+  }
+  if (target?.storeName) {
+    query.storeName2 = target.storeName;
+  }
+  if (target?.sheetName_sklad) {
+    query.sheetName_sklad_2 = target.sheetName_sklad;
+    query.sklad2 = target.sheetName_sklad;
+    query.skladName2 = target.sheetName_sklad;
+  }
+  if (target?.sheetName_accounting) {
+    query.sheetName_accounting_2 = target.sheetName_accounting;
+  }
+
+  return query;
+}
+
+async function fetchStoresForAdminSklad() {
+  let stores = [];
+  const configStores = getConfiguredStoreEntries();
+
+  if (window.API && typeof window.API.getStores === 'function') {
+    try {
+      const raw = await window.API.getStores({ token: window.token }, { overlayId: PAGE_ID });
+      stores = unwrapArrayPayload(raw);
+    } catch (error) {
+      console.error('admin_sklad: failed to load stores via API.getStores', error);
+    }
+  }
+
+  if ((!Array.isArray(stores) || stores.length === 0) && Array.isArray(window.STORES_CACHE)) {
+    stores = window.STORES_CACHE;
+  }
+
+  if (!Array.isArray(stores) || stores.length === 0) {
+    try {
+      const cachedRaw = window.localStorage?.getItem('stores_cache');
+      const cachedParsed = cachedRaw ? JSON.parse(cachedRaw) : [];
+      if (Array.isArray(cachedParsed)) stores = cachedParsed;
+    } catch (error) {
+      console.warn('admin_sklad: failed to read stores_cache', error);
+    }
+  }
+
+  return mergeStoreSources(configStores, Array.isArray(stores) ? stores : []);
+}
+
+function renderStoreOptions(selectEl, stores, currentStore) {
+  if (!selectEl) return;
+  selectEl.innerHTML = '';
+  (stores || []).forEach((store) => {
+    const option = document.createElement('option');
+    option.value = store.key;
+    option.textContent = store.storeName || store.label || 'Store';
+    selectEl.appendChild(option);
+  });
+
+  if (currentStore && Array.from(selectEl.options).some((option) => option.value === currentStore.key)) {
+    selectEl.value = currentStore.key;
+  } else if (selectEl.options.length > 0) {
+    selectEl.value = selectEl.options[0].value;
+  }
+
+  selectEl.disabled = selectEl.options.length <= 1;
+}
+
+function getWarehouseDisplayName(wid) {
+  const store = wid === 1 ? selectedSourceStore : selectedTargetStore;
+  return store?.storeName || store?.label || (wid === 1 ? 'Склад 1' : 'Склад 2');
+}
+
+function updateWarehouseLabels() {
+  const zoneLabel1 = document.getElementById('zoneLabel1');
+  const zoneLabel2 = document.getElementById('zoneLabel2');
+  if (zoneLabel1) zoneLabel1.textContent = getWarehouseDisplayName(1);
+  if (zoneLabel2) zoneLabel2.textContent = getWarehouseDisplayName(2);
+}
+
+function syncSelectorsOnConflict(changedSide) {
+  if (selectedSourceStore?.key !== selectedTargetStore?.key) return;
+  const fallback = findAlternativeStore(availableStores, changedSide === 'source' ? selectedSourceStore?.key : selectedTargetStore?.key);
+  if (!fallback) return;
+  if (changedSide === 'source') selectedTargetStore = fallback;
+  else selectedSourceStore = fallback;
+}
+
+async function ensureStoreSwitcher() {
+  const fromSelectEl = document.getElementById('adminSkladFromSelect');
+  const toSelectEl = document.getElementById('adminSkladToSelect');
+  if (!fromSelectEl || !toSelectEl) return;
+
+  const storesFromService = await fetchStoresForAdminSklad();
+  const currentStore = getCurrentUserStore();
+  availableStores = Array.isArray(storesFromService) ? storesFromService.slice() : [];
+
+  if (currentStore) {
+    const alreadyIncluded = availableStores.some((store) => {
+      if (currentStore.storeId !== '' && store.storeId !== '') {
+        return Number(currentStore.storeId) === Number(store.storeId);
+      }
+      return String(store.storeName || '').trim().toLowerCase() === String(currentStore.storeName || '').trim().toLowerCase();
+    });
+    if (!alreadyIncluded) {
+      availableStores.unshift(currentStore);
+    }
+  }
+
+  if (!selectedSourceStore) {
+    selectedSourceStore = findDefaultStore(availableStores, currentStore);
+  } else {
+    selectedSourceStore = availableStores.find((store) => store.key === selectedSourceStore?.key) || selectedSourceStore;
+  }
+
+  if (!selectedTargetStore) {
+    selectedTargetStore = findAlternativeStore(availableStores, selectedSourceStore?.key) || selectedSourceStore;
+  } else {
+    selectedTargetStore = availableStores.find((store) => store.key === selectedTargetStore.key) || selectedTargetStore;
+  }
+
+  syncSelectorsOnConflict('source');
+  renderStoreOptions(fromSelectEl, availableStores, selectedSourceStore);
+  renderStoreOptions(toSelectEl, availableStores, selectedTargetStore);
+
+  const bindSelector = (selectEl, side) => {
+    if (selectEl.dataset.bound) return;
+    selectEl.addEventListener('change', async (event) => {
+      const nextKey = String(event.target.value || '');
+      const nextStore = availableStores.find((store) => store.key === nextKey);
+      const current = side === 'source' ? selectedSourceStore : selectedTargetStore;
+      if (!nextStore || nextStore.key === current?.key) return;
+
+      if (changes.length > 0) {
+        const shouldReset = window.confirm('Есть несохраненные изменения. Переключить склад и сбросить их?');
+        if (!shouldReset) {
+          event.target.value = current?.key || '';
+          return;
+        }
+        changes.length = 0;
+      }
+
+      if (side === 'source') selectedSourceStore = nextStore;
+      else selectedTargetStore = nextStore;
+
+      syncSelectorsOnConflict(side);
+      renderStoreOptions(fromSelectEl, availableStores, selectedSourceStore);
+      renderStoreOptions(toSelectEl, availableStores, selectedTargetStore);
+      vocabularyCache = null;
+      await bodyOnload();
+    });
+    selectEl.dataset.bound = '1';
+  };
+
+  bindSelector(fromSelectEl, 'source');
+  bindSelector(toSelectEl, 'target');
+}
 
 async function loadHeader() {
 ALL_FIELDS=['article','Brand','num','price','Brand','type','subtype','description','Name','fabric','color','size','manufacturer','price', 'quantity', 'netprice', 'netpriceFull', 'scladprice', 'salePrice']
  
   const data = await window.API.getSkladHeader(
-    { visible: true, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING },
+    buildSelectedStoreQuery({ visible: true, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING }),
     { overlayId: "admin_sklad" }
   );
   console.log('data:', data);
@@ -34,15 +438,21 @@ let warehousesInitialized = false;
 
 
 async function bodyOnload() {
+      await ensureStoreSwitcher();
       warehousesInitialized = false;
-      const query = { action: "getSkladData", visible: true , TESTING:CONFIG.GLOBAL_EXECUTION_TESTING};
+      vocabularyCache = null;
+      updateWarehouseLabels();
+      const query = buildSelectedStoreQuery({ action: "getSkladData", visible: true , TESTING:CONFIG.GLOBAL_EXECUTION_TESTING});
           try {
               const data = await window.API.getSkladData(query, { overlayId: "admin_sklad" });
-              document.getElementById("warehouseData1").setAttribute("data-warehouse1",JSON.stringify(data[0].data1))
-              document.getElementById("warehouseData2").setAttribute("data-warehouse2",JSON.stringify(data[1].data2))
+              document.getElementById("warehouseData1").setAttribute("data-warehouse1",JSON.stringify(data?.[0]?.data1 || []))
+              document.getElementById("warehouseData2").setAttribute("data-warehouse2",JSON.stringify(data?.[1]?.data2 || []))
               init()
           } catch (error) {
-            //  console.error('Ошибка при GET-запросе:', error);
+              console.error('admin_sklad: failed to load warehouse data', error);
+              if (typeof showErrorPopup === 'function') {
+                showErrorPopup('Не удалось загрузить данные складов');
+              }
           }
 }
 
@@ -107,11 +517,15 @@ const formatPrice = v => {
     warehousesInitialized = true;
   }
   await loadHeader();
+  updateWarehouseLabels();
   renderWarehouses();
-  setupDragAndDrop();
-  setupFilters();
-  setupSaveButton();
-  setupAddButtons();
+  if (!pageListenersBound) {
+    setupDragAndDrop();
+    setupFilters();
+    setupSaveButton();
+    setupAddButtons();
+    pageListenersBound = true;
+  }
 
 
 }
@@ -336,7 +750,19 @@ function setupSaveButton() {
       return;
     }
     try {
-      const resp = await window.API.saveSkladChanges(changes, { timeout: 8000, overlayId: "admin_sklad" });
+      const payload = {
+        query: buildSelectedStoreQuery({
+          action: 'saveSkladChanges',
+          visible: true,
+          TESTING: CONFIG.GLOBAL_EXECUTION_TESTING,
+        }),
+        data: changes,
+      };
+      const resp = await window.API.call('saveSkladChanges', { action: 'saveSkladChanges' }, {
+        timeout: 8000,
+        overlayId: 'admin_sklad',
+        rawBody: payload,
+      });
       if (resp == null) throw new Error("Не удалось сохранить изменения");
       showToast('Изменения успешно сохранены!','success');
       changes.length=0;
@@ -365,7 +791,7 @@ async function loadVocabulary() {
 
   try {
     const data = await window.API.getSkladVocabulary(
-      { action: "getVocabulary", visible: true, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING },
+      buildSelectedStoreQuery({ action: "getVocabulary", visible: true, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING }),
       { overlayId: "admin_sklad" }
     );
     //console.log(data[0])
@@ -416,7 +842,7 @@ document.getElementById('btnDeleteProduct').addEventListener('click', async () =
   }
 
 try {
-    const query = { action: 'deleteItem', visible: true, wid: wid, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING };
+    const query = buildSelectedStoreQuery({ action: 'deleteItem', visible: true, wid: wid, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING });
     const data = { article: article };
 
     const params = { query: query, data: data };
@@ -504,7 +930,7 @@ async function showDetailsModal(prod = {}, wid, isNew) {
   body.dataset.isNew = isNew ? '1' : '0';
   body.dataset.article = prod.article || '';
   body.dataset.row = prod.num || '';
-  label.textContent  = isNew ? `Новый товар (Склад ${wid})` : 'Редактирование товара';
+  label.textContent  = isNew ? `Новый товар (${getWarehouseDisplayName(wid)})` : `Редактирование товара (${getWarehouseDisplayName(wid)})`;
 
 for (const f of ALL_FIELDS) {
   const lbl = document.createElement('label');
@@ -653,7 +1079,7 @@ document.addEventListener('submit', async e => {
   try {
     const action = isNew ? 'addItem' : 'editItem';
 
-      const query = { action: action, visible: true, wid:wid, TESTING:CONFIG.GLOBAL_EXECUTION_TESTING };
+      const query = buildSelectedStoreQuery({ action: action, visible: true, wid:wid, TESTING:CONFIG.GLOBAL_EXECUTION_TESTING });
       const params = { query:query, data:  data  };
     
     const resp = isNew

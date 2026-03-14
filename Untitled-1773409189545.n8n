@@ -1,0 +1,70 @@
+{
+  "updatedAt": "2026-03-13T13:41:13.191Z",
+  "createdAt": "2026-03-13T13:41:13.191Z",
+  "id": "7YunM8y6aOdxeyPZ",
+  "name": "Untitled-1773409189545",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [],
+  "connections": {},
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "b7d4f901-159b-44c9-9b82-8e20aa1683ef",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-13T13:41:13.199Z",
+      "createdAt": "2026-03-13T13:41:13.199Z",
+      "role": "workflow:owner",
+      "workflowId": "7YunM8y6aOdxeyPZ",
+      "projectId": "Cbzeqxofr5KXht6P",
+      "project": {
+        "updatedAt": "2025-03-07T10:59:25.834Z",
+        "createdAt": "2025-03-05T10:47:17.258Z",
+        "id": "Cbzeqxofr5KXht6P",
+        "name": "Алексей Мурыгин <l.murygin@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-03-05T10:47:17.259Z",
+            "createdAt": "2025-03-05T10:47:17.259Z",
+            "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+            "projectId": "Cbzeqxofr5KXht6P",
+            "user": {
+              "updatedAt": "2026-03-13T07:53:40.000Z",
+              "createdAt": "2025-03-05T10:47:16.542Z",
+              "id": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+              "email": "l.murygin@gmail.com",
+              "firstName": "Алексей",
+              "lastName": "Мурыгин",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "rVWIEki714lPBFxf",
+                "userActivatedAt": 1741418880091,
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-13",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

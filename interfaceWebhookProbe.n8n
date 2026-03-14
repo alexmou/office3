@@ -1,0 +1,283 @@
+{
+  "updatedAt": "2026-03-13T13:21:31.602Z",
+  "createdAt": "2026-03-09T11:16:43.430Z",
+  "id": "KXGzvacCW7C6Jmwf",
+  "name": "interfaceWebhookProbe",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "0c4a9f56-431a-48c9-bbb4-014e44507d4b",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -420,
+        0
+      ],
+      "parameters": {
+        "path": "interfaceWebhookProbe",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "3c1c2c26-d1ad-4f44-8b90-2f7ec37e9fd0"
+    },
+    {
+      "id": "111ac301-f708-4d2e-83e6-22a9d01e5be5",
+      "name": "Build Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const now = new Date().toISOString();\nconst endpoint = 'interfaceWebhookProbe';\n\nreturn $input.all().map((item, index) => ({\n  json: {\n    ok: true,\n    endpoint,\n    receivedAt: now,\n    itemIndex: index,\n    received: item.json\n  }\n}));"
+      }
+    },
+    {
+      "id": "aa94dc5f-52c0-496c-88d6-822a56b8d7d2",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "08b879dd-9936-4918-abd0-35a5108822a3",
+  "activeVersionId": "acb30402-7ce7-4eee-a483-aa428ad4e2f2",
+  "versionCounter": 31,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-09T11:16:43.462Z",
+      "createdAt": "2026-03-09T11:16:43.462Z",
+      "role": "workflow:owner",
+      "workflowId": "KXGzvacCW7C6Jmwf",
+      "projectId": "Cbzeqxofr5KXht6P",
+      "project": {
+        "updatedAt": "2025-03-07T10:59:25.834Z",
+        "createdAt": "2025-03-05T10:47:17.258Z",
+        "id": "Cbzeqxofr5KXht6P",
+        "name": "Алексей Мурыгин <l.murygin@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-03-05T10:47:17.259Z",
+            "createdAt": "2025-03-05T10:47:17.259Z",
+            "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+            "projectId": "Cbzeqxofr5KXht6P",
+            "user": {
+              "updatedAt": "2026-03-13T07:53:40.000Z",
+              "createdAt": "2025-03-05T10:47:16.542Z",
+              "id": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+              "email": "l.murygin@gmail.com",
+              "firstName": "Алексей",
+              "lastName": "Мурыгин",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "rVWIEki714lPBFxf",
+                "userActivatedAt": 1741418880091,
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-13",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-13T13:08:01.730Z",
+    "createdAt": "2026-03-13T13:08:01.730Z",
+    "versionId": "acb30402-7ce7-4eee-a483-aa428ad4e2f2",
+    "workflowId": "KXGzvacCW7C6Jmwf",
+    "nodes": [
+      {
+        "id": "0c4a9f56-431a-48c9-bbb4-014e44507d4b",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          -420,
+          0
+        ],
+        "parameters": {
+          "path": "interfaceWebhookProbe",
+          "httpMethod": "POST",
+          "responseMode": "responseNode",
+          "options": {}
+        }
+      },
+      {
+        "id": "111ac301-f708-4d2e-83e6-22a9d01e5be5",
+        "name": "Build Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -120,
+          0
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "const now = new Date().toISOString();\nconst endpoint = 'interfaceWebhookProbe';\n\nreturn $input.all().map((item, index) => ({\n  json: {\n    ok: true,\n    endpoint,\n    receivedAt: now,\n    itemIndex: index,\n    received: item.json\n  }\n}));"
+        }
+      },
+      {
+        "id": "aa94dc5f-52c0-496c-88d6-822a56b8d7d2",
+        "name": "Respond to Webhook",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.2,
+        "position": [
+          140,
+          0
+        ],
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json }}",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Build Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Response": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Алексей Мурыгин",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-13T13:08:01.845Z",
+        "id": 119,
+        "workflowId": "KXGzvacCW7C6Jmwf",
+        "versionId": "acb30402-7ce7-4eee-a483-aa428ad4e2f2",
+        "event": "activated",
+        "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698"
+      },
+      {
+        "createdAt": "2026-03-13T13:08:31.063Z",
+        "id": 122,
+        "workflowId": "KXGzvacCW7C6Jmwf",
+        "versionId": "acb30402-7ce7-4eee-a483-aa428ad4e2f2",
+        "event": "activated",
+        "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698"
+      },
+      {
+        "createdAt": "2026-03-13T13:19:20.187Z",
+        "id": 125,
+        "workflowId": "KXGzvacCW7C6Jmwf",
+        "versionId": "acb30402-7ce7-4eee-a483-aa428ad4e2f2",
+        "event": "activated",
+        "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698"
+      },
+      {
+        "createdAt": "2026-03-13T13:21:31.898Z",
+        "id": 128,
+        "workflowId": "KXGzvacCW7C6Jmwf",
+        "versionId": "acb30402-7ce7-4eee-a483-aa428ad4e2f2",
+        "event": "activated",
+        "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698"
+      },
+      {
+        "createdAt": "2026-03-13T13:08:30.125Z",
+        "id": 121,
+        "workflowId": "KXGzvacCW7C6Jmwf",
+        "versionId": "acb30402-7ce7-4eee-a483-aa428ad4e2f2",
+        "event": "deactivated",
+        "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698"
+      }
+    ]
+  }
+}

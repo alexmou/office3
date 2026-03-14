@@ -1,0 +1,5186 @@
+{
+  "updatedAt": "2026-03-13T08:01:14.996Z",
+  "createdAt": "2026-01-09T06:45:13.551Z",
+  "id": "7pC8RxgVHa1G7N7PsT9W4",
+  "name": "newSale",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "true",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        1024,
+        176
+      ],
+      "id": "bb99beea-8db5-4514-bc05-c3b1ed5dd40e",
+      "name": "Respond to Webhook",
+      "alwaysOutputData": false,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "=sendSalesToSheet",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "50880f5c-2526-4969-9728-daa1323817a4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "newSale"
+            }
+          ]
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -2192,
+        -96
+      ],
+      "id": "0e6c63f6-433e-4180-bf2d-63b145b1fff8",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "newSale",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -2432,
+        -96
+      ],
+      "id": "faf02e6e-2438-4b86-936e-f1be2a535e41",
+      "webhookId": "38b61ecd-e984-4ec6-b976-a9fa5b637995"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.sales",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -1936,
+        -96
+      ],
+      "id": "1493ae23-1edb-486b-9d84-8333cd879cab",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1WCARw2suIx4oYkvFTJwXxdrRZt0QzAudFIEtkkjMs9U",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1402000884,
+          "mode": "list",
+          "cachedResultName": "Salary",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WCARw2suIx4oYkvFTJwXxdrRZt0QzAudFIEtkkjMs9U/edit#gid=1402000884"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "username",
+              "lookupValue": "={{ $json.username }}"
+            },
+            {
+              "lookupColumn": "Brand",
+              "lookupValue": "={{ $json.Brand }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1584,
+        176
+      ],
+      "id": "1299d030-2c41-4ef0-94aa-8269bf3ec7d3",
+      "name": "getSalary",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "Brand",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1360,
+        64
+      ],
+      "id": "8208673b-90e1-4b2f-804b-b879c29b9e53",
+      "name": "Merge",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e09cca24-03ca-4c7c-9522-721cc5d0d932",
+              "name": "Salary",
+              "value": "={{  $json[$json.paymentmethod]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1088,
+        64
+      ],
+      "id": "bb424a90-d5d5-4773-b831-51a1f852a245",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1WCARw2suIx4oYkvFTJwXxdrRZt0QzAudFIEtkkjMs9U",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 837475007,
+          "mode": "list",
+          "cachedResultName": "Зарплата поставщикам",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WCARw2suIx4oYkvFTJwXxdrRZt0QzAudFIEtkkjMs9U/edit#gid=837475007"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Brand",
+              "lookupValue": "={{ $json.Brand }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1584,
+        368
+      ],
+      "id": "ff3fa657-57bf-4c91-bfc8-779126f9810b",
+      "name": "getSalary1",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "Brand",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1088,
+        352
+      ],
+      "id": "5829b158-cd66-4d0f-9a9f-7b46e8d72418",
+      "name": "Merge2",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "Brand",
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -848,
+        224
+      ],
+      "id": "30543a83-6c74-48f4-8665-44669084df39",
+      "name": "Merge3",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        224
+      ],
+      "id": "9fe5f3c0-b036-4d36-b5dc-28203c5ab58f",
+      "name": "Remove Duplicates1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ab788bc2-e1e6-43e5-b1e4-bdad2e02d157",
+              "name": "Profit",
+              "value": "={{ $json.finalPriceVND - $json.salary- $json[\"AmountToSupplier\"] - $json.Terminal}}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "date,time,month,year,weekday,article,Brand,Name,type,subtype,color,size,manufacturer,price,discount_Fix,discount_%,Comments,finalPrice,finalPriceVND,curs,currency,username,paymentmethod,salary,basketid,Terminal,AmountToSupplier,done,description,store,sales, sheetName_sklad, sheetName_accounting, quantity, articleClean\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -304,
+        224
+      ],
+      "id": "6cfaeeff-3161-4439-a04c-07e6e82b61c9",
+      "name": "расчет Profit"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3bdb5620-2541-4765-bf22-02061ce46ab4",
+              "name": "date",
+              "value": "={{ $json.date }}",
+              "type": "string"
+            },
+            {
+              "id": "72392c3a-3ee3-4073-b117-96d62bef1fc8",
+              "name": "time",
+              "value": "={{ $json.time }}",
+              "type": "string"
+            },
+            {
+              "id": "6eed4894-c054-493d-a5e7-8a970f8bbc3b",
+              "name": "month",
+              "value": "={{ new Date().getUTCMonth($json.date) + 1 }}",
+              "type": "string"
+            },
+            {
+              "id": "2a9541e9-1e70-476d-96bc-a541400ed8f6",
+              "name": "year",
+              "value": "={{ new Date($json.date.split('.').reverse().join('-')).getUTCFullYear() }}",
+              "type": "string"
+            },
+            {
+              "id": "408cd55b-a79c-4f23-8e11-085185e1c18b",
+              "name": "weekday",
+              "value": "={{   (() => {     const [d,m,y] = $json.date.split('.');     return ((new Date(`${y}-${m}-${d}T00:00:00Z`).getUTCDay() + 6) % 7) + 1;   })() }}",
+              "type": "string"
+            },
+            {
+              "id": "3596e749-6fa6-44cb-8a13-dcc33dff7429",
+              "name": "articleClean",
+              "value": "={{ $json.article }}",
+              "type": "string"
+            },
+            {
+              "id": "ed796a7b-07b4-4e1b-9dc6-029350cd4b8d",
+              "name": "Brand",
+              "value": "={{ $json.Brand }}",
+              "type": "string"
+            },
+            {
+              "id": "116cdcbf-b618-4457-ad8f-871fe708e5be",
+              "name": "Name",
+              "value": "={{ $json.Name }}",
+              "type": "string"
+            },
+            {
+              "id": "6b7ac8ce-c60d-444f-bb33-4faee7822ba1",
+              "name": "type",
+              "value": "={{ $json.type }}",
+              "type": "string"
+            },
+            {
+              "id": "233c531d-d60a-4526-b5e7-794dfb1d648e",
+              "name": "subtype",
+              "value": "={{ $json.subtype }}",
+              "type": "string"
+            },
+            {
+              "id": "99798f8e-2fda-45b4-834e-75a914ecbeb7",
+              "name": "color",
+              "value": "={{ $json.color }}",
+              "type": "string"
+            },
+            {
+              "id": "95fc4c85-2952-4754-85b8-aeb9be9bb91d",
+              "name": "size",
+              "value": "={{ $json.size }}",
+              "type": "string"
+            },
+            {
+              "id": "7b15d869-6500-40d7-b240-d682bf9c9ee8",
+              "name": "manufacturer",
+              "value": "={{ $json.manufacturer }}",
+              "type": "string"
+            },
+            {
+              "id": "89994416-68e4-4944-985d-b25e11895882",
+              "name": "price",
+              "value": "={{ $json.price.replace(/[^\\d.-]/g, \"\") }}",
+              "type": "number"
+            },
+            {
+              "id": "205273fb-412a-47ab-9ebd-814cdf5464e0",
+              "name": "discount_Fix",
+              "value": "={{ $json.discount_Fix }}",
+              "type": "string"
+            },
+            {
+              "id": "3723d43a-7b4b-470e-9cca-67f818c87376",
+              "name": "discount_%",
+              "value": "={{ $json[\"discount_%\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "2b46a57a-cbf2-4e3c-999d-dacdce34f29f",
+              "name": "Comments",
+              "value": "={{ $json.Comments }}",
+              "type": "string"
+            },
+            {
+              "id": "2b969246-0416-4c8b-b471-4a093b416d99",
+              "name": "finalPrice",
+              "value": "={{ $json.finalPrice }}",
+              "type": "number"
+            },
+            {
+              "id": "1bed3497-c490-4d75-ad0e-cd48f3fc0b38",
+              "name": "finalPriceVND",
+              "value": "={{ $json.finalPriceVND }}",
+              "type": "number"
+            },
+            {
+              "id": "116c58cb-1c4a-4e2f-83b1-4a8865462191",
+              "name": "curs",
+              "value": "={{ $json.curs }}",
+              "type": "string"
+            },
+            {
+              "id": "322abe39-ad37-4a5f-b344-6ae89fc80251",
+              "name": "currency",
+              "value": "={{ $json.currency }}",
+              "type": "string"
+            },
+            {
+              "id": "a45c8cde-2543-43fd-810b-ae7df785d4b4",
+              "name": "username",
+              "value": "={{ $json.username }}",
+              "type": "string"
+            },
+            {
+              "id": "0c701d63-e0f8-48bb-bb1e-c70d26a3c5ee",
+              "name": "paymentmethod",
+              "value": "={{ $json.paymentmethod }}",
+              "type": "string"
+            },
+            {
+              "id": "777a9b06-4ef6-4594-8c9e-7738dbd66a55",
+              "name": "salary",
+              "value": "={{ $json.finalPriceVND.toNumber() * $json.Salary.toNumber() /100}}",
+              "type": "number"
+            },
+            {
+              "id": "16f054b3-c7b0-44d4-85ee-aae25f97e93d",
+              "name": "Terminal",
+              "value": "={{ $json.paymentmethod==\"Terminal\" ? $json.finalPriceVND * 0.042 : 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "b8e93f14-6ba2-4d89-a40d-6e991420514e",
+              "name": "AmountToSupplier",
+              "value": "={{ $json.finalPriceVND * $json[\"Процент поставщикам\"] /100}}",
+              "type": "number"
+            },
+            {
+              "id": "ab788bc2-e1e6-43e5-b1e4-bdad2e02d157",
+              "name": "Profit",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "id": "4d10548d-455a-4a0e-a53b-af27571d804e",
+              "name": "done",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "74fddf26-5efd-45dd-be99-0e173639ecea",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "76a9ea13-450d-430e-aa50-bebf488625de",
+              "name": "store",
+              "value": "={{ $json.store }}",
+              "type": "string"
+            },
+            {
+              "id": "51c449d4-5c10-433a-8f5c-9a2b645c59e7",
+              "name": "sales",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "e4ddc31f-f4cd-452d-8e7f-b6d17a8cfe12",
+              "name": "basketid",
+              "value": "={{ $json.basketid }}",
+              "type": "string"
+            },
+            {
+              "id": "6267212d-c553-4277-8672-79d3e5d8e676",
+              "name": "article",
+              "value": "='{{ $json.article }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -480,
+        224
+      ],
+      "id": "1f22d3d7-4e7f-431d-8263-78d30d380046",
+      "name": "Расчет полей"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.sheetName_sklad }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "article": "={{ $json.articleClean }}",
+            "quantity": "={{ $json.quantity -1}}"
+          },
+          "matchingColumns": [
+            "article"
+          ],
+          "schema": [
+            {
+              "id": "num",
+              "displayName": "num",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "article",
+              "displayName": "article",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Brand",
+              "displayName": "Brand",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "subtype",
+              "displayName": "subtype",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "fabric",
+              "displayName": "fabric",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "color",
+              "displayName": "color",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "size",
+              "displayName": "size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "manufacturer",
+              "displayName": "manufacturer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "netprice",
+              "displayName": "netprice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Delivery_date",
+              "displayName": "Delivery_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "quantity",
+              "displayName": "quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "crope price",
+              "displayName": "crope price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "madein",
+              "displayName": "madein",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "discount_%",
+              "displayName": "discount_%",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "discount_Fix",
+              "displayName": "discount_Fix",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Comments",
+              "displayName": "Comments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "netpriceFull",
+              "displayName": "netpriceFull",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "scladprice",
+              "displayName": "scladprice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "salePrice",
+              "displayName": "salePrice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Зал",
+              "displayName": "Зал",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Склад",
+              "displayName": "Склад",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Склад-вешалка",
+              "displayName": "Склад-вешалка",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Дом",
+              "displayName": "Дом",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Улица",
+              "displayName": "Улица",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "col_7",
+              "displayName": "col_7",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        64,
+        224
+      ],
+      "id": "b78e80ab-8763-4df7-834e-48f4732e66ba",
+      "name": "Уменьшаем кол-во",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "717e8b1c-460d-4256-9e22-fb321e6b7f11",
+              "leftValue": "={{ $json.paymentmethod }}",
+              "rightValue": "Cash",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        192,
+        48
+      ],
+      "id": "271808f8-aeba-415c-91a5-b2bd69abdfaf",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1597077839,
+          "mode": "list",
+          "cachedResultName": "Sales",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=1597077839"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "date": "={{ $json.date }}",
+            "time": "={{ $json.time }}",
+            "month": "={{ new Date().getUTCMonth($json.date) + 1 }}",
+            "year": "={{ new Date($json.date).getUTCFullYear() }}",
+            "weekday": "={{   (() => {\n    const [d,m,y] = $json.date.split('.');\n    return ((new Date(`${y}-${m}-${d}T00:00:00Z`).getUTCDay() + 6) % 7) + 1;\n  })() }}\n",
+            "article": "={{ $json.article }}",
+            "Brand": "={{ $json.Brand }}",
+            "Name": "={{ $json.Name }}",
+            "type": "={{ $json.type }}",
+            "subtype": "={{ $json.subtype }}",
+            "color": "={{ $json.color }}",
+            "size": "={{ $json.size }}",
+            "manufacturer": "={{ $json.manufacturer }}",
+            "price": "={{ $json.price }}",
+            "discount_%": "={{ $json[\"discount_%\"] }}",
+            "discount_Fix": "={{ $json.discount_Fix }}",
+            "Comments": "={{ $json.Comments }}",
+            "finalPrice": "={{ $json.finalPrice }}",
+            "finalPriceVND": "={{ $json.finalPriceVND }}",
+            "curs": "={{ $json.curs }}",
+            "currency": "={{ $json.currency }}",
+            "username": "={{ $json.username }}",
+            "paymentmethod": "={{ $json.paymentmethod }}",
+            "description": "={{ $json.description }}",
+            "salary": "={{ $json.finalPriceVND * $json.Salary /100}}",
+            "Terminal": "={{ $json.paymentmethod==\"Terminal\" ? $json.finalPriceVND * 0.042 : 0 }}\n",
+            "amount to supplier": "={{ $json.finalPriceVND * $json[\"Процент поставщикам\"] /100}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "time",
+              "displayName": "time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "month",
+              "displayName": "month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "year",
+              "displayName": "year",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "weekday",
+              "displayName": "weekday",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "article",
+              "displayName": "article",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Brand",
+              "displayName": "Brand",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subtype",
+              "displayName": "subtype",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "color",
+              "displayName": "color",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "size",
+              "displayName": "size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "manufacturer",
+              "displayName": "manufacturer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "discount_Fix",
+              "displayName": "discount_Fix",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "discount_%",
+              "displayName": "discount_%",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Comments",
+              "displayName": "Comments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "finalPrice",
+              "displayName": "finalPrice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "finalPriceVND",
+              "displayName": "finalPriceVND",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "curs",
+              "displayName": "curs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "paymentmethod",
+              "displayName": "paymentmethod",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "salary",
+              "displayName": "salary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "basketid",
+              "displayName": "basketid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Terminal",
+              "displayName": "Terminal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "amount to supplier",
+              "displayName": "amount to supplier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Profit",
+              "displayName": "Profit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "done",
+              "displayName": "done",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "store",
+              "displayName": "store",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sales",
+              "displayName": "sales",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -128,
+        224
+      ],
+      "id": "f7304e5e-06ef-44f4-b20a-fd114720d52c",
+      "name": "Добавление в Sales",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "= {\"data\": [{\n    \"date\": \"17.02.2026\",\n    \"time\": \"18:38\",\n    \"month\": \"2\",\n    \"year\": \"2026\",\n    \"weekday\": \"2\",\n    \"article\": \"07103011428\",\n    \"Brand\": \"BUTTON ROUGE\",\n    \"Name\": \"CARDIGAN “KIMONO”\",\n    \"type\": \"одежда\",\n    \"subtype\": \"кимоно\",\n    \"color\": \"red\",\n    \"size\": \"length 100 cm, free\",\n    \"manufacturer\": \"Nhung\",\n    \"price\": 1350000,\n    \"discount_Fix\": \"\",\n    \"discount_%\": \"\",\n    \"Comments\": \"\",\n    \"finalPrice\": 4234.6079019,\n    \"finalPriceVND\": 1350000,\n    \"curs\": \"0.003136746594\",\n    \"currency\": \"RUB\",\n    \"username\": \"Nina\",\n    \"paymentmethod\": \"Transfer\",\n    \"salary\": 67500,\n    \"basketid\": \"6a019332-3d3b-4698-a552-3b7c537f468b\",\n    \"Terminal\": 0,\n    \"amount to supplier\": 0,\n    \"done\": \"\",\n    \"description\": \"кимоно красное 100 см\",\n    \"store\": \"Vibe\",\n    \"sales\": \"\",\n    \"sheetName_sklad\": \"Sklad3\",\n    \"sheetName_accounting\": \"accounting3\",\n    \"quantity\": \"1\",\n    \"Profit\": 1282500\n  },  {\n    \"date\": \"17.02.2026\",\n    \"time\": \"18:38\",\n    \"month\": \"2\",\n    \"year\": \"2026\",\n    \"weekday\": \"2\",\n    \"article\": \"07101031430\",\n    \"Brand\": \"BUTTON ROUGE\",\n    \"Name\": \"TROUSERS HAKAMA\",\n    \"type\": \"одежда\",\n    \"subtype\": \"брюки\",\n    \"color\": \"red\",\n    \"size\": \"length 110 cm, S\",\n    \"manufacturer\": \"Nhung\",\n    \"price\": 1450000,\n    \"discount_Fix\": \"\",\n    \"discount_%\": \"\",\n    \"Comments\": \"\",\n    \"finalPrice\": 4548.2825612999995,\n    \"finalPriceVND\": 1450000,\n    \"curs\": \"0.003136746594\",\n    \"currency\": \"RUB\",\n    \"username\": \"Nina\",\n    \"paymentmethod\": \"Transfer\",\n    \"salary\": 72500,\n    \"basketid\": \"6a019332-3d3b-4698-a552-3b7c537f468b\",\n    \"Terminal\": 0,\n    \"amount to supplier\": 0,\n    \"done\": \"\",\n    \"description\": \"брюки хакама красные S 110 см\",\n    \"store\": \"Vibe\",\n    \"sales\": \"\",\n    \"sheetName_sklad\": \"Sklad3\",\n    \"sheetName_accounting\": \"accounting3\",\n    \"quantity\": \"1\",\n    \"Profit\": 1377500\n  }\n]\n}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -256,
+        656
+      ],
+      "id": "aa8d9421-fb0c-4524-a808-32535c4b3a3c",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        656
+      ],
+      "id": "f8ee8ce9-5919-4b54-bb0d-5c66e65cb395",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        656
+      ],
+      "id": "16f8a7dc-a7ba-4c8f-86ff-81cb00a986d5",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "chatId": "-4530967442",
+        "text": "=<b>{{ $json.Brand }} {{ $json.Name }}</b>\n{{ $json.description }}\nЦена: <b>{{ $json.finalPriceVND.toLocaleString() }}</b>\nОстаток: \n{{ $json.quantity - 1 < 5 \n  ? \"<b> ⚠️ВНИМАНИЕ: осталось \" + ($json.quantity - 1) + \" шт.</b>\" \n  : \"<b>\" + ($json.quantity - 1) + \" шт.</b>\" \n}}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        304
+      ],
+      "id": "c625c94f-1ad2-4956-a016-4c3e64e90d89",
+      "name": "Send a text message",
+      "webhookId": "2c9a1287-95b5-4476-942a-a010047807f9",
+      "credentials": {
+        "telegramApi": {
+          "id": "lFQKH2n9JXxdFI4k",
+          "name": "Button Rouge Sales Chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "-4530967442",
+        "text": "=📊 *ИТОГО*\n\n🏬 *{{ $json.store }}*  👤 {{ $json.username }}\n💰 Сумма: *{{ $json.sum_finalPriceVND.toLocaleString() }}*  \n💳 Способ оплаты: *{{ $json.paymentmethod === \"Terminal\" ? \"⚠️ ТЕРМИНАЛ\" : $json.paymentmethod }}* *{{ $json.currency}}*\n📈 Profit: *{{ $json.sum_Profit }}*",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1104,
+        592
+      ],
+      "id": "ec51668c-82e0-47dd-bb84-108be4bc6211",
+      "name": "Send a text message1",
+      "webhookId": "2c9a1287-95b5-4476-942a-a010047807f9",
+      "credentials": {
+        "telegramApi": {
+          "id": "lFQKH2n9JXxdFI4k",
+          "name": "Button Rouge Sales Chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "",
+        "include": "specifiedFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        672,
+        592
+      ],
+      "id": "ff6d0fe4-a6aa-4efb-887d-9e417d06878a",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "sum",
+              "field": "finalPriceVND"
+            },
+            {
+              "aggregation": "sum",
+              "field": "Profit"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        528
+      ],
+      "id": "eb9f2dd2-65c7-4ae6-8e9f-e26d0689310b",
+      "name": "Summarize"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "49d60107-53ce-4513-8718-776c7741d023",
+              "name": "store",
+              "value": "={{ $json.store }}",
+              "type": "string"
+            },
+            {
+              "id": "304fe962-2ffe-4028-b081-27fd37b69c8c",
+              "name": "username",
+              "value": "={{ $json.username }}",
+              "type": "string"
+            },
+            {
+              "id": "8bf23636-fff7-4375-9b52-605e59ccd884",
+              "name": "paymentmethod",
+              "value": "={{ $json.paymentmethod }}",
+              "type": "string"
+            },
+            {
+              "id": "23f40a88-7ff2-4a62-8293-57435a4f391a",
+              "name": "currency",
+              "value": "={{ $json.currency }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        656
+      ],
+      "id": "2c3d1a0d-23cf-4a96-b1ab-2657aef75bf3",
+      "name": "Edit Fields2",
+      "executeOnce": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        480,
+        592
+      ],
+      "id": "ca219245-4193-4487-acbe-834163a8cbfb",
+      "name": "Merge4",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "72f00154-40ca-4d42-bf1e-854a3adfeebe",
+              "name": "sum_finalPriceVND",
+              "value": "={{ $json[\"\"][0].sum_finalPriceVND.toLocaleString() }}",
+              "type": "string"
+            },
+            {
+              "id": "0cd99881-ac55-44e1-b733-b1bfeb8bd3ff",
+              "name": "sum_Profit",
+              "value": "={{ $json[\"\"][0].sum_Profit.toLocaleString() }}",
+              "type": "string"
+            },
+            {
+              "id": "1fba25a6-5dc6-437e-989b-77c1cd67021e",
+              "name": "store",
+              "value": "={{ $json[\"\"][1].store }}",
+              "type": "string"
+            },
+            {
+              "id": "8415531e-e58d-4f81-8651-a5acc646072c",
+              "name": "username",
+              "value": "={{ $json[\"\"][1].username }}",
+              "type": "string"
+            },
+            {
+              "id": "2012cc5f-3079-4db5-9b7a-ec85b4ccffa2",
+              "name": "paymentmethod",
+              "value": "={{ $json[\"\"][1].paymentmethod }}",
+              "type": "string"
+            },
+            {
+              "id": "d2cc28f7-b513-4dd0-8583-7ddc9d7fcfa4",
+              "name": "currency",
+              "value": "={{ $json[\"\"][1].currency }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        592
+      ],
+      "id": "b7a454aa-579b-4834-8ff6-063b2a8c4856",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.sheetName_accounting }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "Вид": "=Факт",
+            "Бюджет": "BUTTON ROUGE",
+            "Статья расходов": "Sale",
+            "Год": "={{ $json.year }}",
+            "Месяц": "={{ $json.month }}",
+            "PaymentCashRegister": "Касса",
+            "countInBudget": "1",
+            "Time": "={{ $json.time }}",
+            "Date": "={{ $json.date }}",
+            "Type": "Приход",
+            "Amount": "={{ $json.finalPriceVND }}",
+            "User": "={{ $json.username }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Вид",
+              "displayName": "Вид",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Бюджет",
+              "displayName": "Бюджет",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Статья расходов",
+              "displayName": "Статья расходов",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Год",
+              "displayName": "Год",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Месяц",
+              "displayName": "Месяц",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Comment",
+              "displayName": "Comment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "User",
+              "displayName": "User",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "PaymentCashRegister",
+              "displayName": "PaymentCashRegister",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "countInBudget",
+              "displayName": "countInBudget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "storeName",
+              "displayName": "storeName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "store",
+              "displayName": "store",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "storeId",
+              "displayName": "storeId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sheetName_accounting",
+              "displayName": "sheetName_accounting",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "accounting",
+              "displayName": "accounting",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Дата",
+              "displayName": "Дата",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Время",
+              "displayName": "Время",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Тип",
+              "displayName": "Тип",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Комментарий",
+              "displayName": "Комментарий",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Сумма",
+              "displayName": "Сумма",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": false
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1056,
+        -224
+      ],
+      "id": "841d0f90-0299-4a54-ba47-7c1816b84a09",
+      "name": "Запись в кассу1",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.sheetName_accounting }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Вид": "=Факт",
+            "Бюджет": "BUTTON ROUGE",
+            "Статья расходов": "Sale",
+            "Год": "={{ $json.year }}",
+            "Месяц": "={{ $json.month }}",
+            "PaymentCashRegister": "Касса",
+            "countInBudget": "1",
+            "Time": "={{ $json.time }}",
+            "Date": "={{ $json.date }}",
+            "Type": "Приход",
+            "Amount": "={{ $json.finalPriceVND }}",
+            "User": "={{ $json.username }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Вид",
+              "displayName": "Вид",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Бюджет",
+              "displayName": "Бюджет",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Статья расходов",
+              "displayName": "Статья расходов",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Год",
+              "displayName": "Год",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Месяц",
+              "displayName": "Месяц",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Comment",
+              "displayName": "Comment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "User",
+              "displayName": "User",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "PaymentCashRegister",
+              "displayName": "PaymentCashRegister",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "countInBudget",
+              "displayName": "countInBudget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "storeName",
+              "displayName": "storeName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "store",
+              "displayName": "store",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "storeId",
+              "displayName": "storeId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sheetName_accounting",
+              "displayName": "sheetName_accounting",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "accounting",
+              "displayName": "accounting",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Дата",
+              "displayName": "Дата",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Время",
+              "displayName": "Время",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Тип",
+              "displayName": "Тип",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Комментарий",
+              "displayName": "Комментарий",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Сумма",
+              "displayName": "Сумма",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": false
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        -256
+      ],
+      "id": "a1bcb1c7-a077-471a-86de-667c00cc4225",
+      "name": "Запись в кассу",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d541d314-22d7-41d4-88ca-13369140a81d",
+              "name": "Вид",
+              "value": "Факт",
+              "type": "string"
+            },
+            {
+              "id": "861430d9-6227-4cd3-a9a9-e5f1546a3e5f",
+              "name": "Type",
+              "value": "Приход",
+              "type": "string"
+            },
+            {
+              "id": "f543e14e-c1e7-4d6d-915d-512326fc7220",
+              "name": "Бюджет",
+              "value": "BUTTON ROUGE",
+              "type": "string"
+            },
+            {
+              "id": "f8278ab2-edbb-4a04-9d88-bedf6a8f5089",
+              "name": "Статья расходов",
+              "value": "Sale",
+              "type": "string"
+            },
+            {
+              "id": "07d6649c-fd09-4959-b91f-29289f9d5963",
+              "name": "PaymentCashRegister",
+              "value": "Касса",
+              "type": "string"
+            },
+            {
+              "id": "c7407bb4-0b1c-40a3-a95e-8e169527933b",
+              "name": "countInBudget",
+              "value": "1",
+              "type": "string"
+            },
+            {
+              "id": "bed56a03-7c47-45e9-85eb-f6e17c81a955",
+              "name": "Date",
+              "value": "={{ $json.date }}",
+              "type": "string"
+            },
+            {
+              "id": "62bee801-bc5e-45d6-8486-2f1bd61ecc82",
+              "name": "Time",
+              "value": "={{ $json.time }}",
+              "type": "string"
+            },
+            {
+              "id": "636c7c84-f011-433b-8964-ba791dcd0f81",
+              "name": "Month",
+              "value": "={{ $json.month }}",
+              "type": "string"
+            },
+            {
+              "id": "d9816678-4f82-4e62-ace4-f5eb4fe60622",
+              "name": "Year",
+              "value": "={{ $json.year }}",
+              "type": "string"
+            },
+            {
+              "id": "9feb216a-cfb2-4674-8c28-7c9e1fe5f4dd",
+              "name": "User",
+              "value": "={{ $json.username }}",
+              "type": "string"
+            },
+            {
+              "id": "1c7e7342-6ec8-498d-af64-d3710eafaf28",
+              "name": "Amount",
+              "value": "={{ $json.finalPriceVND }}",
+              "type": "string"
+            },
+            {
+              "id": "9ad35883-3384-4e34-949f-cd0bf2c18e6c",
+              "name": "sheetName_accounting",
+              "value": "={{ $json.sheetName_accounting }}",
+              "type": "string"
+            },
+            {
+              "id": "94a92e18-e1ad-46b4-9ab1-b3d42a0b3feb",
+              "name": "Comment",
+              "value": "={{ $json.Comments }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        -176
+      ],
+      "id": "78504134-460c-468c-a936-7503c8444fca",
+      "name": "Корректировка полей"
+    }
+  ],
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "getSalary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "getSalary1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getSalary": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getSalary1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates1": {
+      "main": [
+        [
+          {
+            "node": "Расчет полей",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Расчет полей": {
+      "main": [
+        [
+          {
+            "node": "расчет Profit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "расчет Profit": {
+      "main": [
+        [
+          {
+            "node": "Добавление в Sales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Уменьшаем кол-во": {
+      "main": [
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Корректировка полей",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Добавление в Sales": {
+      "main": [
+        [
+          {
+            "node": "Уменьшаем кол-во",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Запись в кассу1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Корректировка полей": {
+      "main": [
+        [
+          {
+            "node": "Запись в кассу1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "GDnkMVUhSLvacJ9lGQjUj"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "237b58da-27cf-45db-9679-da5a287e9b5c",
+  "activeVersionId": "237b58da-27cf-45db-9679-da5a287e9b5c",
+  "versionCounter": 143,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-09T06:45:13.556Z",
+      "createdAt": "2026-01-09T06:45:13.556Z",
+      "role": "workflow:owner",
+      "workflowId": "7pC8RxgVHa1G7N7PsT9W4",
+      "projectId": "Cbzeqxofr5KXht6P",
+      "project": {
+        "updatedAt": "2025-03-07T10:59:25.834Z",
+        "createdAt": "2025-03-05T10:47:17.258Z",
+        "id": "Cbzeqxofr5KXht6P",
+        "name": "Алексей Мурыгин <l.murygin@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-03-05T10:47:17.259Z",
+            "createdAt": "2025-03-05T10:47:17.259Z",
+            "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+            "projectId": "Cbzeqxofr5KXht6P",
+            "user": {
+              "updatedAt": "2026-03-13T07:53:40.000Z",
+              "createdAt": "2025-03-05T10:47:16.542Z",
+              "id": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+              "email": "l.murygin@gmail.com",
+              "firstName": "Алексей",
+              "lastName": "Мурыгин",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "rVWIEki714lPBFxf",
+                "userActivatedAt": 1741418880091,
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-13",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-12T08:10:57.000Z",
+    "createdAt": "2026-03-12T08:10:54.487Z",
+    "versionId": "237b58da-27cf-45db-9679-da5a287e9b5c",
+    "workflowId": "7pC8RxgVHa1G7N7PsT9W4",
+    "nodes": [
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "true",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.2,
+        "position": [
+          1024,
+          176
+        ],
+        "id": "bb99beea-8db5-4514-bc05-c3b1ed5dd40e",
+        "name": "Respond to Webhook",
+        "alwaysOutputData": false,
+        "executeOnce": true
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.body.action }}",
+                      "rightValue": "=sendSalesToSheet",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "50880f5c-2526-4969-9728-daa1323817a4"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "newSale"
+              }
+            ]
+          },
+          "options": {
+            "ignoreCase": true
+          }
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          -2192,
+          -96
+        ],
+        "id": "0e6c63f6-433e-4180-bf2d-63b145b1fff8",
+        "name": "Switch"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "newSale",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "name": "Webhook1",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          -2432,
+          -96
+        ],
+        "id": "faf02e6e-2438-4b86-936e-f1be2a535e41",
+        "webhookId": "38b61ecd-e984-4ec6-b976-a9fa5b637995"
+      },
+      {
+        "parameters": {
+          "fieldToSplitOut": "body.sales",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [
+          -1936,
+          -96
+        ],
+        "id": "1493ae23-1edb-486b-9d84-8333cd879cab",
+        "name": "Split Out"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1WCARw2suIx4oYkvFTJwXxdrRZt0QzAudFIEtkkjMs9U",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1402000884,
+            "mode": "list",
+            "cachedResultName": "Salary",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WCARw2suIx4oYkvFTJwXxdrRZt0QzAudFIEtkkjMs9U/edit#gid=1402000884"
+          },
+          "filtersUI": {
+            "values": [
+              {
+                "lookupColumn": "username",
+                "lookupValue": "={{ $json.username }}"
+              },
+              {
+                "lookupColumn": "Brand",
+                "lookupValue": "={{ $json.Brand }}"
+              }
+            ]
+          },
+          "options": {
+            "returnFirstMatch": true
+          }
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -1584,
+          176
+        ],
+        "id": "1299d030-2c41-4ef0-94aa-8269bf3ec7d3",
+        "name": "getSalary",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "fieldsToMatchString": "Brand",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          -1360,
+          64
+        ],
+        "id": "8208673b-90e1-4b2f-804b-b879c29b9e53",
+        "name": "Merge",
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "e09cca24-03ca-4c7c-9522-721cc5d0d932",
+                "name": "Salary",
+                "value": "={{  $json[$json.paymentmethod]}}",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -1088,
+          64
+        ],
+        "id": "bb424a90-d5d5-4773-b831-51a1f852a245",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1WCARw2suIx4oYkvFTJwXxdrRZt0QzAudFIEtkkjMs9U",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 837475007,
+            "mode": "list",
+            "cachedResultName": "Зарплата поставщикам",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WCARw2suIx4oYkvFTJwXxdrRZt0QzAudFIEtkkjMs9U/edit#gid=837475007"
+          },
+          "filtersUI": {
+            "values": [
+              {
+                "lookupColumn": "Brand",
+                "lookupValue": "={{ $json.Brand }}"
+              }
+            ]
+          },
+          "options": {
+            "returnFirstMatch": true
+          }
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -1584,
+          368
+        ],
+        "id": "ff3fa657-57bf-4c91-bfc8-779126f9810b",
+        "name": "getSalary1",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "fieldsToMatchString": "Brand",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          -1088,
+          352
+        ],
+        "id": "5829b158-cd66-4d0f-9a9f-7b46e8d72418",
+        "name": "Merge2",
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "fieldsToMatchString": "Brand",
+          "joinMode": "keepEverything",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          -848,
+          224
+        ],
+        "id": "30543a83-6c74-48f4-8665-44669084df39",
+        "name": "Merge3",
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "n8n-nodes-base.removeDuplicates",
+        "typeVersion": 2,
+        "position": [
+          -672,
+          224
+        ],
+        "id": "9fe5f3c0-b036-4d36-b5dc-28203c5ab58f",
+        "name": "Remove Duplicates1"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "ab788bc2-e1e6-43e5-b1e4-bdad2e02d157",
+                "name": "Profit",
+                "value": "={{ $json.finalPriceVND - $json.salary- $json[\"AmountToSupplier\"] - $json.Terminal}}",
+                "type": "number"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "include": "selected",
+          "includeFields": "date,time,month,year,weekday,article,Brand,Name,type,subtype,color,size,manufacturer,price,discount_Fix,discount_%,Comments,finalPrice,finalPriceVND,curs,currency,username,paymentmethod,salary,basketid,Terminal,AmountToSupplier,done,description,store,sales, sheetName_sklad, sheetName_accounting, quantity, articleClean\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -304,
+          224
+        ],
+        "id": "6cfaeeff-3161-4439-a04c-07e6e82b61c9",
+        "name": "расчет Profit"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "3bdb5620-2541-4765-bf22-02061ce46ab4",
+                "name": "date",
+                "value": "={{ $json.date }}",
+                "type": "string"
+              },
+              {
+                "id": "72392c3a-3ee3-4073-b117-96d62bef1fc8",
+                "name": "time",
+                "value": "={{ $json.time }}",
+                "type": "string"
+              },
+              {
+                "id": "6eed4894-c054-493d-a5e7-8a970f8bbc3b",
+                "name": "month",
+                "value": "={{ new Date().getUTCMonth($json.date) + 1 }}",
+                "type": "string"
+              },
+              {
+                "id": "2a9541e9-1e70-476d-96bc-a541400ed8f6",
+                "name": "year",
+                "value": "={{ new Date($json.date.split('.').reverse().join('-')).getUTCFullYear() }}",
+                "type": "string"
+              },
+              {
+                "id": "408cd55b-a79c-4f23-8e11-085185e1c18b",
+                "name": "weekday",
+                "value": "={{   (() => {     const [d,m,y] = $json.date.split('.');     return ((new Date(`${y}-${m}-${d}T00:00:00Z`).getUTCDay() + 6) % 7) + 1;   })() }}",
+                "type": "string"
+              },
+              {
+                "id": "3596e749-6fa6-44cb-8a13-dcc33dff7429",
+                "name": "articleClean",
+                "value": "={{ $json.article }}",
+                "type": "string"
+              },
+              {
+                "id": "ed796a7b-07b4-4e1b-9dc6-029350cd4b8d",
+                "name": "Brand",
+                "value": "={{ $json.Brand }}",
+                "type": "string"
+              },
+              {
+                "id": "116cdcbf-b618-4457-ad8f-871fe708e5be",
+                "name": "Name",
+                "value": "={{ $json.Name }}",
+                "type": "string"
+              },
+              {
+                "id": "6b7ac8ce-c60d-444f-bb33-4faee7822ba1",
+                "name": "type",
+                "value": "={{ $json.type }}",
+                "type": "string"
+              },
+              {
+                "id": "233c531d-d60a-4526-b5e7-794dfb1d648e",
+                "name": "subtype",
+                "value": "={{ $json.subtype }}",
+                "type": "string"
+              },
+              {
+                "id": "99798f8e-2fda-45b4-834e-75a914ecbeb7",
+                "name": "color",
+                "value": "={{ $json.color }}",
+                "type": "string"
+              },
+              {
+                "id": "95fc4c85-2952-4754-85b8-aeb9be9bb91d",
+                "name": "size",
+                "value": "={{ $json.size }}",
+                "type": "string"
+              },
+              {
+                "id": "7b15d869-6500-40d7-b240-d682bf9c9ee8",
+                "name": "manufacturer",
+                "value": "={{ $json.manufacturer }}",
+                "type": "string"
+              },
+              {
+                "id": "89994416-68e4-4944-985d-b25e11895882",
+                "name": "price",
+                "value": "={{ $json.price.replace(/[^\\d.-]/g, \"\") }}",
+                "type": "number"
+              },
+              {
+                "id": "205273fb-412a-47ab-9ebd-814cdf5464e0",
+                "name": "discount_Fix",
+                "value": "={{ $json.discount_Fix }}",
+                "type": "string"
+              },
+              {
+                "id": "3723d43a-7b4b-470e-9cca-67f818c87376",
+                "name": "discount_%",
+                "value": "={{ $json[\"discount_%\"] }}",
+                "type": "string"
+              },
+              {
+                "id": "2b46a57a-cbf2-4e3c-999d-dacdce34f29f",
+                "name": "Comments",
+                "value": "={{ $json.Comments }}",
+                "type": "string"
+              },
+              {
+                "id": "2b969246-0416-4c8b-b471-4a093b416d99",
+                "name": "finalPrice",
+                "value": "={{ $json.finalPrice }}",
+                "type": "number"
+              },
+              {
+                "id": "1bed3497-c490-4d75-ad0e-cd48f3fc0b38",
+                "name": "finalPriceVND",
+                "value": "={{ $json.finalPriceVND }}",
+                "type": "number"
+              },
+              {
+                "id": "116c58cb-1c4a-4e2f-83b1-4a8865462191",
+                "name": "curs",
+                "value": "={{ $json.curs }}",
+                "type": "string"
+              },
+              {
+                "id": "322abe39-ad37-4a5f-b344-6ae89fc80251",
+                "name": "currency",
+                "value": "={{ $json.currency }}",
+                "type": "string"
+              },
+              {
+                "id": "a45c8cde-2543-43fd-810b-ae7df785d4b4",
+                "name": "username",
+                "value": "={{ $json.username }}",
+                "type": "string"
+              },
+              {
+                "id": "0c701d63-e0f8-48bb-bb1e-c70d26a3c5ee",
+                "name": "paymentmethod",
+                "value": "={{ $json.paymentmethod }}",
+                "type": "string"
+              },
+              {
+                "id": "777a9b06-4ef6-4594-8c9e-7738dbd66a55",
+                "name": "salary",
+                "value": "={{ $json.finalPriceVND.toNumber() * $json.Salary.toNumber() /100}}",
+                "type": "number"
+              },
+              {
+                "id": "16f054b3-c7b0-44d4-85ee-aae25f97e93d",
+                "name": "Terminal",
+                "value": "={{ $json.paymentmethod==\"Terminal\" ? $json.finalPriceVND * 0.042 : 0 }}",
+                "type": "number"
+              },
+              {
+                "id": "b8e93f14-6ba2-4d89-a40d-6e991420514e",
+                "name": "AmountToSupplier",
+                "value": "={{ $json.finalPriceVND * $json[\"Процент поставщикам\"] /100}}",
+                "type": "number"
+              },
+              {
+                "id": "ab788bc2-e1e6-43e5-b1e4-bdad2e02d157",
+                "name": "Profit",
+                "value": 0,
+                "type": "number"
+              },
+              {
+                "id": "4d10548d-455a-4a0e-a53b-af27571d804e",
+                "name": "done",
+                "value": "",
+                "type": "string"
+              },
+              {
+                "id": "74fddf26-5efd-45dd-be99-0e173639ecea",
+                "name": "description",
+                "value": "={{ $json.description }}",
+                "type": "string"
+              },
+              {
+                "id": "76a9ea13-450d-430e-aa50-bebf488625de",
+                "name": "store",
+                "value": "={{ $json.store }}",
+                "type": "string"
+              },
+              {
+                "id": "51c449d4-5c10-433a-8f5c-9a2b645c59e7",
+                "name": "sales",
+                "value": "",
+                "type": "string"
+              },
+              {
+                "id": "e4ddc31f-f4cd-452d-8e7f-b6d17a8cfe12",
+                "name": "basketid",
+                "value": "={{ $json.basketid }}",
+                "type": "string"
+              },
+              {
+                "id": "6267212d-c553-4277-8672-79d3e5d8e676",
+                "name": "article",
+                "value": "='{{ $json.article }}",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -480,
+          224
+        ],
+        "id": "1f22d3d7-4e7f-431d-8263-78d30d380046",
+        "name": "Расчет полей"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "operation": "update",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "={{ $json.sheetName_sklad }}",
+            "mode": "name"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "article": "={{ $json.articleClean }}",
+              "quantity": "={{ $json.quantity -1}}"
+            },
+            "matchingColumns": [
+              "article"
+            ],
+            "schema": [
+              {
+                "id": "num",
+                "displayName": "num",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "article",
+                "displayName": "article",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Brand",
+                "displayName": "Brand",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "type",
+                "displayName": "type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "subtype",
+                "displayName": "subtype",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "description",
+                "displayName": "description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Name",
+                "displayName": "Name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "fabric",
+                "displayName": "fabric",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "color",
+                "displayName": "color",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "size",
+                "displayName": "size",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "manufacturer",
+                "displayName": "manufacturer",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "netprice",
+                "displayName": "netprice",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Delivery_date",
+                "displayName": "Delivery_date",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "quantity",
+                "displayName": "quantity",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "crope price",
+                "displayName": "crope price",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "price",
+                "displayName": "price",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "madein",
+                "displayName": "madein",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "discount_%",
+                "displayName": "discount_%",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "discount_Fix",
+                "displayName": "discount_Fix",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Comments",
+                "displayName": "Comments",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "netpriceFull",
+                "displayName": "netpriceFull",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "scladprice",
+                "displayName": "scladprice",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "salePrice",
+                "displayName": "salePrice",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Зал",
+                "displayName": "Зал",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Склад",
+                "displayName": "Склад",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Склад-вешалка",
+                "displayName": "Склад-вешалка",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Дом",
+                "displayName": "Дом",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Улица",
+                "displayName": "Улица",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "col_7",
+                "displayName": "col_7",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "row_number",
+                "displayName": "row_number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "readOnly": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          64,
+          224
+        ],
+        "id": "b78e80ab-8763-4df7-834e-48f4732e66ba",
+        "name": "Уменьшаем кол-во",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "717e8b1c-460d-4256-9e22-fb321e6b7f11",
+                "leftValue": "={{ $json.paymentmethod }}",
+                "rightValue": "Cash",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          192,
+          48
+        ],
+        "id": "271808f8-aeba-415c-91a5-b2bd69abdfaf",
+        "name": "If"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1597077839,
+            "mode": "list",
+            "cachedResultName": "Sales",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=1597077839"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {
+              "date": "={{ $json.date }}",
+              "time": "={{ $json.time }}",
+              "month": "={{ new Date().getUTCMonth($json.date) + 1 }}",
+              "year": "={{ new Date($json.date).getUTCFullYear() }}",
+              "weekday": "={{   (() => {\n    const [d,m,y] = $json.date.split('.');\n    return ((new Date(`${y}-${m}-${d}T00:00:00Z`).getUTCDay() + 6) % 7) + 1;\n  })() }}\n",
+              "article": "={{ $json.article }}",
+              "Brand": "={{ $json.Brand }}",
+              "Name": "={{ $json.Name }}",
+              "type": "={{ $json.type }}",
+              "subtype": "={{ $json.subtype }}",
+              "color": "={{ $json.color }}",
+              "size": "={{ $json.size }}",
+              "manufacturer": "={{ $json.manufacturer }}",
+              "price": "={{ $json.price }}",
+              "discount_%": "={{ $json[\"discount_%\"] }}",
+              "discount_Fix": "={{ $json.discount_Fix }}",
+              "Comments": "={{ $json.Comments }}",
+              "finalPrice": "={{ $json.finalPrice }}",
+              "finalPriceVND": "={{ $json.finalPriceVND }}",
+              "curs": "={{ $json.curs }}",
+              "currency": "={{ $json.currency }}",
+              "username": "={{ $json.username }}",
+              "paymentmethod": "={{ $json.paymentmethod }}",
+              "description": "={{ $json.description }}",
+              "salary": "={{ $json.finalPriceVND * $json.Salary /100}}",
+              "Terminal": "={{ $json.paymentmethod==\"Terminal\" ? $json.finalPriceVND * 0.042 : 0 }}\n",
+              "amount to supplier": "={{ $json.finalPriceVND * $json[\"Процент поставщикам\"] /100}}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "date",
+                "displayName": "date",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "time",
+                "displayName": "time",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "month",
+                "displayName": "month",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "year",
+                "displayName": "year",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "weekday",
+                "displayName": "weekday",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "article",
+                "displayName": "article",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Brand",
+                "displayName": "Brand",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Name",
+                "displayName": "Name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "type",
+                "displayName": "type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "subtype",
+                "displayName": "subtype",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "color",
+                "displayName": "color",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "size",
+                "displayName": "size",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "manufacturer",
+                "displayName": "manufacturer",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "price",
+                "displayName": "price",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "discount_Fix",
+                "displayName": "discount_Fix",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "discount_%",
+                "displayName": "discount_%",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Comments",
+                "displayName": "Comments",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "finalPrice",
+                "displayName": "finalPrice",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "finalPriceVND",
+                "displayName": "finalPriceVND",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "curs",
+                "displayName": "curs",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "currency",
+                "displayName": "currency",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "username",
+                "displayName": "username",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "paymentmethod",
+                "displayName": "paymentmethod",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "salary",
+                "displayName": "salary",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "basketid",
+                "displayName": "basketid",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Terminal",
+                "displayName": "Terminal",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "amount to supplier",
+                "displayName": "amount to supplier",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Profit",
+                "displayName": "Profit",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "done",
+                "displayName": "done",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "description",
+                "displayName": "description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "store",
+                "displayName": "store",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "sales",
+                "displayName": "sales",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {
+            "useAppend": true
+          }
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -128,
+          224
+        ],
+        "id": "f7304e5e-06ef-44f4-b20a-fd114720d52c",
+        "name": "Добавление в Sales",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "raw",
+          "jsonOutput": "= {\"data\": [{\n    \"date\": \"17.02.2026\",\n    \"time\": \"18:38\",\n    \"month\": \"2\",\n    \"year\": \"2026\",\n    \"weekday\": \"2\",\n    \"article\": \"07103011428\",\n    \"Brand\": \"BUTTON ROUGE\",\n    \"Name\": \"CARDIGAN “KIMONO”\",\n    \"type\": \"одежда\",\n    \"subtype\": \"кимоно\",\n    \"color\": \"red\",\n    \"size\": \"length 100 cm, free\",\n    \"manufacturer\": \"Nhung\",\n    \"price\": 1350000,\n    \"discount_Fix\": \"\",\n    \"discount_%\": \"\",\n    \"Comments\": \"\",\n    \"finalPrice\": 4234.6079019,\n    \"finalPriceVND\": 1350000,\n    \"curs\": \"0.003136746594\",\n    \"currency\": \"RUB\",\n    \"username\": \"Nina\",\n    \"paymentmethod\": \"Transfer\",\n    \"salary\": 67500,\n    \"basketid\": \"6a019332-3d3b-4698-a552-3b7c537f468b\",\n    \"Terminal\": 0,\n    \"amount to supplier\": 0,\n    \"done\": \"\",\n    \"description\": \"кимоно красное 100 см\",\n    \"store\": \"Vibe\",\n    \"sales\": \"\",\n    \"sheetName_sklad\": \"Sklad3\",\n    \"sheetName_accounting\": \"accounting3\",\n    \"quantity\": \"1\",\n    \"Profit\": 1282500\n  },  {\n    \"date\": \"17.02.2026\",\n    \"time\": \"18:38\",\n    \"month\": \"2\",\n    \"year\": \"2026\",\n    \"weekday\": \"2\",\n    \"article\": \"07101031430\",\n    \"Brand\": \"BUTTON ROUGE\",\n    \"Name\": \"TROUSERS HAKAMA\",\n    \"type\": \"одежда\",\n    \"subtype\": \"брюки\",\n    \"color\": \"red\",\n    \"size\": \"length 110 cm, S\",\n    \"manufacturer\": \"Nhung\",\n    \"price\": 1450000,\n    \"discount_Fix\": \"\",\n    \"discount_%\": \"\",\n    \"Comments\": \"\",\n    \"finalPrice\": 4548.2825612999995,\n    \"finalPriceVND\": 1450000,\n    \"curs\": \"0.003136746594\",\n    \"currency\": \"RUB\",\n    \"username\": \"Nina\",\n    \"paymentmethod\": \"Transfer\",\n    \"salary\": 72500,\n    \"basketid\": \"6a019332-3d3b-4698-a552-3b7c537f468b\",\n    \"Terminal\": 0,\n    \"amount to supplier\": 0,\n    \"done\": \"\",\n    \"description\": \"брюки хакама красные S 110 см\",\n    \"store\": \"Vibe\",\n    \"sales\": \"\",\n    \"sheetName_sklad\": \"Sklad3\",\n    \"sheetName_accounting\": \"accounting3\",\n    \"quantity\": \"1\",\n    \"Profit\": 1377500\n  }\n]\n}\n\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -256,
+          656
+        ],
+        "id": "aa8d9421-fb0c-4524-a808-32535c4b3a3c",
+        "name": "Edit Fields1"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          -464,
+          656
+        ],
+        "id": "f8ee8ce9-5919-4b54-bb0d-5c66e65cb395",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "fieldToSplitOut": "data",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [
+          -48,
+          656
+        ],
+        "id": "16f8a7dc-a7ba-4c8f-86ff-81cb00a986d5",
+        "name": "Split Out1"
+      },
+      {
+        "parameters": {
+          "chatId": "-4530967442",
+          "text": "=<b>{{ $json.Brand }} {{ $json.Name }}</b>\n{{ $json.description }}\nЦена: <b>{{ $json.finalPriceVND.toLocaleString() }}</b>\nОстаток: \n{{ $json.quantity - 1 < 5 \n  ? \"<b> ⚠️ВНИМАНИЕ: осталось \" + ($json.quantity - 1) + \" шт.</b>\" \n  : \"<b>\" + ($json.quantity - 1) + \" шт.</b>\" \n}}",
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": "HTML"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          560,
+          304
+        ],
+        "id": "c625c94f-1ad2-4956-a016-4c3e64e90d89",
+        "name": "Send a text message",
+        "webhookId": "2c9a1287-95b5-4476-942a-a010047807f9",
+        "credentials": {
+          "telegramApi": {
+            "id": "lFQKH2n9JXxdFI4k",
+            "name": "Button Rouge Sales Chat"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "-4530967442",
+          "text": "=📊 *ИТОГО*\n\n🏬 *{{ $json.store }}*  👤 {{ $json.username }}\n💰 Сумма: *{{ $json.sum_finalPriceVND.toLocaleString() }}*  \n💳 Способ оплаты: *{{ $json.paymentmethod === \"Terminal\" ? \"⚠️ ТЕРМИНАЛ\" : $json.paymentmethod }}* *{{ $json.currency}}*\n📈 Profit: *{{ $json.sum_Profit }}*",
+          "additionalFields": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1104,
+          592
+        ],
+        "id": "ec51668c-82e0-47dd-bb84-108be4bc6211",
+        "name": "Send a text message1",
+        "webhookId": "2c9a1287-95b5-4476-942a-a010047807f9",
+        "credentials": {
+          "telegramApi": {
+            "id": "lFQKH2n9JXxdFI4k",
+            "name": "Button Rouge Sales Chat"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "destinationFieldName": "",
+          "include": "specifiedFields",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          672,
+          592
+        ],
+        "id": "ff6d0fe4-a6aa-4efb-887d-9e417d06878a",
+        "name": "Aggregate1"
+      },
+      {
+        "parameters": {
+          "fieldsToSummarize": {
+            "values": [
+              {
+                "aggregation": "sum",
+                "field": "finalPriceVND"
+              },
+              {
+                "aggregation": "sum",
+                "field": "Profit"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.summarize",
+        "typeVersion": 1.1,
+        "position": [
+          192,
+          528
+        ],
+        "id": "eb9f2dd2-65c7-4ae6-8e9f-e26d0689310b",
+        "name": "Summarize"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "49d60107-53ce-4513-8718-776c7741d023",
+                "name": "store",
+                "value": "={{ $json.store }}",
+                "type": "string"
+              },
+              {
+                "id": "304fe962-2ffe-4028-b081-27fd37b69c8c",
+                "name": "username",
+                "value": "={{ $json.username }}",
+                "type": "string"
+              },
+              {
+                "id": "8bf23636-fff7-4375-9b52-605e59ccd884",
+                "name": "paymentmethod",
+                "value": "={{ $json.paymentmethod }}",
+                "type": "string"
+              },
+              {
+                "id": "23f40a88-7ff2-4a62-8293-57435a4f391a",
+                "name": "currency",
+                "value": "={{ $json.currency }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          192,
+          656
+        ],
+        "id": "2c3d1a0d-23cf-4a96-b1ab-2657aef75bf3",
+        "name": "Edit Fields2",
+        "executeOnce": true
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          480,
+          592
+        ],
+        "id": "ca219245-4193-4487-acbe-834163a8cbfb",
+        "name": "Merge4",
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "72f00154-40ca-4d42-bf1e-854a3adfeebe",
+                "name": "sum_finalPriceVND",
+                "value": "={{ $json[\"\"][0].sum_finalPriceVND.toLocaleString() }}",
+                "type": "string"
+              },
+              {
+                "id": "0cd99881-ac55-44e1-b733-b1bfeb8bd3ff",
+                "name": "sum_Profit",
+                "value": "={{ $json[\"\"][0].sum_Profit.toLocaleString() }}",
+                "type": "string"
+              },
+              {
+                "id": "1fba25a6-5dc6-437e-989b-77c1cd67021e",
+                "name": "store",
+                "value": "={{ $json[\"\"][1].store }}",
+                "type": "string"
+              },
+              {
+                "id": "8415531e-e58d-4f81-8651-a5acc646072c",
+                "name": "username",
+                "value": "={{ $json[\"\"][1].username }}",
+                "type": "string"
+              },
+              {
+                "id": "2012cc5f-3079-4db5-9b7a-ec85b4ccffa2",
+                "name": "paymentmethod",
+                "value": "={{ $json[\"\"][1].paymentmethod }}",
+                "type": "string"
+              },
+              {
+                "id": "d2cc28f7-b513-4dd0-8583-7ddc9d7fcfa4",
+                "name": "currency",
+                "value": "={{ $json[\"\"][1].currency }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          880,
+          592
+        ],
+        "id": "b7a454aa-579b-4834-8ff6-063b2a8c4856",
+        "name": "Edit Fields3"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "={{ $json.sheetName_accounting }}",
+            "mode": "name"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {
+              "Вид": "=Факт",
+              "Бюджет": "BUTTON ROUGE",
+              "Статья расходов": "Sale",
+              "Год": "={{ $json.year }}",
+              "Месяц": "={{ $json.month }}",
+              "PaymentCashRegister": "Касса",
+              "countInBudget": "1",
+              "Time": "={{ $json.time }}",
+              "Date": "={{ $json.date }}",
+              "Type": "Приход",
+              "Amount": "={{ $json.finalPriceVND }}",
+              "User": "={{ $json.username }}"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "Date",
+                "displayName": "Date",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Time",
+                "displayName": "Time",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Вид",
+                "displayName": "Вид",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Type",
+                "displayName": "Type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Amount",
+                "displayName": "Amount",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Бюджет",
+                "displayName": "Бюджет",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Статья расходов",
+                "displayName": "Статья расходов",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Год",
+                "displayName": "Год",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Месяц",
+                "displayName": "Месяц",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Comment",
+                "displayName": "Comment",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "User",
+                "displayName": "User",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "PaymentCashRegister",
+                "displayName": "PaymentCashRegister",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "countInBudget",
+                "displayName": "countInBudget",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "storeName",
+                "displayName": "storeName",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "store",
+                "displayName": "store",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "storeId",
+                "displayName": "storeId",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "sheetName_accounting",
+                "displayName": "sheetName_accounting",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "accounting",
+                "displayName": "accounting",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Дата",
+                "displayName": "Дата",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Время",
+                "displayName": "Время",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Тип",
+                "displayName": "Тип",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "username",
+                "displayName": "username",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Комментарий",
+                "displayName": "Комментарий",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Сумма",
+                "displayName": "Сумма",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {
+            "useAppend": false
+          }
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          1056,
+          -224
+        ],
+        "id": "841d0f90-0299-4a54-ba47-7c1816b84a09",
+        "name": "Запись в кассу1",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "={{ $json.sheetName_accounting }}",
+            "mode": "name"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Вид": "=Факт",
+              "Бюджет": "BUTTON ROUGE",
+              "Статья расходов": "Sale",
+              "Год": "={{ $json.year }}",
+              "Месяц": "={{ $json.month }}",
+              "PaymentCashRegister": "Касса",
+              "countInBudget": "1",
+              "Time": "={{ $json.time }}",
+              "Date": "={{ $json.date }}",
+              "Type": "Приход",
+              "Amount": "={{ $json.finalPriceVND }}",
+              "User": "={{ $json.username }}"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "Date",
+                "displayName": "Date",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Time",
+                "displayName": "Time",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Вид",
+                "displayName": "Вид",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Type",
+                "displayName": "Type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Amount",
+                "displayName": "Amount",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Бюджет",
+                "displayName": "Бюджет",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Статья расходов",
+                "displayName": "Статья расходов",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Год",
+                "displayName": "Год",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Месяц",
+                "displayName": "Месяц",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Comment",
+                "displayName": "Comment",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "User",
+                "displayName": "User",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "PaymentCashRegister",
+                "displayName": "PaymentCashRegister",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "countInBudget",
+                "displayName": "countInBudget",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "storeName",
+                "displayName": "storeName",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "store",
+                "displayName": "store",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "storeId",
+                "displayName": "storeId",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "sheetName_accounting",
+                "displayName": "sheetName_accounting",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "accounting",
+                "displayName": "accounting",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Дата",
+                "displayName": "Дата",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Время",
+                "displayName": "Время",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Тип",
+                "displayName": "Тип",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "username",
+                "displayName": "username",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Комментарий",
+                "displayName": "Комментарий",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Сумма",
+                "displayName": "Сумма",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {
+            "useAppend": false
+          }
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          448,
+          -256
+        ],
+        "id": "a1bcb1c7-a077-471a-86de-667c00cc4225",
+        "name": "Запись в кассу",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "d541d314-22d7-41d4-88ca-13369140a81d",
+                "name": "Вид",
+                "value": "Факт",
+                "type": "string"
+              },
+              {
+                "id": "861430d9-6227-4cd3-a9a9-e5f1546a3e5f",
+                "name": "Type",
+                "value": "Приход",
+                "type": "string"
+              },
+              {
+                "id": "f543e14e-c1e7-4d6d-915d-512326fc7220",
+                "name": "Бюджет",
+                "value": "BUTTON ROUGE",
+                "type": "string"
+              },
+              {
+                "id": "f8278ab2-edbb-4a04-9d88-bedf6a8f5089",
+                "name": "Статья расходов",
+                "value": "Sale",
+                "type": "string"
+              },
+              {
+                "id": "07d6649c-fd09-4959-b91f-29289f9d5963",
+                "name": "PaymentCashRegister",
+                "value": "Касса",
+                "type": "string"
+              },
+              {
+                "id": "c7407bb4-0b1c-40a3-a95e-8e169527933b",
+                "name": "countInBudget",
+                "value": "1",
+                "type": "string"
+              },
+              {
+                "id": "bed56a03-7c47-45e9-85eb-f6e17c81a955",
+                "name": "Date",
+                "value": "={{ $json.date }}",
+                "type": "string"
+              },
+              {
+                "id": "62bee801-bc5e-45d6-8486-2f1bd61ecc82",
+                "name": "Time",
+                "value": "={{ $json.time }}",
+                "type": "string"
+              },
+              {
+                "id": "636c7c84-f011-433b-8964-ba791dcd0f81",
+                "name": "Month",
+                "value": "={{ $json.month }}",
+                "type": "string"
+              },
+              {
+                "id": "d9816678-4f82-4e62-ace4-f5eb4fe60622",
+                "name": "Year",
+                "value": "={{ $json.year }}",
+                "type": "string"
+              },
+              {
+                "id": "9feb216a-cfb2-4674-8c28-7c9e1fe5f4dd",
+                "name": "User",
+                "value": "={{ $json.username }}",
+                "type": "string"
+              },
+              {
+                "id": "1c7e7342-6ec8-498d-af64-d3710eafaf28",
+                "name": "Amount",
+                "value": "={{ $json.finalPriceVND }}",
+                "type": "string"
+              },
+              {
+                "id": "9ad35883-3384-4e34-949f-cd0bf2c18e6c",
+                "name": "sheetName_accounting",
+                "value": "={{ $json.sheetName_accounting }}",
+                "type": "string"
+              },
+              {
+                "id": "94a92e18-e1ad-46b4-9ab1-b3d42a0b3feb",
+                "name": "Comment",
+                "value": "={{ $json.Comments }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          800,
+          -176
+        ],
+        "id": "78504134-460c-468c-a936-7503c8444fca",
+        "name": "Корректировка полей"
+      }
+    ],
+    "connections": {
+      "Webhook1": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch": {
+        "main": [
+          [
+            {
+              "node": "Split Out",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split Out": {
+        "main": [
+          [
+            {
+              "node": "getSalary",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "getSalary1",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Merge2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getSalary": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Respond to Webhook": {
+        "main": [
+          []
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "Merge3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getSalary1": {
+        "main": [
+          [
+            {
+              "node": "Merge2",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge2": {
+        "main": [
+          [
+            {
+              "node": "Merge3",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge3": {
+        "main": [
+          [
+            {
+              "node": "Remove Duplicates1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Remove Duplicates1": {
+        "main": [
+          [
+            {
+              "node": "Расчет полей",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Расчет полей": {
+        "main": [
+          [
+            {
+              "node": "расчет Profit",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "расчет Profit": {
+        "main": [
+          [
+            {
+              "node": "Добавление в Sales",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Уменьшаем кол-во": {
+        "main": [
+          []
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Корректировка полей",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Добавление в Sales": {
+        "main": [
+          [
+            {
+              "node": "Уменьшаем кол-во",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Summarize",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Edit Fields2",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Send a text message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields1": {
+        "main": [
+          [
+            {
+              "node": "Split Out1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split Out1": {
+        "main": [
+          [
+            {
+              "node": "Summarize",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Edit Fields2",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Send a text message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send a text message": {
+        "main": [
+          []
+        ]
+      },
+      "Aggregate1": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Summarize": {
+        "main": [
+          [
+            {
+              "node": "Merge4",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields2": {
+        "main": [
+          [
+            {
+              "node": "Merge4",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge4": {
+        "main": [
+          [
+            {
+              "node": "Aggregate1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields3": {
+        "main": [
+          [
+            {
+              "node": "Send a text message1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Запись в кассу1": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Корректировка полей": {
+        "main": [
+          [
+            {
+              "node": "Запись в кассу1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Алексей Мурыгин",
+    "name": "Version 237b58da",
+    "description": "",
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-12T08:10:57.341Z",
+        "id": 108,
+        "workflowId": "7pC8RxgVHa1G7N7PsT9W4",
+        "versionId": "237b58da-27cf-45db-9679-da5a287e9b5c",
+        "event": "activated",
+        "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698"
+      },
+      {
+        "createdAt": "2026-03-13T08:01:15.155Z",
+        "id": 110,
+        "workflowId": "7pC8RxgVHa1G7N7PsT9W4",
+        "versionId": "237b58da-27cf-45db-9679-da5a287e9b5c",
+        "event": "activated",
+        "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698"
+      }
+    ]
+  }
+}

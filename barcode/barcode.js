@@ -1,8 +1,125 @@
 
-  var printSRC = "../vendor/icons/print.png";
+var printSRC = "../vendor/icons/print.png";
 
 // Глобальная конфигурация типов ценников
 let LABEL_TYPES = {}
+
+const DEFAULT_LABEL_TYPES = {
+  "40x80": {
+    id: "40x80",
+    pdfSize: [80, 40],
+    dimensions: { width: "40mm", height: "80mm" },
+    fields: [
+      { key: "Brand", tag: "div", style: "font-size:10px;font-weight:700;line-height:1.15;margin-bottom:2mm;" },
+      { key: "Name", tag: "div", style: "font-size:14px;font-weight:700;line-height:1.15;text-transform:uppercase;margin-bottom:1.5mm;" },
+      { key: "description", tag: "div", style: "font-size:8px;line-height:1.2;margin-bottom:1.5mm;min-height:14mm;", process: "formatMultilineText" },
+      { key: "color", tag: "div", prefix: "Color: ", style: "font-size:8px;line-height:1.2;" },
+      { key: "size", tag: "div", prefix: "Size: ", style: "font-size:8px;line-height:1.2;margin-bottom:2mm;" },
+      { key: "crope price", tag: "div", style: "font-size:18px;font-weight:700;line-height:1;margin-top:2mm;" }
+    ],
+    barcode: {
+      format: "CODE128",
+      displayValue: true,
+      textPadding: -8,
+      margin: 0,
+      style: "position:absolute;left:3mm;right:3mm;bottom:4mm;height:12mm;font-size:9px;"
+    }
+  },
+  "35x22": {
+    id: "35x22",
+    pdfSize: [22, 35],
+    dimensions: { width: "35mm", height: "22mm" },
+    fields: [
+      { key: "Name", tag: "div", style: "font-size:8px;font-weight:700;line-height:1.05;text-transform:uppercase;margin-bottom:1mm;" },
+      { key: "size", tag: "div", style: "font-size:6px;line-height:1.1;margin-bottom:1mm;" },
+      { key: "crope price", tag: "div", style: "font-size:13px;font-weight:700;line-height:1;margin-bottom:1mm;" }
+    ],
+    barcode: {
+      format: "CODE128",
+      displayValue: true,
+      textPadding: -10,
+      margin: 0,
+      style: "position:absolute;left:2mm;right:2mm;bottom:2mm;height:6mm;font-size:7px;"
+    }
+  }
+};
+
+function cloneDefaultLabelTypes() {
+  return JSON.parse(JSON.stringify(DEFAULT_LABEL_TYPES));
+}
+
+function parseNestedJson(value, maxDepth = 3) {
+  let current = value;
+  for (let i = 0; i < maxDepth; i += 1) {
+    if (typeof current !== "string") break;
+    const trimmed = current.trim();
+    if (!trimmed) break;
+    if (!/^[\[{"]/.test(trimmed)) break;
+    try {
+      current = JSON.parse(trimmed);
+    } catch (_) {
+      break;
+    }
+  }
+  return current;
+}
+
+function toLabelDimension(value, fallback) {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return `${value}mm`;
+  }
+  const text = String(value || "").trim();
+  return text || fallback;
+}
+
+function getLabelPdfSize(config = {}) {
+  return Array.isArray(config.pdfSize) && config.pdfSize.length >= 2 ? config.pdfSize : [58, 40];
+}
+
+function getLabelDimensions(config = {}) {
+  const pdfSize = getLabelPdfSize(config);
+  return {
+    width: toLabelDimension(config?.dimensions?.width, toLabelDimension(pdfSize[1], "40mm")),
+    height: toLabelDimension(config?.dimensions?.height, toLabelDimension(pdfSize[0], "58mm")),
+  };
+}
+
+function normalizeLabelTemplate(template, fallbackId) {
+  if (!template || typeof template !== "object" || Array.isArray(template)) return null;
+  if (!Array.isArray(template.fields) && !Array.isArray(template.pdfSize) && !template.dimensions) {
+    return null;
+  }
+  return {
+    ...template,
+    id: template.id || fallbackId || "label",
+    fields: Array.isArray(template.fields) ? template.fields : [],
+    pdfSize: getLabelPdfSize(template),
+    dimensions: getLabelDimensions(template),
+    barcode: template.barcode && typeof template.barcode === "object" ? template.barcode : {},
+  };
+}
+
+function normalizeLabelTypes(raw) {
+  const parsed = parseNestedJson(raw);
+
+  const candidate = parsed?.data?.data ?? parsed?.data ?? parsed?.items ?? parsed;
+
+  if (Array.isArray(candidate)) {
+    return candidate.reduce((acc, item, index) => {
+      const normalized = normalizeLabelTemplate(item, item?.id || `label-${index + 1}`);
+      if (normalized) acc[normalized.id] = normalized;
+      return acc;
+    }, {});
+  }
+
+  if (!candidate || typeof candidate !== "object") return {};
+
+  return Object.entries(candidate).reduce((acc, [key, value]) => {
+    const normalized = normalizeLabelTemplate(value, key);
+    if (normalized) acc[normalized.id] = normalized;
+    return acc;
+  }, {});
+}
 
 
 
@@ -41,10 +158,19 @@ async function init() {
       { action: "getConfig", visible: true, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING },
       { overlayId: "barcode" }
     );
-    LABEL_TYPES = typeof data === "string" ? JSON.parse(data) : (data || {});
+    const normalizedTypes = normalizeLabelTypes(data);
+    const hasTemplates = Object.keys(normalizedTypes).length > 0;
+    LABEL_TYPES = hasTemplates ? normalizedTypes : cloneDefaultLabelTypes();
 
     createNewInputWithButton(elName, caption_h1, initValue, action, target);
     makeFocus(elName);
+
+    if (!hasTemplates) {
+      console.error("No valid label templates returned by getTagsConfig. Using built-in defaults.");
+      if (typeof showToast === "function") {
+        showToast("Конфиг ценников поврежден. Загружены встроенные шаблоны.", "error");
+      }
+    }
   } catch (error) {
     console.error("Barcode init error:", error);
     const msg =
@@ -175,7 +301,7 @@ console.log("productData",productData)
  */
 function generateLabel(article, container, labelType) {
   try {
-    const config = LABEL_TYPES[labelType];
+    const config = normalizeLabelTemplate(LABEL_TYPES[labelType], labelType);
     if (!config) {
       console.error(`Unknown label type: ${labelType}`);
       return;
@@ -200,7 +326,7 @@ function generateLabel(article, container, labelType) {
 
 function updateLabel(labelType) {
   try {
-    const config = LABEL_TYPES[labelType];
+    const config = normalizeLabelTemplate(LABEL_TYPES[labelType], labelType);
     if (!config) {
       console.error(`Unknown label type: ${labelType}`);
       return;
@@ -224,15 +350,16 @@ function createLabelElement(config, product) {
   const brand = document.createElement('div');
   brand.className = "product-print";
   brand.setAttribute('data-label', config.id)
+  const dimensions = getLabelDimensions(config);
   
   // Устанавливаем размеры
   Object.assign(brand.style, {
-    width: config.dimensions.width,
-    height: config.dimensions.height,
-    minWidth: config.dimensions.width,
-    minHeight: config.dimensions.height,
-    maxWidth: config.dimensions.width,
-    maxHeight: config.dimensions.height,
+    width: dimensions.width,
+    height: dimensions.height,
+    minWidth: dimensions.width,
+    minHeight: dimensions.height,
+    maxWidth: dimensions.width,
+    maxHeight: dimensions.height,
     position: 'relative'
   });
 
@@ -279,7 +406,7 @@ function generateLabelContent(product, config) {
   }).join('');
   
 
-  const labelClass = config.id ? `label-${config.id}` : `label-${config.pdfSize.join('x')}`;
+  const labelClass = config.id ? `label-${config.id}` : `label-${getLabelPdfSize(config).join('x')}`;
   return `<div class="product-info ${labelClass}">${fieldsContent}</div>`;
 }
 
@@ -389,8 +516,9 @@ function printLabel(element, product, config) {
         element.style.border = '';
 
   // Размеры PDF в мм (из config)
-  const pdfWidthMm = config.pdfSize[1]; // 40mm
-  const pdfHeightMm = config.pdfSize[0]; // 80mm
+  const pdfSize = getLabelPdfSize(config);
+  const pdfWidthMm = pdfSize[1];
+  const pdfHeightMm = pdfSize[0];
   
   // Конвертируем мм в пиксели (96 DPI: 1mm ≈ 3.78px)
   const pdfWidthPx = pdfWidthMm * 3.78;
@@ -702,7 +830,7 @@ function deepClone(obj){
  *************************************************/
 function renderLabel(template, data, mountEl, forEditor=true){
   mountEl.innerHTML = '';
-  const {width, height} = template.dimensions;
+  const {width, height} = getLabelDimensions(template);
   const labelEl = document.createElement('div');
   labelEl.className = 'product-print';
   // В editor режиме `.product-print` должен быть containing block для абсолютных полей.

@@ -1,0 +1,430 @@
+{
+  "updatedAt": "2025-04-28T12:47:37.000Z",
+  "createdAt": "2025-04-08T10:04:01.321Z",
+  "id": "qSnbVCKDo9anIhNr",
+  "name": "My workflow 2",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -980,
+        -440
+      ],
+      "id": "14e54d1a-d795-4cc0-a922-5b5c9d51a34b",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "url": "http://172.17.0.5:5000/health",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        -40
+      ],
+      "id": "765fe8cf-f58b-49c8-85f4-a4cd4f43afe9",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "path": "4fbd59bf-2deb-4fb1-9cb3-b98265c5c0c5",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        220
+      ],
+      "id": "adf3591a-42c6-4821-bc58-4954bf2682f8",
+      "name": "Webhook",
+      "webhookId": "4fbd59bf-2deb-4fb1-9cb3-b98265c5c0c5",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn JSON.parse($input.first().json.stdout)"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        -320
+      ],
+      "id": "0a571f34-24a8-47d4-864d-20b612de0342",
+      "name": "Code"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        540,
+        240
+      ],
+      "id": "6aecde82-38b1-41cf-a69a-679e0e5f17e3",
+      "name": "Wait",
+      "webhookId": "553b64a3-7145-4160-99e5-165cbf853708"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Parse Channel').item.json.logsPath }}{{ $('Parse Channel').item.json.ChannelName }}.log\n\n",
+        "dataPropertyName": "=data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        120,
+        -40
+      ],
+      "id": "c6f0651b-8ac9-4ce9-9ace-ce3caca4d231",
+      "name": "Write log"
+    },
+    {
+      "parameters": {
+        "executeOnce": false,
+        "command": "=sudo touch {{ $json.logsPath }}{{ $json.ChannelName }}.log"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        500,
+        -540
+      ],
+      "id": "74204203-fa7a-4800-89c7-34e3f5885003",
+      "name": "Create log",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Pl6Oqey2z3gYBNA7",
+          "mode": "list",
+          "cachedResultName": "Settings"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -680,
+        -440
+      ],
+      "id": "249c1b92-f959-411d-aa4b-a96ff5612da1",
+      "name": "Get settings",
+      "executeOnce": true,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "stderr",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -180,
+        -40
+      ],
+      "id": "992ea03b-23bb-43da-a093-bbab8426b172",
+      "name": "system error"
+    },
+    {
+      "parameters": {
+        "command": "=bash -x {{ $json.WorkPath }}run_script.sh {{ $json.ChannelName }}"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        -580
+      ],
+      "id": "0f055065-9b32-46a6-820e-df5dc2e5c338",
+      "name": "Parse Channel",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "da2ee150-fd96-48a1-85c0-326aa009d958",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        120,
+        -500
+      ],
+      "id": "852c93ed-9338-4e4c-82c7-9856fad621be",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "executeOnce": "=",
+        "command": "=sudo cat << 'EOF' > {{ $('Get settings').item.json.WorkPath }}run_script.sh\n#!/usr/bin/env bash\npkill -f chrome\npkill -f chromedriver\npkill -f Xvfb\n\nset -eu\n\n# 1) Явно проставляем PATH, иначе n8n может его «обрезать»\nexport PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n\n# 2) Выводим PATH и проверяем наличие xvfb-run и Xvfb\necho \"[DEBUG] PATH=$PATH\"\necho \"[DEBUG] which xvfb-run: $(which xvfb-run || echo 'NOT FOUND')\"\necho \"[DEBUG] which Xvfb:      $(which Xvfb      || echo 'NOT FOUND')\"\necho \"[DEBUG] which python3:   $(which python3   || echo 'NOT FOUND')\"\n\n# 3) Подавляем лишние ошибки D-Bus\nexport DBUS_SESSION_BUS_ADDRESS=/dev/null\n\n# 4) Проверяем, что скрипт реально существует\nscript_path=\"$1\"\nchannel=\"${2:-}\"\nif [ ! -f \"$script_path\" ]; then\n  echo \"[ERROR] Script not found at $script_path\" >&2\n  exit 1\nfi\necho \"[DEBUG] script_path=$script_path\"\necho \"[DEBUG] channel=$channel\"\n\n# 5) Запускаем через полный путь к xvfb-run\n/usr/bin/xvfb-run \\\n  --auto-servernum \\\n  --server-args=\"-screen 0 1920x1080x24 -ac +extension GLX +render\" \\\n  python3 \"$script_path\" \"$channel\" 2>&1 | sed 's/^/[XVFB] /'\n\necho \"[DEBUG] xvfb-run exited with code $?\"\n\n\nEOF\n\nchmod +x {{ $('Get settings').item.json.WorkPath }}run_script.sh\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        -660
+      ],
+      "id": "53503caa-4c22-4adb-813a-5d47d962bf7c",
+      "name": "make sh"
+    },
+    {
+      "parameters": {
+        "command": "=pkill -f chrome\npkill -f chromedriver\npkill -f Xvfb\n\nset -eu\n\n# 1) Явно проставляем PATH, иначе n8n может его «обрезать»\nexport PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n\n# 2) Выводим PATH и проверяем наличие xvfb-run и Xvfb\necho \"[DEBUG] PATH=$PATH\"\necho \"[DEBUG] which xvfb-run: $(which xvfb-run || echo 'NOT FOUND')\"\necho \"[DEBUG] which Xvfb:      $(which Xvfb      || echo 'NOT FOUND')\"\necho \"[DEBUG] which python3:   $(which python3   || echo 'NOT FOUND')\"\n\n# 3) Подавляем лишние ошибки D-Bus\nexport DBUS_SESSION_BUS_ADDRESS=/dev/null\n\n# 5) Запускаем через полный путь к xvfb-run\n/usr/bin/xvfb-run \\\n  --auto-servernum \\\n  --server-args=\"-screen 0 1920x1080x24 -ac +extension GLX +render\" \\\n  python3 {{ $json.WorkPath }}main.py {{ $json.ChannelName }} 2>&1 | sed 's/^/[XVFB] /'\n\necho \"[DEBUG] xvfb-run exited with code $?\"\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        780,
+        -680
+      ],
+      "id": "e39216b9-7440-4f7f-be10-7282d8b42ba2",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "command": "=sudo -u l_murygin /usr/bin/xvfb-run --auto-servernum --server-num=1 --server-args='-screen 0, 1920x1080x24' python3 {{ $json.WorkPath }}main.py {{ $json.ChannelName }}\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        60,
+        -700
+      ],
+      "id": "d3220263-d8c3-4c48-b128-f20d3b6c7d57",
+      "name": "Execute Command1"
+    },
+    {
+      "parameters": {
+        "command": "sudo systemctl stop xvfb"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -100
+      ],
+      "id": "81223757-1969-49bb-bc23-7105d3cc2b50",
+      "name": "Execute Command2"
+    },
+    {
+      "parameters": {
+        "executeOnce": "=",
+        "command": "=sudo cat << 'EOF' > {{ $('Get settings').item.json.WorkPath }}run_script.sh\n#!/bin/bash\n# Очистка предыдущих процессов\npkill -f \"Xvfb\" || true\npkill -f \"chrome\" || true\nrm -rf /tmp/chrome_*\n\n# Запуск с расширенным логированием\n# Перед запуском Python\nexport XVFB_WHD=\"${XVFB_WHD:-1920x1080x24}\"\nXvfb :99 -screen 0 \"$XVFB_WHD\" -ac +extension RANDR\n\n# Ожидание инициализации\nsleep 2\n\n# Проверка Xvfb\nif ! xdpyinfo -display $DISPLAY >/dev/null 2>&1; then\n  echo \"Xvfb failed to start. Log:\"\n  cat /tmp/xvfb.log\n  exit 1\nfi\n\n# Основной запуск с перенаправлением логов\nsudo -u l_murygin python3 /home/l_murygin/p8/main.py \"$@\" > /tmp/parser.log 2>&1\n\n# Проверка результата\nif [ $? -ne 0 ]; then\n  echo \"Execution failed. Logs:\"\n  echo \"=== Xvfb log ===\"\n  cat /tmp/xvfb.log\n  echo \"=== Parser log ===\"\n  cat /tmp/parser.log\n  echo \"=== ChromeDriver log ===\"\n  cat /tmp/chromedriver.log\nfi\n\n# Очистка\npkill -f \"Xvfb\"\n\nchmod +x {{ $('Get settings').item.json.WorkPath }}run_script.sh\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -700,
+        -680
+      ],
+      "id": "23c14584-946b-4654-9732-1387bf02991b",
+      "name": "make sh1"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/l_murygin/p8/debug_post_parse_error_1745842922.png",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -660
+      ],
+      "id": "64c0e09e-766f-4ac7-8402-840e696d4068",
+      "name": "read_QR"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        []
+      ]
+    },
+    "Write log": {
+      "main": [
+        []
+      ]
+    },
+    "Create log": {
+      "main": [
+        [
+          {
+            "node": "system error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get settings": {
+      "main": [
+        [
+          {
+            "node": "Parse Channel",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "make sh1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "system error": {
+      "main": [
+        [
+          {
+            "node": "Write log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Channel": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "37b0c39a-a443-4de9-a4ce-35002b4a2caa",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-04-08T10:04:01.332Z",
+      "createdAt": "2025-04-08T10:04:01.332Z",
+      "role": "workflow:owner",
+      "workflowId": "qSnbVCKDo9anIhNr",
+      "projectId": "Cbzeqxofr5KXht6P",
+      "project": {
+        "updatedAt": "2025-03-07T10:59:25.834Z",
+        "createdAt": "2025-03-05T10:47:17.258Z",
+        "id": "Cbzeqxofr5KXht6P",
+        "name": "Алексей Мурыгин <l.murygin@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-03-05T10:47:17.259Z",
+            "createdAt": "2025-03-05T10:47:17.259Z",
+            "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+            "projectId": "Cbzeqxofr5KXht6P",
+            "user": {
+              "updatedAt": "2026-03-13T07:53:40.000Z",
+              "createdAt": "2025-03-05T10:47:16.542Z",
+              "id": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+              "email": "l.murygin@gmail.com",
+              "firstName": "Алексей",
+              "lastName": "Мурыгин",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "rVWIEki714lPBFxf",
+                "userActivatedAt": 1741418880091,
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-13",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

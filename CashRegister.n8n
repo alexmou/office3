@@ -1,0 +1,1543 @@
+{
+  "updatedAt": "2026-03-09T17:20:33.480Z",
+  "createdAt": "2026-01-20T06:36:27.812Z",
+  "id": "t6SVNT2eaJMzNH1e",
+  "name": "CashRegister",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -1376,
+        -320
+      ],
+      "id": "3769833d-28fd-4ce4-8160-de74a03b033d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "path": "CashRegister",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -2624,
+        -288
+      ],
+      "id": "11b24582-055a-4c39-820b-fb75c1ece11f",
+      "webhookId": "e83c8da5-cdd8-411e-830c-4bfe1b689796"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.query.action }}",
+                    "rightValue": "getCash",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0b024535-2439-4a4f-bc6f-20a0affb4e42"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getCash"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "39855d46-a421-40ef-af2d-fc8ab96183f4",
+                    "leftValue": "={{ $json.query.action }}",
+                    "rightValue": "getCashRegisterRecords",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getCashRegisterRecords"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4a0970ae-471b-4a02-a342-d9f15d15968e",
+                    "leftValue": "={{ $json.query.action }}",
+                    "rightValue": "getVocabulary",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getVocabulary"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e4109c99-cf78-498c-a5fa-369cbcbd3048",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "=addCacheRegisterRecord",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "addCacheRegisterRecord"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -2400,
+        -256
+      ],
+      "id": "1bf5a60a-049b-4044-98f5-02a705012a10",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 330385053,
+          "mode": "list",
+          "cachedResultName": "cashregister",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs/edit#gid=330385053"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "StoreID",
+              "lookupValue": "={{ $json.query.storeId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2096,
+        -272
+      ],
+      "id": "7075cacd-8ee1-40f0-8e97-7e3d5e1fe89c",
+      "name": "getCash",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.query.sheetName_accounting }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2096,
+        -80
+      ],
+      "id": "c8fcda63-e983-4a04-a02b-f1fc6c4a3fda",
+      "name": "getCash1",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d62a69c0-71f7-4e61-a494-0c44f15ebfd8",
+              "name": "Date",
+              "value": "={{ $json[\"Date\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "11865843-10d1-4621-ae72-774e3ac1e04c",
+              "name": "Time",
+              "value": "={{ $json[\"Time\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "52411819-f6e2-4ce6-b4d2-f40478c796ec",
+              "name": "Type",
+              "value": "={{ $json[\"Type\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "db91109f-465e-4e11-a301-a10bfc78f644",
+              "name": "Amount",
+              "value": "={{  $json[\"Amount\"].toLocaleString(\"ru-RU\") }}",
+              "type": "string"
+            },
+            {
+              "id": "886f7573-0f62-4186-af77-749d40089a93",
+              "name": "Comment",
+              "value": "={{ $json[\"Comment\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "de9efb8b-3c54-465d-843b-369e7b1740ff",
+              "name": "User",
+              "value": "={{ $json.User }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1856,
+        -176
+      ],
+      "id": "21a9e6cf-1f75-45bc-91bc-657dfa18deab",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1WCARw2suIx4oYkvFTJwXxdrRZt0QzAudFIEtkkjMs9U",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 763737235,
+          "mode": "list",
+          "cachedResultName": "CashVocabulary",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WCARw2suIx4oYkvFTJwXxdrRZt0QzAudFIEtkkjMs9U/edit#gid=763737235"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2080,
+        112
+      ],
+      "id": "c0799fe8-d1cd-4111-8dbc-a3e5996d44be",
+      "name": "getCash2",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "CashRegister",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "name": "Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -2624,
+        -80
+      ],
+      "id": "712d3415-602a-4344-a988-5960c2e16979",
+      "webhookId": "e83c8da5-cdd8-411e-830c-4bfe1b689796"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.sheetName_accounting }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "Дата",
+              "displayName": "Дата",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Время",
+              "displayName": "Время",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Вид",
+              "displayName": "Вид",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Тип",
+              "displayName": "Тип",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Сумма",
+              "displayName": "Сумма",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Бюджет",
+              "displayName": "Бюджет",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Статья расходов",
+              "displayName": "Статья расходов",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Год",
+              "displayName": "Год",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Месяц",
+              "displayName": "Месяц",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Комментарий",
+              "displayName": "Комментарий",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PaymentCashRegister",
+              "displayName": "PaymentCashRegister",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "countInBudget",
+              "displayName": "countInBudget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Столбец 16",
+              "displayName": "Столбец 16",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Столбец 17",
+              "displayName": "Столбец 17",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "storeName",
+              "displayName": "storeName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "store",
+              "displayName": "store",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "storeId",
+              "displayName": "storeId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sheetName_accounting",
+              "displayName": "sheetName_accounting",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "accounting",
+              "displayName": "accounting",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2080,
+        288
+      ],
+      "id": "8af2476e-49b6-4a9f-a1c0-4dfaddb5298e",
+      "name": "append",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "=\n {{ $json.body.value }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2304,
+        96
+      ],
+      "id": "6366e6c8-28ec-40e8-bf05-8c66fea02d5f",
+      "name": "Edit Fields1"
+    }
+  ],
+  "connections": {
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "getCash",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "getCash1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "getCash2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getCash": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getCash1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getCash2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "append",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "append": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "d12377cb-874b-49ab-b454-1541c6abcac3",
+  "activeVersionId": "d12377cb-874b-49ab-b454-1541c6abcac3",
+  "versionCounter": 63,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-01-20T06:36:27.818Z",
+      "createdAt": "2026-01-20T06:36:27.818Z",
+      "role": "workflow:owner",
+      "workflowId": "t6SVNT2eaJMzNH1e",
+      "projectId": "Cbzeqxofr5KXht6P",
+      "project": {
+        "updatedAt": "2025-03-07T10:59:25.834Z",
+        "createdAt": "2025-03-05T10:47:17.258Z",
+        "id": "Cbzeqxofr5KXht6P",
+        "name": "Алексей Мурыгин <l.murygin@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-03-05T10:47:17.259Z",
+            "createdAt": "2025-03-05T10:47:17.259Z",
+            "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+            "projectId": "Cbzeqxofr5KXht6P",
+            "user": {
+              "updatedAt": "2026-03-13T07:53:40.000Z",
+              "createdAt": "2025-03-05T10:47:16.542Z",
+              "id": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+              "email": "l.murygin@gmail.com",
+              "firstName": "Алексей",
+              "lastName": "Мурыгин",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "rVWIEki714lPBFxf",
+                "userActivatedAt": 1741418880091,
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-13",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-09T17:20:36.000Z",
+    "createdAt": "2026-03-09T17:20:33.483Z",
+    "versionId": "d12377cb-874b-49ab-b454-1541c6abcac3",
+    "workflowId": "t6SVNT2eaJMzNH1e",
+    "nodes": [
+      {
+        "parameters": {
+          "respondWith": "allIncomingItems",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.2,
+        "position": [
+          -1376,
+          -320
+        ],
+        "id": "3769833d-28fd-4ce4-8160-de74a03b033d",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "path": "CashRegister",
+          "responseMode": "responseNode",
+          "options": {
+            "allowedOrigins": "*"
+          }
+        },
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          -2624,
+          -288
+        ],
+        "id": "11b24582-055a-4c39-820b-fb75c1ece11f",
+        "webhookId": "e83c8da5-cdd8-411e-830c-4bfe1b689796"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.query.action }}",
+                      "rightValue": "getCash",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "0b024535-2439-4a4f-bc6f-20a0affb4e42"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "getCash"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "39855d46-a421-40ef-af2d-fc8ab96183f4",
+                      "leftValue": "={{ $json.query.action }}",
+                      "rightValue": "getCashRegisterRecords",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "getCashRegisterRecords"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "4a0970ae-471b-4a02-a342-d9f15d15968e",
+                      "leftValue": "={{ $json.query.action }}",
+                      "rightValue": "getVocabulary",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "getVocabulary"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "e4109c99-cf78-498c-a5fa-369cbcbd3048",
+                      "leftValue": "={{ $json.body.action }}",
+                      "rightValue": "=addCacheRegisterRecord",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "addCacheRegisterRecord"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          -2400,
+          -256
+        ],
+        "id": "1bf5a60a-049b-4044-98f5-02a705012a10",
+        "name": "Switch"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 330385053,
+            "mode": "list",
+            "cachedResultName": "cashregister",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs/edit#gid=330385053"
+          },
+          "filtersUI": {
+            "values": [
+              {
+                "lookupColumn": "StoreID",
+                "lookupValue": "={{ $json.query.storeId }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -2096,
+          -272
+        ],
+        "id": "7075cacd-8ee1-40f0-8e97-7e3d5e1fe89c",
+        "name": "getCash",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "={{ $json.query.sheetName_accounting }}",
+            "mode": "name"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -2096,
+          -80
+        ],
+        "id": "c8fcda63-e983-4a04-a02b-f1fc6c4a3fda",
+        "name": "getCash1",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "d62a69c0-71f7-4e61-a494-0c44f15ebfd8",
+                "name": "Date",
+                "value": "={{ $json[\"Date\"] }}",
+                "type": "string"
+              },
+              {
+                "id": "11865843-10d1-4621-ae72-774e3ac1e04c",
+                "name": "Time",
+                "value": "={{ $json[\"Time\"] }}",
+                "type": "string"
+              },
+              {
+                "id": "52411819-f6e2-4ce6-b4d2-f40478c796ec",
+                "name": "Type",
+                "value": "={{ $json[\"Type\"] }}",
+                "type": "string"
+              },
+              {
+                "id": "db91109f-465e-4e11-a301-a10bfc78f644",
+                "name": "Amount",
+                "value": "={{  $json[\"Amount\"].toLocaleString(\"ru-RU\") }}",
+                "type": "string"
+              },
+              {
+                "id": "886f7573-0f62-4186-af77-749d40089a93",
+                "name": "Comment",
+                "value": "={{ $json[\"Comment\"] }}",
+                "type": "string"
+              },
+              {
+                "id": "de9efb8b-3c54-465d-843b-369e7b1740ff",
+                "name": "User",
+                "value": "={{ $json.User }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -1856,
+          -176
+        ],
+        "id": "21a9e6cf-1f75-45bc-91bc-657dfa18deab",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1WCARw2suIx4oYkvFTJwXxdrRZt0QzAudFIEtkkjMs9U",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 763737235,
+            "mode": "list",
+            "cachedResultName": "CashVocabulary",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WCARw2suIx4oYkvFTJwXxdrRZt0QzAudFIEtkkjMs9U/edit#gid=763737235"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -2080,
+          112
+        ],
+        "id": "c0799fe8-d1cd-4111-8dbc-a3e5996d44be",
+        "name": "getCash2",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "CashRegister",
+          "responseMode": "responseNode",
+          "options": {
+            "allowedOrigins": "*"
+          }
+        },
+        "name": "Webhook1",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          -2624,
+          -80
+        ],
+        "id": "712d3415-602a-4344-a988-5960c2e16979",
+        "webhookId": "e83c8da5-cdd8-411e-830c-4bfe1b689796"
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "={{ $json.sheetName_accounting }}",
+            "mode": "name"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "Дата",
+                "displayName": "Дата",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Время",
+                "displayName": "Время",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Вид",
+                "displayName": "Вид",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Тип",
+                "displayName": "Тип",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Сумма",
+                "displayName": "Сумма",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Бюджет",
+                "displayName": "Бюджет",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Статья расходов",
+                "displayName": "Статья расходов",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Год",
+                "displayName": "Год",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Месяц",
+                "displayName": "Месяц",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Комментарий",
+                "displayName": "Комментарий",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "username",
+                "displayName": "username",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "PaymentCashRegister",
+                "displayName": "PaymentCashRegister",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "countInBudget",
+                "displayName": "countInBudget",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "data",
+                "displayName": "data",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Столбец 16",
+                "displayName": "Столбец 16",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Столбец 17",
+                "displayName": "Столбец 17",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "storeName",
+                "displayName": "storeName",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "store",
+                "displayName": "store",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "storeId",
+                "displayName": "storeId",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "sheetName_accounting",
+                "displayName": "sheetName_accounting",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "accounting",
+                "displayName": "accounting",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -2080,
+          288
+        ],
+        "id": "8af2476e-49b6-4a9f-a1c0-4dfaddb5298e",
+        "name": "append",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "raw",
+          "jsonOutput": "=\n {{ $json.body.value }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -2304,
+          96
+        ],
+        "id": "6366e6c8-28ec-40e8-bf05-8c66fea02d5f",
+        "name": "Edit Fields1"
+      }
+    ],
+    "connections": {
+      "Respond to Webhook": {
+        "main": [
+          []
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch": {
+        "main": [
+          [
+            {
+              "node": "getCash",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "getCash1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "getCash2",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Edit Fields1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getCash": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getCash1": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "getCash2": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook1": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields1": {
+        "main": [
+          [
+            {
+              "node": "append",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "append": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Алексей Мурыгин",
+    "name": "Version d12377cb",
+    "description": "",
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-09T17:20:36.913Z",
+        "id": 89,
+        "workflowId": "t6SVNT2eaJMzNH1e",
+        "versionId": "d12377cb-874b-49ab-b454-1541c6abcac3",
+        "event": "activated",
+        "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698"
+      }
+    ]
+  }
+}

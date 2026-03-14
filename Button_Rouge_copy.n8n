@@ -1,0 +1,1515 @@
+{
+  "updatedAt": "2025-05-12T14:19:27.000Z",
+  "createdAt": "2025-05-12T13:23:35.471Z",
+  "id": "ctS2yQ9DRLM5d3Gl",
+  "name": "Button_Rouge copy",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('Webhook1').item.json.body.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3460,
+        -260
+      ],
+      "id": "b16401fe-26c4-4aed-86d4-269fc0714035",
+      "name": "Telegram1",
+      "webhookId": "70fa14fc-92a6-451f-965a-6eb8c0756876",
+      "credentials": {
+        "telegramApi": {
+          "id": "7o5Sf3Q2SMrtLS4K",
+          "name": "button_assistant"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "f4fbd28e-3b06-478a-bcc2-5addef9d330a",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -4060,
+        -260
+      ],
+      "id": "3846bfe8-5225-483e-a93f-d3f76d84e08c",
+      "name": "Webhook1",
+      "webhookId": "f4fbd28e-3b06-478a-bcc2-5addef9d330a"
+    },
+    {
+      "parameters": {
+        "resource": "assistant",
+        "assistantId": {
+          "__rl": true,
+          "value": "asst_QyhTejkE6fUOg4SlX816tAmb",
+          "mode": "id"
+        },
+        "prompt": "define",
+        "text": "=<|im_start|>\nЯзык на котором нужно ответить: {{ $json.body.message.from.language_code }}\nИмя пользователя: {{ $json.body.message.chat.first_name }}\nМестоположение пользователя и его часовой пояс: город Нячанг (Вьетнам) GMT+7 \nСегодняшняя дата и время: {{$now.setZone('Asia/Bangkok')}}\n<|im_end|>\n{{ $json.body.message.text }}",
+        "memory": "threadId",
+        "threadId": "thread_xSZK62T7nTZ8acHeZu5RJ97G",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -3840,
+        -260
+      ],
+      "id": "f14ac45e-e977-4459-8974-be1def953db9",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('sales').item.json.documentId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('sales').item.json.sheetId }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -3420,
+        220
+      ],
+      "id": "f0d7f68c-2397-4de7-8fbb-01e97ce7692a",
+      "name": "Google Sheets2",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {
+          "fileName": "={{ $('sales').first().json.fileName}}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -1980,
+        -80
+      ],
+      "id": "aeb6e747-ef1b-4312-a002-dc03e3590983",
+      "name": "Convert to File1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -3820,
+        -900
+      ],
+      "id": "fb4093b3-4cd0-456e-8f92-e162bfe97c60",
+      "name": "OpenAI3",
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -2440,
+        -780
+      ],
+      "id": "1b356c87-2eb6-4c16-987a-fb18c698cd5f",
+      "name": "OpenAI4",
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "documentId",
+              "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k"
+            },
+            {
+              "name": "sheetId",
+              "value": "1597077839"
+            },
+            {
+              "name": "fileName",
+              "value": "sales.txt"
+            },
+            {
+              "name": "filterDate",
+              "value": "2025-01-01"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cd02bca6-1f36-4912-b785-34999083f427",
+      "name": "sales",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -3940,
+        220
+      ],
+      "typeVersion": 2,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "resource": "assistant",
+        "operation": "update",
+        "assistantId": {
+          "__rl": true,
+          "value": "asst_QyhTejkE6fUOg4SlX816tAmb",
+          "mode": "list",
+          "cachedResultName": "Button_chat"
+        },
+        "options": {
+          "file_ids": "={{ $json.output }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -2440,
+        -560
+      ],
+      "id": "881bca3f-2bc0-40f4-9eea-ecb966568ac4",
+      "name": "OpenAI6",
+      "executeOnce": false,
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "documentId",
+              "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k"
+            },
+            {
+              "name": "sheetId",
+              "value": "1769905694"
+            },
+            {
+              "name": "fileName",
+              "value": "sklad.json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e0d4be3d-d33a-453b-a654-6d5d06ab12f6",
+      "name": "sklad",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -3200,
+        760
+      ],
+      "typeVersion": 2,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "documentId",
+              "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k"
+            },
+            {
+              "name": "sheetId",
+              "value": "1017432404"
+            },
+            {
+              "name": "fileName",
+              "value": "basket.json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "90ec07c5-4303-4b64-80f3-c893cb768ac6",
+      "name": "basket",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -3200,
+        960
+      ],
+      "typeVersion": 2,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.documentId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.sheetId }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2980,
+        760
+      ],
+      "id": "b5ceb9d6-547e-48ce-9e98-efa86854263a",
+      "name": "Google Sheets4",
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.documentId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.sheetId }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2980,
+        960
+      ],
+      "id": "f055b714-eb2d-4aa3-a1a0-8e2f58ba20bc",
+      "name": "Google Sheets5",
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {
+          "fileName": "={{ $('sklad').item.json.fileName }}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -2760,
+        760
+      ],
+      "id": "bc3f3cd7-0f2b-4ec8-a247-6ec535247a50",
+      "name": "Convert to File2",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {
+          "fileName": "={{ $('basket').item.json.fileName }}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -2760,
+        960
+      ],
+      "id": "3b2413d2-1128-4333-ac39-6eb231301b83",
+      "name": "Convert to File4",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 21
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -3120,
+        -420
+      ],
+      "id": "f70dd3dc-1fa3-463d-8404-94456bdd739e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -2320,
+        860
+      ],
+      "id": "5803d2c7-6b2b-4acd-8e66-d011676375db",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -2540,
+        760
+      ],
+      "id": "c19dc6e6-1727-4af1-a4b4-bf3b806d9845",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -2540,
+        960
+      ],
+      "id": "573cdb8a-daa5-42ec-904d-c63761d4cf47",
+      "name": "OpenAI7",
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lvoop over input items and add a new field called 'myNewField' to the JSON of each one\nvar output=[]\n//  console.log($input.all())\nvar i=0\nfor (const item of $input.all()) {\n  output[i]=$input.all()[i].json.id.toString()\n  i=i+1\n //output.push(item.json.id.toString());\n}\n\nreturn {output}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2660,
+        -520
+      ],
+      "id": "e533f3be-a442-41a9-a594-b154da97c9cc",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "resource": "assistant",
+        "operation": "update",
+        "assistantId": {
+          "__rl": true,
+          "value": "asst_QyhTejkE6fUOg4SlX816tAmb",
+          "mode": "list",
+          "cachedResultName": "Button_chat"
+        },
+        "options": {
+          "codeInterpreter": true,
+          "instructions": "=Reply in Rusian.\nТы - аналитик и маркектолог в области продаж с огромрным опытом работы в сфере производства и реализации одежды. Вопрос нужно обработать,, используя глубокую аналитику в сфере прордаж и маркетинга. \nФактуру для ответа нужно брать  ТОЛЬКО из google sheet. Данныые нельзя искажать или придумывать. Даннае вне фактуры должны быть предоставлены только на основании аналитической проработки с необходимвм обоснованием.\nВся информация по продажам, товаре на складе и так далее хранится в прикрепленных файлах с идентификаторами (File ID):\n{{ $json.output }}.\nеред  тем как начать анализировать ответ, загрузи данные из этих файлов и обнови рабочую память.\nВот структура файлов:\nфайл sales.json - все продажи с суммами и наименованием товара, количества продаж\nфайл basket.json  - фиксация факта продажи (объединение товаров в корзины) по времени\nфайл sklad.json  - весь перечень товара, включая товар на складе и  уже распроданный товар.\n\nЛист   sales содержит поля:\ndate - дата продажи\ntime - время продажи\nmonth - месяц продажи\t\nyear - год продажи\nweekday - день недели продажи\narticle - уникальный артикуль товара\nBrand - название бренда (наш собственный бренд называется BOUTTON ROUGE, все остальные бренды - это поставщики, у которых мы взяли товар на реализацию)\nName - название товара\ntype - тип товара\nsubtype - подтип товара\ncolor - цвет изделия\nsize - размер изделия\nпроизводитель - кто отшил изделие\nprice - цена на ценнике\ndiscount_Fix - фиксированная скидка, которую дал продавец при продаже\ndiscount_% - скидка в процентах, которую дал продавец при продаже\nComments - комментарий, который оставил\tпродавец при продаже \nfinalPrice - финальная сумма продажи с учетом скидки в валюте оплаты\nfinalPriceVND - финальная сумма продажи с учетом скидки во вьетнамских донгах\ncurs - курс по которому была конвертация во вьетнамские донги, если оплата была в другой валюте\ncurrency - наименование валюты\nusername - имя продавца\npaymentmethod - способ оплаты (cash, terminal, transfer)\nsalary - зарплата продавцу\nbasketid - идентификатор корзины из файла bascket.html)\nTerminal - процент, вычитаемый при оплате через терминал\namount to supplier - сумма, которую нужно заплатить поставщику в случае если продан бренд не BUTTON ROUGE\nПрибыль - итоговая прибыль с учетом всех условий продаж\ndone - факт оплаты поставщику\ndescription - более развернутое наименование товара"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -2200,
+        -580
+      ],
+      "id": "5b8cb7b9-123e-4012-a684-f570c5168e84",
+      "name": "OpenAI9",
+      "executeOnce": false,
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot7761618800:AAE3tzJqgXIsNxyHjnX58_S1sIfpqffFqT4/setWebhook?url=https://buttonrouge.org/n8n/webhook/hook",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2920,
+        -780
+      ],
+      "id": "a69920ae-e08d-4242-be27-abc95ca236b0",
+      "name": "SetWebhook-prod1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot7761618800:AAE3tzJqgXIsNxyHjnX58_S1sIfpqffFqT4/setWebhook?url=https://buttonrouge.org/n8n/webhook-test/hook",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2220,
+        -780
+      ],
+      "id": "84325a36-abac-407c-99cd-86ca6b46a7a4",
+      "name": "SetWebhook-test"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -4560,
+        -400
+      ],
+      "id": "6272646b-9858-4908-98d0-d506edb90a1a",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.openai.com/v1/vector_stores/{{ $json.vector_store_id }}/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4060,
+        -1120
+      ],
+      "id": "dd29f012-9edc-4b3d-8af4-3270021464af",
+      "name": "get files from vector store",
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://api.openai.com/v1/vector_stores/{{ $json.data.vector_store_id }}/files/{{ $json.data.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3640,
+        -1120
+      ],
+      "id": "fd73dd4a-e122-4f6c-9f22-6e3f1ec29fdd",
+      "name": "delete files from vector store1",
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1860,
+        220
+      ],
+      "id": "02e0a8b1-bbd8-4b0a-9f03-547f5e62fc9b",
+      "name": "OpenAI2",
+      "retryOnFail": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.openai.com/v1/vector_stores/{{ $json.vector_store_id }}/files\n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "OpenAI-Beta",
+              "value": "assistants=v2"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "file_id",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1820,
+        760
+      ],
+      "id": "e7e9604e-898f-4bdd-aea2-5d22cf9cb099",
+      "name": "update vector store",
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "include": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -3860,
+        -1120
+      ],
+      "id": "1ad87cb7-0f77-4c08-b728-2bae6017c11d",
+      "name": "Split Out",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -2660,
+        -760
+      ],
+      "id": "24b676c9-f99c-418f-ba4c-de36f7e1adfb",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "  const startDate = new Date($input.first().json.filterDate); // Your start date\n  const dateObjects = getDateObjects(startDate);\nreturn dateObjects\n\n\nfunction getDateObjects(startDate) {\n  const dateObjects = [];\n  const currentDate = new Date();\n  \n  // Validate input\n  if (!(startDate instanceof Date) || isNaN(startDate)) {\n    throw new Error('Invalid start date');\n  }\n  \n  // Clone the date to avoid modifying the original\n  let date = new Date(startDate);\n  \n  // Format as dd.mm.yyyy\n  const formatDate = (d) => {\n    const day = String(d.getDate()).padStart(2, '0');\n    const month = String(d.getMonth() + 1).padStart(2, '0');\n    const year = d.getFullYear();\n    return `${day}.${month}.${year}`;\n    //return `${year}-${month}-${day}`;\n  };\n  \n  // Create objects for each date\n  while (date <= currentDate) {\n    dateObjects.push({\n      date: formatDate(date),\n      // You can add other properties here if needed\n      // example: dayOfWeek: date.getDay(),\n      //          isWeekend: [0,6].includes(date.getDay())\n    });\n    date.setDate(date.getDate() + 1);\n  }\n  \n  return dateObjects;\n}\n\n// Example usage:\n\n\n\n\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3700,
+        220
+      ],
+      "id": "c3cb7e60-45e7-4d89-8234-b641136e0d7c",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Если пользователь попросил добавить расход бюджета, нужно добавить новую строку, указав сумму расхода, коорую сообщил пользовательу ",
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 483531340,
+          "mode": "list",
+          "cachedResultName": "accounting",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1C4D4tPQ7fJDcjxQTZxt7AmwTv5MhdON5v8giZUWHLPs/edit#gid=483531340"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "Дата",
+              "displayName": "Дата",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Время",
+              "displayName": "Время",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Вид",
+              "displayName": "Вид",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Тип",
+              "displayName": "Тип",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Сумма",
+              "displayName": "Сумма",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Бюджет",
+              "displayName": "Бюджет",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Статья расходов",
+              "displayName": "Статья расходов",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Год",
+              "displayName": "Год",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Месяц",
+              "displayName": "Месяц",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Комментарий",
+              "displayName": "Комментарий",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PaymentCashRegister",
+              "displayName": "PaymentCashRegister",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "countInBudget",
+              "displayName": "countInBudget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        -3760,
+        -40
+      ],
+      "id": "7c872a1b-00db-4a39-9314-3d79498488b5",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "WhIBbNPzGBQ8PvMw",
+          "mode": "list",
+          "cachedResultName": "Button_Settings"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -2140,
+        860
+      ],
+      "id": "823af326-138e-448c-a395-5f0e5c0537cb",
+      "name": "Button_Settings"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "WhIBbNPzGBQ8PvMw",
+          "mode": "list",
+          "cachedResultName": "Button_Settings"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -3560,
+        800
+      ],
+      "id": "e494679c-d3ae-48d6-9f7d-c1b8ac286931",
+      "name": "Button_Settings1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "WhIBbNPzGBQ8PvMw",
+          "mode": "list",
+          "cachedResultName": "Button_Settings"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -4280,
+        -1000
+      ],
+      "id": "88ee6a72-9ca9-48f5-b40c-324d0f7ed61d",
+      "name": "Button_Settings2"
+    },
+    {
+      "parameters": {
+        "content": "Очистка  vector store\n",
+        "height": 460,
+        "width": 1400,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -4580,
+        -1180
+      ],
+      "id": "d00dae01-f041-4b32-987e-484c5e57df39",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "dataToSave": {
+          "values": [
+            {
+              "key": "=out",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executionData",
+      "typeVersion": 1,
+      "position": [
+        -3120,
+        -80
+      ],
+      "id": "98f49a54-7cfd-44ba-b69e-02d306fd05fe",
+      "name": "Execution Data"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "list",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -4060,
+        -900
+      ],
+      "id": "05307ea8-57a2-4fae-8dd9-4e07b966e453",
+      "name": "OpenAI5",
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1780,
+        580
+      ],
+      "id": "59f4eeee-0d8a-4a17-be08-ea49ef658d51",
+      "name": "Wait1",
+      "webhookId": "b895375f-69bf-4f43-9bbf-9fd7be6ec2bc"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "WhIBbNPzGBQ8PvMw",
+          "mode": "list",
+          "cachedResultName": "Button_Settings"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -4180,
+        -520
+      ],
+      "id": "48c98c0e-fbbc-4a5f-8360-3c3a199543d7",
+      "name": "Button_Settings3"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.openai.com/v1/assistants/{{ $json.assistant_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "OpenAI-Beta",
+              "value": "assistants=v2"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3780,
+        -580
+      ],
+      "id": "b7fca3dc-1e21-4aaa-8359-97f434cfba26",
+      "name": "HTTP Request",
+      "credentials": {
+        "openAiApi": {
+          "id": "xjvmObX8ODb6V7ye",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const lines = $('Google Sheets2').all().map((item, index) => {\n  const j = item.json;\n\n  const entryLines = [`Запись ${index + 1}:`];\n\n  for (const [key, value] of Object.entries(j)) {\n    entryLines.push(`- ${key}: ${value ?? \"не указано\"}`);\n  }\n\n  return entryLines.join('\\n');\n});\n\nreturn [{\n  json: {\n    text: lines.join('\\n\\n') // Разделение между записями\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2540,
+        160
+      ],
+      "id": "c99a12ed-0216-4408-b9f4-4633a76b4e2b",
+      "name": "Code3"
+    }
+  ],
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execution Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets2": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sales": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI4": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI3": {
+      "main": [
+        []
+      ]
+    },
+    "sklad": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "basket": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets4": {
+      "main": [
+        [
+          {
+            "node": "Convert to File2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets5": {
+      "main": [
+        [
+          {
+            "node": "Convert to File4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File2": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File4": {
+      "main": [
+        [
+          {
+            "node": "OpenAI7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI6": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI7": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Button_Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        []
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "sales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI9": {
+      "main": [
+        []
+      ]
+    },
+    "get files from vector store": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "delete files from vector store1": {
+      "main": [
+        []
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "delete files from vector store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        []
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Button_Settings": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Button_Settings2": {
+      "main": [
+        [
+          {
+            "node": "get files from vector store",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "OpenAI5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI5": {
+      "main": [
+        [
+          {
+            "node": "OpenAI3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update vector store": {
+      "main": [
+        []
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "update vector store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Button_Settings3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        []
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "9b1c0e87-e967-4cd3-a69c-9db1f429aa79",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2025-05-12T13:23:35.487Z",
+      "createdAt": "2025-05-12T13:23:35.487Z",
+      "role": "workflow:owner",
+      "workflowId": "ctS2yQ9DRLM5d3Gl",
+      "projectId": "Cbzeqxofr5KXht6P",
+      "project": {
+        "updatedAt": "2025-03-07T10:59:25.834Z",
+        "createdAt": "2025-03-05T10:47:17.258Z",
+        "id": "Cbzeqxofr5KXht6P",
+        "name": "Алексей Мурыгин <l.murygin@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-03-05T10:47:17.259Z",
+            "createdAt": "2025-03-05T10:47:17.259Z",
+            "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+            "projectId": "Cbzeqxofr5KXht6P",
+            "user": {
+              "updatedAt": "2026-03-13T07:53:40.000Z",
+              "createdAt": "2025-03-05T10:47:16.542Z",
+              "id": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+              "email": "l.murygin@gmail.com",
+              "firstName": "Алексей",
+              "lastName": "Мурыгин",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "rVWIEki714lPBFxf",
+                "userActivatedAt": 1741418880091,
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-13",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

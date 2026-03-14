@@ -1,0 +1,238 @@
+{
+  "updatedAt": "2025-04-25T05:35:33.000Z",
+  "createdAt": "2025-04-25T05:32:11.733Z",
+  "id": "VQqCy60thr6dzBum",
+  "name": "Read logs",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        -80
+      ],
+      "id": "3acacd68-2b74-4870-880e-570bac253542",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "command": "=git clone https://github.com/alexmou/python /home/l_murygin/{{ $json.version }}"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        -80
+      ],
+      "id": "ee2a47a5-fcd7-4740-b5fb-bfb1e9b9bbd1",
+      "name": "Git clone",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7048f07e-e7ae-4350-8dd0-10a904be1a24",
+              "name": "homePath",
+              "value": "/home/l_murygin/",
+              "type": "string"
+            },
+            {
+              "id": "0d21403a-09b0-481b-be40-ca28e9868479",
+              "name": "version",
+              "value": "p4",
+              "type": "string"
+            },
+            {
+              "id": "787efd58-718f-4b31-bf29-c9fa8d070778",
+              "name": "=logsPath",
+              "value": "={{$parameter.assignments.values()[0][0].value}}{{$parameter.assignments.values()[0][1].value}}/data/logs",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        -260
+      ],
+      "id": "e5e52b22-2198-442d-9ea5-3171b9f29de9",
+      "name": "Global settings"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d267530a-cf1a-4c00-98a6-cfaf62af4856",
+              "name": "channels",
+              "value": "[\"nyachang1\"]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -220,
+        -240
+      ],
+      "id": "4d98cf46-d4e3-4df8-841a-26dff8e68fdb",
+      "name": "Channels"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "channels",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        40,
+        -240
+      ],
+      "id": "8c8b97d2-363c-487c-ae11-9a300a7631e6",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $('Global settings').item.json.logsPath }}{{ $('Channels').item.json.channels }}.log",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -240
+      ],
+      "id": "1166b124-e676-4cd0-8356-69189ff527db",
+      "name": "Read log"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Global settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Git clone": {
+      "main": [
+        [
+          {
+            "node": "Channels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Global settings": {
+      "main": [
+        [
+          {
+            "node": "Git clone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Channels": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Read log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "ee41c8e3-d2af-45cb-a235-4e1702e3f6f7",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2025-04-25T05:32:11.742Z",
+      "createdAt": "2025-04-25T05:32:11.742Z",
+      "role": "workflow:owner",
+      "workflowId": "VQqCy60thr6dzBum",
+      "projectId": "Cbzeqxofr5KXht6P",
+      "project": {
+        "updatedAt": "2025-03-07T10:59:25.834Z",
+        "createdAt": "2025-03-05T10:47:17.258Z",
+        "id": "Cbzeqxofr5KXht6P",
+        "name": "Алексей Мурыгин <l.murygin@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-03-05T10:47:17.259Z",
+            "createdAt": "2025-03-05T10:47:17.259Z",
+            "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+            "projectId": "Cbzeqxofr5KXht6P",
+            "user": {
+              "updatedAt": "2026-03-13T07:53:40.000Z",
+              "createdAt": "2025-03-05T10:47:16.542Z",
+              "id": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+              "email": "l.murygin@gmail.com",
+              "firstName": "Алексей",
+              "lastName": "Мурыгин",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "rVWIEki714lPBFxf",
+                "userActivatedAt": 1741418880091,
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-13",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

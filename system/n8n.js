@@ -5,6 +5,43 @@ function getRuntimeEnv() {
   return window.APP_ENV || window.RUNTIME_ENV || window.APP_CONFIG || {};
 }
 
+function getRuntimeQueryParam(name) {
+  try {
+    const params = new URLSearchParams(window.location.search || "");
+    return params.get(name) || "";
+  } catch (_) {
+    return "";
+  }
+}
+
+function normalizeN8nBaseUrl(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  return raw.replace(/\/+(webhook(?:-test)?\/?)?$/i, "").replace(/\/+$/, "");
+}
+
+function resolveN8nBaseUrl() {
+  const env = getRuntimeEnv();
+  const configured =
+    env.n8nBaseUrl ||
+    env.N8N_BASE_URL ||
+    env.n8nHost ||
+    env.N8N_HOST ||
+    env.webhookBaseUrl ||
+    env.WEBHOOK_BASE_URL ||
+    getRuntimeQueryParam("n8nBaseUrl") ||
+    getRuntimeQueryParam("n8nHost");
+
+  const normalizedConfigured = normalizeN8nBaseUrl(configured);
+  if (normalizedConfigured) return normalizedConfigured;
+
+  if (window.location && window.location.origin) {
+    return `${window.location.origin}/n8n`;
+  }
+
+  return "https://buttonrouge.org/n8n";
+}
+
 function normalizeWebhookMode(value) {
   if (value === undefined || value === null) return "";
   const mode = String(value).trim().toLowerCase();
@@ -36,11 +73,14 @@ function resolveWebhookMode(explicitMode) {
 
 function getWebHook(mode) {
   const resolvedMode = resolveWebhookMode(mode);
+  const n8nBaseUrl = resolveN8nBaseUrl();
   if (resolvedMode === "test") {
-    WEBHOOK = 'https://buttonrouge.org/n8n/webhook-test/';
+    WEBHOOK = `${n8nBaseUrl}/webhook-test/`;
   } else {
-    WEBHOOK = 'https://buttonrouge.org/n8n/webhook/';
+    WEBHOOK = `${n8nBaseUrl}/webhook/`;
   }
+  window.N8N_WEBHOOK_BASE = WEBHOOK;
+  window.N8N_BASE_URL = n8nBaseUrl;
   return WEBHOOK;
 }
 

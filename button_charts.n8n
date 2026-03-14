@@ -1,0 +1,2081 @@
+{
+  "updatedAt": "2026-02-21T14:59:04.833Z",
+  "createdAt": "2025-06-28T20:50:55.131Z",
+  "id": "VSQwF8modN3kIuz9",
+  "name": "button/charts",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "text": "хороший магазин  но я бы не пошел туда с тещей, она дура",
+        "requestedAttributesUi": {
+          "requestedAttributesValues": [
+            {
+              "attributeName": "insult"
+            }
+          ]
+        },
+        "options": {
+          "languages": "ru"
+        }
+      },
+      "type": "n8n-nodes-base.googlePerspective",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        2064
+      ],
+      "id": "4bbc5767-0291-4ee2-af01-f696638ac3c9",
+      "name": "Google Perspective",
+      "credentials": {
+        "googlePerspectiveOAuth2Api": {
+          "id": "PPCEhmmQpMpufh39",
+          "name": "Google Perspective account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "\t\nA rude, disrespectful, or unreasonable comment that is likely to make people leave a discussion.\n\nArabic (ar), Chinese (zh), Czech (cs), Dutch (nl), English (en), French (fr), German (de), Hindi (hi), Hinglish (hi-Latn), Indonesian (id), Italian (it), Japanese (ja), Korean (ko), Polish (pl), Portuguese (pt), Russian (ru), Spanish (es)\n\nSEVERE_TOXICITY\n\nA very hateful, aggressive, disrespectful comment or otherwise very likely to make a user leave a discussion or give up on sharing their perspective. This attribute is much less sensitive to more mild forms of toxicity, such as comments that include positive uses of curse words.\n\nde, en, es, fr, it, pt, ru\n\nIDENTITY_ATTACK\n\nNegative or hateful comments targeting someone because of their identity.\n\nde, en, es, fr, it, pt, ru \n\nINSULT\n\nInsulting, inflammatory, or negative comment towards a person or a group of people.\n\nde, en, es, fr, it, pt, ru\n\nPROFANITY\n\nSwear words, curse words, or other obscene or profane language.\n\nde, en, es, fr, it, pt, ru\n\nTHREAT\n\nDescribes an intention to inflict pain, injury, or violence against an individual or group.\n\nde, en, es, fr, it, pt, ru",
+        "height": 480
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        432
+      ],
+      "id": "cee8e078-9e2d-4b42-aac9-d48d126d9d1f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-globals.globalConstants",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        2576
+      ],
+      "id": "fd5f4b70-6050-42e5-875d-e3e5fa4f0245",
+      "name": "Global Constants",
+      "credentials": {
+        "globalConstantsApi": {
+          "id": "KrO4vlVCV8z6txE7",
+          "name": "Global Constants account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1597077839,
+          "mode": "list",
+          "cachedResultName": "Sales",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=1597077839"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -960,
+        -16
+      ],
+      "id": "7cce1bdd-00f3-4142-9c98-077f29b7a47f",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "sum",
+              "field": "finalPriceVND"
+            },
+            {
+              "aggregation": "sum",
+              "field": "price"
+            },
+            {
+              "field": "article"
+            },
+            {
+              "aggregation": "countUnique",
+              "field": "type"
+            },
+            {
+              "aggregation": "countUnique",
+              "field": "Brand"
+            },
+            {
+              "aggregation": "sum",
+              "field": "Profit"
+            },
+            {
+              "aggregation": "sum",
+              "field": "amount to supplier"
+            }
+          ]
+        },
+        "fieldsToSplitBy": " month_year , store",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        160
+      ],
+      "id": "d2fc99b1-eed9-49cc-afcc-fdc228bee0dc",
+      "name": "Summarize"
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1184,
+        1216
+      ],
+      "id": "bc3a86b4-c4ab-4c89-8ab4-3df22b414c93",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const EXCLUDE_FIELDS = ['row_number', 'dateConverted'];\n\nconst data = $input.all().map(item => item.json);\n\nconst allValues = data.map(obj => {\n  const filteredObj = Object.fromEntries(\n    Object.entries(obj).filter(([key]) => !EXCLUDE_FIELDS.includes(key))\n  );\n  return Object.values(filteredObj);\n});\n\nreturn [\n  {\n    json: {\n      values: allValues\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1408,
+        2320
+      ],
+      "id": "7ab80fad-3b66-49a8-870d-b859a9543d82",
+      "name": "json to array"
+    },
+    {
+      "parameters": {
+        "path": "charts",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "ALL"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1424,
+        -208
+      ],
+      "id": "5776db96-1c6b-4fc6-89cc-ef62b5b16caf",
+      "name": "Webhook",
+      "webhookId": "1057c578-37d9-47cf-83ac-be20b4df0b5c"
+    },
+    {
+      "parameters": {
+        "content": "const labels=[\"май\", \"июнь\", \"июль\", \"август\"]\nconst dataLabels=[\"Boho\", \"Urban\"]\nconst data=[ [234, 345, 567, 568],[233, 566, 234, 766]]\ncreateChart('bar',labels, data, 'Solar Panels');",
+        "height": 100,
+        "width": 780,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -688
+      ],
+      "id": "1ae4328c-b6ad-4906-a193-6ed30daa9fc3",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "store"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        1536
+      ],
+      "id": "f1101acb-6fa7-45d9-b1ff-57310d511c50",
+      "name": "stores"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "sum_finalPriceVND",
+              "renameField": true,
+              "outputFieldName": "finalPriceVND"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        944
+      ],
+      "id": "7c640eb6-5a92-4dff-b4d6-36647bf876d3",
+      "name": "sum_finalPriceVND"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        1024,
+        -16
+      ],
+      "id": "c2b708da-bb1a-4d1d-87a3-9d85d8b4144c",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  let monthName;\n  const monthNum = item.json.month.toString();\n  \n  switch (monthNum) {\n    case '1':\n      monthName = 'Янв';\n      break;\n    case '2':\n      monthName = 'Фев';\n      break;\n    case '3':\n      monthName = 'Мар';\n      break;\n    case '4':\n      monthName = 'Апр';\n      break;\n    case '5':\n      monthName = 'Май';\n      break;\n    case '6':\n      monthName = 'Июн';\n      break;\n    case '7':\n      monthName = 'Июл';\n      break;\n    case '8':\n      monthName = 'Авг';\n      break;\n    case '9':\n      monthName = 'Сен';\n      break;\n    case '10':\n      monthName = 'Окт';\n      break;\n    case '11':\n      monthName = 'Ноя';\n      break;\n    case '12':\n      monthName = 'Дек';\n      break;\n    default:\n      monthName = 'Некорректный месяц';\n  }\n\n  item.json.month_year = `${monthName} ${item.json.year.toString()}`;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        -16
+      ],
+      "id": "b8f4113a-4abe-45a5-a6c3-aef37af7483b",
+      "name": "Добавляем month_year"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "store"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        688
+      ],
+      "id": "18c20b97-28ca-41fb-99aa-ed3f51bccf10",
+      "name": "stores2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "month_year, store",
+        "joinMode": "enrichInput1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        592,
+        -16
+      ],
+      "id": "ed45337e-560d-48c8-8161-2bd76e07a750",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "month_year",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -304
+      ],
+      "id": "42f55783-ea3b-4266-932e-7682ac1debfe",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "store",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        144,
+        -16
+      ],
+      "id": "72dbbb5b-9bfe-4ced-85b0-2e7461901fc7",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        368,
+        -128
+      ],
+      "id": "b994cf09-93be-4ec7-bace-12294532857b",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "month_year",
+        "options": {
+          "removeOtherFields": false
+        }
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -224
+      ],
+      "id": "574cfe9f-e5f2-4541-a29c-9a59c5a7b8aa",
+      "name": "Уникальные значения для месяцев"
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "store",
+        "options": {
+          "removeOtherFields": false
+        }
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        -16
+      ],
+      "id": "570c07d9-60e7-439f-a714-afffe8802cef",
+      "name": "Уникальные значения для названий магазинов"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "00e683d7-b313-4396-b1e1-7fb38b3e8494",
+              "name": "sum_finalPriceVND",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "9ee1e8c7-d442-4936-b584-9d5ea6e748d1",
+              "name": "sum_price",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        144,
+        -224
+      ],
+      "id": "32d1813f-82f3-497b-88ee-9f2381c7e705",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "month_year"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        1344
+      ],
+      "id": "1ef9235b-34f3-4f13-9ef5-e6baf8e97be6",
+      "name": "month_year"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "sum_price",
+              "renameField": true,
+              "outputFieldName": "price"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        1136
+      ],
+      "id": "aa1a539b-0a6e-4621-951d-378433d7fc2c",
+      "name": "sum_price"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f7ebd2c9-ae5a-41ab-ae8f-cf1a1c61d5c4",
+              "name": "",
+              "value": "={{ $('Webhook').item.json.query.data.parseJson().query.groupByField\n\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1408,
+        416
+      ],
+      "id": "5e73e7ae-8f2c-46cd-9351-a0d0ae619556",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- настройка ------------------------\n\n            \n var FIELD\nif( $('Webhook').isExecuted) {\n  FIELD = JSON.parse($('Webhook').item.json.query.data).query.groupByField\n} else\n{\n  FIELD = \"store\"\n}\n\n// Run Once for All Items\nconst groups = {};\nfor (const item of $input.all()) {\n  const key = item.json[FIELD];              // динамическое обращение\n  (groups[key] ??= []).push(item.json);      // сохраняем полную запись\n}\n\n// превращаем группы в выходные items\nreturn Object.entries(groups).map(([key, items]) => ({\n  json: { [FIELD]: key, items }              // ключ создаётся через [] \n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        -16
+      ],
+      "id": "b0a2a60b-4dc0-4d1f-bbc6-a9bbf7a51b86",
+      "name": "группируем по полю из запроса"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "=finalPriceVND",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        1808
+      ],
+      "id": "20d1cbb9-7eaa-443c-876f-3593afae0817",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -96,
+        -480
+      ],
+      "id": "582b37af-209e-4cd6-b8ba-9a1cd2ef6302",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
+                    "rightValue": "getChartsData",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "50880f5c-2526-4969-9728-daa1323817a4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getChartsData"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9628cbfb-7a94-4ab1-9f5b-a5e15037c27a",
+                    "leftValue": "={{ $json.query.action }}",
+                    "rightValue": "getChartsSummary",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=getChartsSummary"
+            }
+          ]
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1200,
+        -208
+      ],
+      "id": "d328c55d-b637-4a36-9706-8ecf0002681e",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ JSON.parse($('Webhook').item.json.query.data).query.groupByField }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "empty",
+                      "singleValue": true
+                    },
+                    "id": "50880f5c-2526-4969-9728-daa1323817a4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "No group"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0e500b0e-fe9d-4597-87eb-7d6061c6717f",
+                    "leftValue": "={{ JSON.parse($('Webhook').item.json.query.data).query.groupByField }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GroupByField"
+            }
+          ]
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -528,
+        -16
+      ],
+      "id": "2ecbcd9b-480f-410e-9662-1366d9cfeadc",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "year"
+            },
+            {
+              "fieldName": "month"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        -336
+      ],
+      "id": "25354ee0-d846-4c1a-bb29-cd6577615e09",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "year"
+            },
+            {
+              "fieldName": "month"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        192
+      ],
+      "id": "eda9a552-27ce-4b43-9de0-4a8512a12e70",
+      "name": "Sort1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"dateISO\": \"2026-02-21\",\n  \"today\": {\n    \"dateISO\": \"2026-02-21\",\n    \"rows\": [\n      { \"brand\": \"BUTTON ROUGE\", \"count\": 10, \"revenue\": 8930000, \"profit\": 8508740 },\n      { \"brand\": \"CULT accessories\", \"count\": 1, \"revenue\": 250000, \"profit\": 75000 },\n      { \"brand\": \"Linh Vu\", \"count\": 4, \"revenue\": 3950000, \"profit\": 1166300 }\n    ]\n  },\n  \"month\": {\n    \"monthISO\": \"2026-02\",\n    \"cards\": [\n      {\n        \"title\": \"Доход текущий месяц\",\n        \"tone\": \"green\",\n        \"total\": 303123000,\n        \"items\": [\n          { \"label\": \"От BUTTON ROUGE\", \"value\": 188075000 },\n          { \"label\": \"От других брендов\", \"value\": 115048000 }\n        ]\n      },\n      {\n        \"title\": \"Расходы\",\n        \"tone\": \"red\",\n        \"total\": 98027138,\n        \"items\": [\n          { \"label\": \"Терминал\", \"value\": 1816458 },\n          { \"label\": \"Поставщикам (не оплачено)\", \"value\": 77017250 },\n          { \"label\": \"Долг (нач. месяца)\", \"value\": 8621000 },\n          { \"label\": \"Тек. месяц\", \"value\": 68396250 },\n          { \"label\": \"Оплачено\", \"value\": 0 }\n        ]\n      },\n      {\n        \"title\": \"Зарплата сотрудникам\",\n        \"tone\": \"red\",\n        \"total\": 19193430,\n        \"items\": [\n          { \"label\": \"Фикс\", \"value\": 7350000 },\n          { \"label\": \"Проценты\", \"value\": 11843430 }\n        ]\n      },\n      { \"title\": \"Выручка\", \"tone\": \"green\", \"total\": 205095862 },\n      {\n        \"title\": \"Прибыль текущего месяца (без фикс. зарплаты)\",\n        \"tone\": \"purple\",\n        \"total\": 216515910\n      }\n    ]\n  }\n}\n",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        -1056,
+        160
+      ],
+      "id": "9151bcee-b97b-4481-88f9-311b07c01033",
+      "name": "Respond to Webhook2"
+    }
+  ],
+  "connections": {
+    "Global Constants": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Добавляем month_year",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stores": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "sum_finalPriceVND": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Добавляем month_year": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Уникальные значения для месяцев": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Уникальные значения для названий магазинов": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "группируем по полю из запроса",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "month_year": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "sum_price": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        []
+      ]
+    },
+    "группируем по полю из запроса": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Уникальные значения для месяцев",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Уникальные значения для названий магазинов",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sort1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort1": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "237769ae-7fa6-4815-ae2c-d4e45d6e44df",
+  "activeVersionId": "04dfa8d5-d5bb-4efd-937c-58f98adb4093",
+  "versionCounter": 11,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-06-28T20:50:55.137Z",
+      "createdAt": "2025-06-28T20:50:55.137Z",
+      "role": "workflow:owner",
+      "workflowId": "VSQwF8modN3kIuz9",
+      "projectId": "Cbzeqxofr5KXht6P",
+      "project": {
+        "updatedAt": "2025-03-07T10:59:25.834Z",
+        "createdAt": "2025-03-05T10:47:17.258Z",
+        "id": "Cbzeqxofr5KXht6P",
+        "name": "Алексей Мурыгин <l.murygin@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-03-05T10:47:17.259Z",
+            "createdAt": "2025-03-05T10:47:17.259Z",
+            "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+            "projectId": "Cbzeqxofr5KXht6P",
+            "user": {
+              "updatedAt": "2026-03-13T07:53:40.000Z",
+              "createdAt": "2025-03-05T10:47:16.542Z",
+              "id": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+              "email": "l.murygin@gmail.com",
+              "firstName": "Алексей",
+              "lastName": "Мурыгин",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "rVWIEki714lPBFxf",
+                "userActivatedAt": 1741418880091,
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-13",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-01-05T17:44:16.723Z",
+    "createdAt": "2026-01-05T17:44:16.723Z",
+    "versionId": "04dfa8d5-d5bb-4efd-937c-58f98adb4093",
+    "workflowId": "VSQwF8modN3kIuz9",
+    "nodes": [
+      {
+        "parameters": {
+          "text": "хороший магазин  но я бы не пошел туда с тещей, она дура",
+          "requestedAttributesUi": {
+            "requestedAttributesValues": [
+              {
+                "attributeName": "insult"
+              }
+            ]
+          },
+          "options": {
+            "languages": "ru"
+          }
+        },
+        "type": "n8n-nodes-base.googlePerspective",
+        "typeVersion": 1,
+        "position": [
+          -1400,
+          2055
+        ],
+        "id": "4bbc5767-0291-4ee2-af01-f696638ac3c9",
+        "name": "Google Perspective",
+        "credentials": {
+          "googlePerspectiveOAuth2Api": {
+            "id": "PPCEhmmQpMpufh39",
+            "name": "Google Perspective account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "content": "\t\nA rude, disrespectful, or unreasonable comment that is likely to make people leave a discussion.\n\nArabic (ar), Chinese (zh), Czech (cs), Dutch (nl), English (en), French (fr), German (de), Hindi (hi), Hinglish (hi-Latn), Indonesian (id), Italian (it), Japanese (ja), Korean (ko), Polish (pl), Portuguese (pt), Russian (ru), Spanish (es)\n\nSEVERE_TOXICITY\n\nA very hateful, aggressive, disrespectful comment or otherwise very likely to make a user leave a discussion or give up on sharing their perspective. This attribute is much less sensitive to more mild forms of toxicity, such as comments that include positive uses of curse words.\n\nde, en, es, fr, it, pt, ru\n\nIDENTITY_ATTACK\n\nNegative or hateful comments targeting someone because of their identity.\n\nde, en, es, fr, it, pt, ru \n\nINSULT\n\nInsulting, inflammatory, or negative comment towards a person or a group of people.\n\nde, en, es, fr, it, pt, ru\n\nPROFANITY\n\nSwear words, curse words, or other obscene or profane language.\n\nde, en, es, fr, it, pt, ru\n\nTHREAT\n\nDescribes an intention to inflict pain, injury, or violence against an individual or group.\n\nde, en, es, fr, it, pt, ru",
+          "height": 480
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          880,
+          100
+        ],
+        "id": "cee8e078-9e2d-4b42-aac9-d48d126d9d1f",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-globals.globalConstants",
+        "typeVersion": 1,
+        "position": [
+          -1400,
+          2575
+        ],
+        "id": "fd5f4b70-6050-42e5-875d-e3e5fa4f0245",
+        "name": "Global Constants",
+        "credentials": {
+          "globalConstantsApi": {
+            "id": "KrO4vlVCV8z6txE7",
+            "name": "Global Constants account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1597077839,
+            "mode": "list",
+            "cachedResultName": "Sales",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=1597077839"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.6,
+        "position": [
+          -960,
+          -20
+        ],
+        "id": "7cce1bdd-00f3-4142-9c98-077f29b7a47f",
+        "name": "Get row(s) in sheet",
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "fieldsToSummarize": {
+            "values": [
+              {
+                "aggregation": "sum",
+                "field": "finalPriceVND"
+              },
+              {
+                "aggregation": "sum",
+                "field": "price"
+              },
+              {
+                "field": "article"
+              },
+              {
+                "aggregation": "countUnique",
+                "field": "type"
+              },
+              {
+                "aggregation": "countUnique",
+                "field": "Brand"
+              },
+              {
+                "aggregation": "sum",
+                "field": "Profit"
+              },
+              {
+                "aggregation": "sum",
+                "field": "amount to supplier"
+              }
+            ]
+          },
+          "fieldsToSplitBy": " month_year , store",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.summarize",
+        "typeVersion": 1.1,
+        "position": [
+          360,
+          155
+        ],
+        "id": "d2fc99b1-eed9-49cc-afcc-fdc228bee0dc",
+        "name": "Summarize"
+      },
+      {
+        "parameters": {
+          "numberInputs": 4
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          -1180,
+          1214
+        ],
+        "id": "bc3a86b4-c4ab-4c89-8ab4-3df22b414c93",
+        "name": "Merge"
+      },
+      {
+        "parameters": {
+          "jsCode": "const EXCLUDE_FIELDS = ['row_number', 'dateConverted'];\n\nconst data = $input.all().map(item => item.json);\n\nconst allValues = data.map(obj => {\n  const filteredObj = Object.fromEntries(\n    Object.entries(obj).filter(([key]) => !EXCLUDE_FIELDS.includes(key))\n  );\n  return Object.values(filteredObj);\n});\n\nreturn [\n  {\n    json: {\n      values: allValues\n    }\n  }\n];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1400,
+          2315
+        ],
+        "id": "7ab80fad-3b66-49a8-870d-b859a9543d82",
+        "name": "json to array"
+      },
+      {
+        "parameters": {
+          "path": "charts",
+          "responseMode": "responseNode",
+          "options": {
+            "allowedOrigins": "*",
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "ALL"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -1420,
+          -200
+        ],
+        "id": "5776db96-1c6b-4fc6-89cc-ef62b5b16caf",
+        "name": "Webhook",
+        "webhookId": "1057c578-37d9-47cf-83ac-be20b4df0b5c"
+      },
+      {
+        "parameters": {
+          "content": "const labels=[\"май\", \"июнь\", \"июль\", \"август\"]\nconst dataLabels=[\"Boho\", \"Urban\"]\nconst data=[ [234, 345, 567, 568],[233, 566, 234, 766]]\ncreateChart('bar',labels, data, 'Solar Panels');",
+          "height": 100,
+          "width": 780,
+          "color": 6
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -160,
+          -680
+        ],
+        "id": "1ae4328c-b6ad-4906-a193-6ed30daa9fc3",
+        "name": "Sticky Note1"
+      },
+      {
+        "parameters": {
+          "fieldsToAggregate": {
+            "fieldToAggregate": [
+              {
+                "fieldToAggregate": "store"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -1400,
+          1535
+        ],
+        "id": "f1101acb-6fa7-45d9-b1ff-57310d511c50",
+        "name": "stores"
+      },
+      {
+        "parameters": {
+          "fieldsToAggregate": {
+            "fieldToAggregate": [
+              {
+                "fieldToAggregate": "sum_finalPriceVND",
+                "renameField": true,
+                "outputFieldName": "finalPriceVND"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -1400,
+          935
+        ],
+        "id": "7c640eb6-5a92-4dff-b4d6-36647bf876d3",
+        "name": "sum_finalPriceVND"
+      },
+      {
+        "parameters": {
+          "respondWith": "allIncomingItems",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.2,
+        "position": [
+          1020,
+          -20
+        ],
+        "id": "c2b708da-bb1a-4d1d-87a3-9d85d8b4144c",
+        "name": "Respond to Webhook1"
+      },
+      {
+        "parameters": {
+          "jsCode": "for (const item of $input.all()) {\n  let monthName;\n  const monthNum = item.json.month.toString();\n  \n  switch (monthNum) {\n    case '1':\n      monthName = 'Янв';\n      break;\n    case '2':\n      monthName = 'Фев';\n      break;\n    case '3':\n      monthName = 'Мар';\n      break;\n    case '4':\n      monthName = 'Апр';\n      break;\n    case '5':\n      monthName = 'Май';\n      break;\n    case '6':\n      monthName = 'Июн';\n      break;\n    case '7':\n      monthName = 'Июл';\n      break;\n    case '8':\n      monthName = 'Авг';\n      break;\n    case '9':\n      monthName = 'Сен';\n      break;\n    case '10':\n      monthName = 'Окт';\n      break;\n    case '11':\n      monthName = 'Ноя';\n      break;\n    case '12':\n      monthName = 'Дек';\n      break;\n    default:\n      monthName = 'Некорректный месяц';\n  }\n\n  item.json.month_year = `${monthName} ${item.json.year.toString()}`;\n}\n\nreturn $input.all();"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -740,
+          -20
+        ],
+        "id": "b8f4113a-4abe-45a5-a6c3-aef37af7483b",
+        "name": "Добавляем month_year"
+      },
+      {
+        "parameters": {
+          "fieldsToAggregate": {
+            "fieldToAggregate": [
+              {
+                "fieldToAggregate": "store"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -1400,
+          675
+        ],
+        "id": "18c20b97-28ca-41fb-99aa-ed3f51bccf10",
+        "name": "stores2"
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "fieldsToMatchString": "month_year, store",
+          "joinMode": "enrichInput1",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          580,
+          -20
+        ],
+        "id": "ed45337e-560d-48c8-8161-2bd76e07a750",
+        "name": "Merge1"
+      },
+      {
+        "parameters": {
+          "fieldToSplitOut": "month_year",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [
+          -80,
+          -220
+        ],
+        "id": "42f55783-ea3b-4266-932e-7682ac1debfe",
+        "name": "Split Out"
+      },
+      {
+        "parameters": {
+          "fieldToSplitOut": "store",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [
+          140,
+          -20
+        ],
+        "id": "72dbbb5b-9bfe-4ced-85b0-2e7461901fc7",
+        "name": "Split Out1"
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "combineBy": "combineAll",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          360,
+          -120
+        ],
+        "id": "b994cf09-93be-4ec7-bace-12294532857b",
+        "name": "Merge2"
+      },
+      {
+        "parameters": {
+          "compare": "selectedFields",
+          "fieldsToCompare": "month_year",
+          "options": {
+            "removeOtherFields": false
+          }
+        },
+        "type": "n8n-nodes-base.removeDuplicates",
+        "typeVersion": 2,
+        "position": [
+          -300,
+          -220
+        ],
+        "id": "574cfe9f-e5f2-4541-a29c-9a59c5a7b8aa",
+        "name": "Уникальные значения для месяцев"
+      },
+      {
+        "parameters": {
+          "compare": "selectedFields",
+          "fieldsToCompare": "store",
+          "options": {
+            "removeOtherFields": false
+          }
+        },
+        "type": "n8n-nodes-base.removeDuplicates",
+        "typeVersion": 2,
+        "position": [
+          -80,
+          -20
+        ],
+        "id": "570c07d9-60e7-439f-a714-afffe8802cef",
+        "name": "Уникальные значения для названий магазинов"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "00e683d7-b313-4396-b1e1-7fb38b3e8494",
+                "name": "sum_finalPriceVND",
+                "value": "",
+                "type": "string"
+              },
+              {
+                "id": "9ee1e8c7-d442-4936-b584-9d5ea6e748d1",
+                "name": "sum_price",
+                "value": "",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          140,
+          -220
+        ],
+        "id": "32d1813f-82f3-497b-88ee-9f2381c7e705",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "fieldsToAggregate": {
+            "fieldToAggregate": [
+              {
+                "fieldToAggregate": "month_year"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -1400,
+          1335
+        ],
+        "id": "1ef9235b-34f3-4f13-9ef5-e6baf8e97be6",
+        "name": "month_year"
+      },
+      {
+        "parameters": {
+          "fieldsToAggregate": {
+            "fieldToAggregate": [
+              {
+                "fieldToAggregate": "sum_price",
+                "renameField": true,
+                "outputFieldName": "price"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -1400,
+          1135
+        ],
+        "id": "aa1a539b-0a6e-4621-951d-378433d7fc2c",
+        "name": "sum_price"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f7ebd2c9-ae5a-41ab-ae8f-cf1a1c61d5c4",
+                "name": "",
+                "value": "={{ $('Webhook').item.json.query.data.parseJson().query.groupByField\n\n}}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -1400,
+          415
+        ],
+        "id": "5e73e7ae-8f2c-46cd-9351-a0d0ae619556",
+        "name": "Edit Fields1"
+      },
+      {
+        "parameters": {
+          "jsCode": "// --- настройка ------------------------\n\n            \n var FIELD\nif( $('Webhook').isExecuted) {\n  FIELD = JSON.parse($('Webhook').item.json.query.data).query.groupByField\n} else\n{\n  FIELD = \"store\"\n}\n\n// Run Once for All Items\nconst groups = {};\nfor (const item of $input.all()) {\n  const key = item.json[FIELD];              // динамическое обращение\n  (groups[key] ??= []).push(item.json);      // сохраняем полную запись\n}\n\n// превращаем группы в выходные items\nreturn Object.entries(groups).map(([key, items]) => ({\n  json: { [FIELD]: key, items }              // ключ создаётся через [] \n}));\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          800,
+          -20
+        ],
+        "id": "b0a2a60b-4dc0-4d1f-bbc6-a9bbf7a51b86",
+        "name": "группируем по полю из запроса"
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "destinationFieldName": "=finalPriceVND",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -1400,
+          1795
+        ],
+        "id": "20d1cbb9-7eaa-443c-876f-3593afae0817",
+        "name": "Aggregate"
+      },
+      {
+        "parameters": {
+          "respondWith": "allIncomingItems",
+          "options": {
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.2,
+        "position": [
+          -100,
+          -480
+        ],
+        "id": "582b37af-209e-4cd6-b8ba-9a1cd2ef6302",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
+                      "rightValue": "getChartsData",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "50880f5c-2526-4969-9728-daa1323817a4"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "getChartsData"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "0e500b0e-fe9d-4597-87eb-7d6061c6717f",
+                      "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
+                      "rightValue": "getChartsData",
+                      "operator": {
+                        "type": "string",
+                        "operation": "notEquals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Other"
+              }
+            ]
+          },
+          "options": {
+            "ignoreCase": true
+          }
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          -1200,
+          -200
+        ],
+        "id": "d328c55d-b637-4a36-9706-8ecf0002681e",
+        "name": "Switch"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ JSON.parse($('Webhook').item.json.query.data).query.groupByField }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "empty",
+                        "singleValue": true
+                      },
+                      "id": "50880f5c-2526-4969-9728-daa1323817a4"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "No group"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": false,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "0e500b0e-fe9d-4597-87eb-7d6061c6717f",
+                      "leftValue": "={{ JSON.parse($('Webhook').item.json.query.data).query.groupByField }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "notEmpty",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "GroupByField"
+              }
+            ]
+          },
+          "options": {
+            "ignoreCase": true
+          }
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          -520,
+          -20
+        ],
+        "id": "2ecbcd9b-480f-410e-9662-1366d9cfeadc",
+        "name": "Switch1"
+      },
+      {
+        "parameters": {
+          "sortFieldsUi": {
+            "sortField": [
+              {
+                "fieldName": "year"
+              },
+              {
+                "fieldName": "month"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.sort",
+        "typeVersion": 1,
+        "position": [
+          -140,
+          -340
+        ],
+        "id": "25354ee0-d846-4c1a-bb29-cd6577615e09",
+        "name": "Sort"
+      },
+      {
+        "parameters": {
+          "sortFieldsUi": {
+            "sortField": [
+              {
+                "fieldName": "year"
+              },
+              {
+                "fieldName": "month"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.sort",
+        "typeVersion": 1,
+        "position": [
+          -140,
+          180
+        ],
+        "id": "eda9a552-27ce-4b43-9de0-4a8512a12e70",
+        "name": "Sort1"
+      }
+    ],
+    "connections": {
+      "Global Constants": {
+        "main": [
+          []
+        ]
+      },
+      "Get row(s) in sheet": {
+        "main": [
+          [
+            {
+              "node": "Добавляем month_year",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Summarize": {
+        "main": [
+          [
+            {
+              "node": "Merge1",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge": {
+        "main": [
+          []
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "stores": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 3
+            }
+          ]
+        ]
+      },
+      "sum_finalPriceVND": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Добавляем month_year": {
+        "main": [
+          [
+            {
+              "node": "Switch1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split Out": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split Out1": {
+        "main": [
+          [
+            {
+              "node": "Merge2",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge2": {
+        "main": [
+          [
+            {
+              "node": "Merge1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Уникальные значения для месяцев": {
+        "main": [
+          [
+            {
+              "node": "Sort",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Уникальные значения для названий магазинов": {
+        "main": [
+          [
+            {
+              "node": "Split Out1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "Merge2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge1": {
+        "main": [
+          [
+            {
+              "node": "группируем по полю из запроса",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "month_year": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "sum_price": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 2
+            }
+          ]
+        ]
+      },
+      "Respond to Webhook1": {
+        "main": [
+          []
+        ]
+      },
+      "группируем по полю из запроса": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch": {
+        "main": [
+          [
+            {
+              "node": "Get row(s) in sheet",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          []
+        ]
+      },
+      "Switch1": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Уникальные значения для месяцев",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Уникальные значения для названий магазинов",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Sort1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Sort": {
+        "main": [
+          [
+            {
+              "node": "Split Out",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Sort1": {
+        "main": [
+          [
+            {
+              "node": "Summarize",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "system migration",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2025-08-07T09:37:06.000Z",
+        "id": 4,
+        "workflowId": "VSQwF8modN3kIuz9",
+        "versionId": "04dfa8d5-d5bb-4efd-937c-58f98adb4093",
+        "event": "activated",
+        "userId": null
+      }
+    ]
+  }
+}

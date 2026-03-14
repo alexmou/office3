@@ -7,64 +7,64 @@ import { workflow, node, links } from '@n8n-as-code/transformer';
 // NODE INDEX
 // ──────────────────────────────────────────────────────────────────
 // Property name                    Node type (short)         Flags
-// Webhook                            webhook                    
-// RespondToWebhook                   respondToWebhook           
-// Switch_                            switch                     
+// Webhook                            webhook
+// RespondToWebhook                   respondToWebhook
+// Switch_                            switch
 // Getallitemsfromsklad1              googleSheets               [creds]
-// WhenClickingTestWorkflow           manualTrigger              
+// WhenClickingTestWorkflow           manualTrigger
 // Getallitemsfromsklad               googleSheets               [creds]
-// Aggregate1                         aggregate                  
-// Aggregate2                         aggregate                  
-// Merge                              merge                      
-// Aggregate                          aggregate                  
-// Code                               code                       
-// Webhook2                           webhook                    
+// Aggregate1                         aggregate
+// Aggregate2                         aggregate
+// Merge                              merge
+// Aggregate                          aggregate
+// Code                               code
+// Webhook2                           webhook
 // Updaterow                          googleSheets               [creds]
-// Code1                              code                       
+// Code1                              code
 // Updaterow1                         googleSheets               [creds]
-// RespondToWebhook1                  respondToWebhook           
+// RespondToWebhook1                  respondToWebhook
 // Getallitemsfromsklad2              googleSheets               [creds]
-// Summarize                          summarize                  
-// EditFields1                        set                        
-// Merge1                             merge                      
-// Summarize1                         summarize                  
+// Summarize                          summarize
+// EditFields1                        set
+// Merge1                             merge
+// Summarize1                         summarize
 // Gettypes                           googleSheets               [creds]
-// RespondToWebhook2                  respondToWebhook           
+// RespondToWebhook2                  respondToWebhook
 // Getsubtypes                        googleSheets               [creds]
-// Merge2                             merge                      
-// Aggregate4                         aggregate                  
-// Node                               code                       
-// Aggregate6                         aggregate                  
-// _1                                 code                       
-// Code2                              code                       
-// Aggregate5                         aggregate                  
-// SkladHeader                        set                        
-// RespondToWebhook3                  respondToWebhook           
+// Merge2                             merge
+// Aggregate4                         aggregate
+// Node                               code
+// Aggregate6                         aggregate
+// _1                                 code
+// Code2                              code
+// Aggregate5                         aggregate
+// SkladHeader                        set
+// RespondToWebhook3                  respondToWebhook
 // Getskladheader                     googleSheets               [creds]
-// Gettestenvironment                 set                        
-// Getprodenvironment1                set                        
-// Node1                              if                         
-// RespondToWebhook5                  respondToWebhook           
-// _2                                 if                         
-// Gettestenvironment2                set                        
-// Getprodenvironment2                set                        
-// Node2                              set                        
-// Aarticle                           set                        
-// Aarticle1                          set                        
-// Code3                              code                       
+// Gettestenvironment                 set
+// Getprodenvironment1                set
+// Node1                              if
+// RespondToWebhook5                  respondToWebhook
+// _2                                 if
+// Gettestenvironment2                set
+// Getprodenvironment2                set
+// Node2                              set
+// Aarticle                           set
+// Aarticle1                          set
+// Code3                              code
 // Updaterow2                         googleSheets               [creds]
-// RespondToWebhook6                  respondToWebhook           
+// RespondToWebhook6                  respondToWebhook
 // Updaterow3                         googleSheets               [creds]
-// Aggregate8                         aggregate                  
-// Aarticle2                          set                        
-// EditFields                         set                        
-// Merge3                             merge                      
-// EditFields2                        set                        
-// Aggregate9                         aggregate                  
-// EditFields3                        set                        
-// EditFields4                        set                        
-// SkladHeader1                       set                        
-// RespondToWebhook4                  respondToWebhook           
+// Aggregate8                         aggregate
+// Aarticle2                          set
+// EditFields                         set
+// Merge3                             merge
+// EditFields2                        set
+// Aggregate9                         aggregate
+// EditFields3                        set
+// EditFields4                        set
+// SkladHeader1                       set
+// RespondToWebhook4                  respondToWebhook
 // Getskladheader1                    googleSheets               [creds]
 //
 // ROUTING MAP
@@ -145,1997 +145,1998 @@ import { workflow, node, links } from '@n8n-as-code/transformer';
 // =====================================================================
 
 @workflow({
-    id: "1rSHNYY8DuXZQJ1Y",
-    name: "button/sklad",
+    id: '1rSHNYY8DuXZQJ1Y',
+    name: 'button/sklad',
     active: true,
-    settings: {executionOrder:"v1"}
+    settings: { executionOrder: 'v1', callerPolicy: 'workflowsFromSameOwner', availableInMCP: false },
 })
 export class ButtonSkladWorkflow {
-
     // =====================================================================
-// CONFIGURATION DES NOEUDS
-// =====================================================================
+    // CONFIGURATION DES NOEUDS
+    // =====================================================================
 
     @node({
-        name: "Webhook",
-        type: "n8n-nodes-base.webhook",
+        name: 'Webhook',
+        type: 'n8n-nodes-base.webhook',
         version: 2,
-        position: [-1580, 740]
+        position: [-1580, 740],
     })
     Webhook = {
-        "path": "sklad",
-        "responseMode": "responseNode",
-        "options": {
-            "allowedOrigins": "*",
-            "responseHeaders": {
-                "entries": [
+        httpMethod: 'GET',
+        path: 'sklad',
+        responseMode: 'responseNode',
+        options: {
+            allowedOrigins: '*',
+            responseHeaders: {
+                entries: [
                     {
-                        "name": "Access-Control-Allow-Origin",
-                        "value": "ALL"
-                    }
-                ]
-            }
-        }
+                        name: 'Access-Control-Allow-Origin',
+                        value: '*',
+                    },
+                ],
+            },
+        },
     };
 
     @node({
-        name: "Respond to Webhook",
-        type: "n8n-nodes-base.respondToWebhook",
+        name: 'Respond to Webhook',
+        type: 'n8n-nodes-base.respondToWebhook',
         version: 1.2,
-        position: [580, -201.5]
+        position: [580, -201.5],
     })
     RespondToWebhook = {
-        "respondWith": "json",
-        "responseBody": "={{ $json.data }}",
-        "options": {
-            "responseHeaders": {
-                "entries": [
+        respondWith: 'json',
+        responseBody: '={{ $json.data }}',
+        options: {
+            responseHeaders: {
+                entries: [
                     {
-                        "name": "Access-Control-Allow-Origin",
-                        "value": "*"
-                    }
-                ]
-            }
-        }
+                        name: 'Access-Control-Allow-Origin',
+                        value: '*',
+                    },
+                ],
+            },
+        },
     };
 
     @node({
-        name: "Switch",
-        type: "n8n-nodes-base.switch",
+        name: 'Switch',
+        type: 'n8n-nodes-base.switch',
         version: 3.2,
-        position: [-960, 892]
+        position: [-960, 892],
     })
     Switch_ = {
-        "rules": {
-            "values": [
+        rules: {
+            values: [
                 {
-                    "conditions": {
-                        "options": {
-                            "caseSensitive": false,
-                            "leftValue": "",
-                            "typeValidation": "strict",
-                            "version": 2
+                    conditions: {
+                        options: {
+                            caseSensitive: false,
+                            leftValue: '',
+                            typeValidation: 'strict',
+                            version: 2,
                         },
-                        "conditions": [
+                        conditions: [
                             {
-                                "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
-                                "rightValue": "getArticle",
-                                "operator": {
-                                    "type": "string",
-                                    "operation": "equals"
+                                leftValue: '={{ JSON.parse($json.query.data).query.action }}',
+                                rightValue: 'getArticle',
+                                operator: {
+                                    type: 'string',
+                                    operation: 'equals',
                                 },
-                                "id": "50880f5c-2526-4969-9728-daa1323817a4"
-                            }
+                                id: '50880f5c-2526-4969-9728-daa1323817a4',
+                            },
                         ],
-                        "combinator": "and"
+                        combinator: 'and',
                     },
-                    "renameOutput": true,
-                    "outputKey": "getArticle"
+                    renameOutput: true,
+                    outputKey: 'getArticle',
                 },
                 {
-                    "conditions": {
-                        "options": {
-                            "caseSensitive": false,
-                            "leftValue": "",
-                            "typeValidation": "strict",
-                            "version": 2
+                    conditions: {
+                        options: {
+                            caseSensitive: false,
+                            leftValue: '',
+                            typeValidation: 'strict',
+                            version: 2,
                         },
-                        "conditions": [
+                        conditions: [
                             {
-                                "id": "0f9b14f9-bbf6-454a-857e-e3c27ba2f225",
-                                "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
-                                "rightValue": "getSkladData",
-                                "operator": {
-                                    "type": "string",
-                                    "operation": "equals",
-                                    "name": "filter.operator.equals"
-                                }
-                            }
+                                id: '0f9b14f9-bbf6-454a-857e-e3c27ba2f225',
+                                leftValue: '={{ JSON.parse($json.query.data).query.action }}',
+                                rightValue: 'getSkladData',
+                                operator: {
+                                    type: 'string',
+                                    operation: 'equals',
+                                    name: 'filter.operator.equals',
+                                },
+                            },
                         ],
-                        "combinator": "and"
+                        combinator: 'and',
                     },
-                    "renameOutput": true,
-                    "outputKey": "getSkladData"
+                    renameOutput: true,
+                    outputKey: 'getSkladData',
                 },
                 {
-                    "conditions": {
-                        "options": {
-                            "caseSensitive": false,
-                            "leftValue": "",
-                            "typeValidation": "strict",
-                            "version": 2
+                    conditions: {
+                        options: {
+                            caseSensitive: false,
+                            leftValue: '',
+                            typeValidation: 'strict',
+                            version: 2,
                         },
-                        "conditions": [
+                        conditions: [
                             {
-                                "id": "424c332f-6747-495e-ade8-26932dc313aa",
-                                "leftValue": "={{ $json.query.action }}",
-                                "rightValue": "editItem",
-                                "operator": {
-                                    "type": "string",
-                                    "operation": "equals",
-                                    "name": "filter.operator.equals"
-                                }
-                            }
+                                id: '424c332f-6747-495e-ade8-26932dc313aa',
+                                leftValue: '={{ $json.query.action }}',
+                                rightValue: 'editItem',
+                                operator: {
+                                    type: 'string',
+                                    operation: 'equals',
+                                    name: 'filter.operator.equals',
+                                },
+                            },
                         ],
-                        "combinator": "and"
+                        combinator: 'and',
                     },
-                    "renameOutput": true,
-                    "outputKey": "editItem"
+                    renameOutput: true,
+                    outputKey: 'editItem',
                 },
                 {
-                    "conditions": {
-                        "options": {
-                            "caseSensitive": false,
-                            "leftValue": "",
-                            "typeValidation": "strict",
-                            "version": 2
+                    conditions: {
+                        options: {
+                            caseSensitive: false,
+                            leftValue: '',
+                            typeValidation: 'strict',
+                            version: 2,
                         },
-                        "conditions": [
+                        conditions: [
                             {
-                                "id": "ca396694-ab72-4a0c-afd7-249fbe643565",
-                                "leftValue": "={{ $json.query.action }}",
-                                "rightValue": "addItem",
-                                "operator": {
-                                    "type": "string",
-                                    "operation": "equals",
-                                    "name": "filter.operator.equals"
-                                }
-                            }
+                                id: 'ca396694-ab72-4a0c-afd7-249fbe643565',
+                                leftValue: '={{ $json.query.action }}',
+                                rightValue: 'addItem',
+                                operator: {
+                                    type: 'string',
+                                    operation: 'equals',
+                                    name: 'filter.operator.equals',
+                                },
+                            },
                         ],
-                        "combinator": "and"
+                        combinator: 'and',
                     },
-                    "renameOutput": true,
-                    "outputKey": "addItem"
+                    renameOutput: true,
+                    outputKey: 'addItem',
                 },
                 {
-                    "conditions": {
-                        "options": {
-                            "caseSensitive": false,
-                            "leftValue": "",
-                            "typeValidation": "strict",
-                            "version": 2
+                    conditions: {
+                        options: {
+                            caseSensitive: false,
+                            leftValue: '',
+                            typeValidation: 'strict',
+                            version: 2,
                         },
-                        "conditions": [
+                        conditions: [
                             {
-                                "id": "5377f5f8-1ee2-4f86-a1b5-88d3378dd8f1",
-                                "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
-                                "rightValue": "getVocabulary",
-                                "operator": {
-                                    "type": "string",
-                                    "operation": "equals",
-                                    "name": "filter.operator.equals"
-                                }
-                            }
+                                id: '5377f5f8-1ee2-4f86-a1b5-88d3378dd8f1',
+                                leftValue: '={{ JSON.parse($json.query.data).query.action }}',
+                                rightValue: 'getVocabulary',
+                                operator: {
+                                    type: 'string',
+                                    operation: 'equals',
+                                    name: 'filter.operator.equals',
+                                },
+                            },
                         ],
-                        "combinator": "and"
+                        combinator: 'and',
                     },
-                    "renameOutput": true,
-                    "outputKey": "getVocabulary"
+                    renameOutput: true,
+                    outputKey: 'getVocabulary',
                 },
                 {
-                    "conditions": {
-                        "options": {
-                            "caseSensitive": false,
-                            "leftValue": "",
-                            "typeValidation": "strict",
-                            "version": 2
+                    conditions: {
+                        options: {
+                            caseSensitive: false,
+                            leftValue: '',
+                            typeValidation: 'strict',
+                            version: 2,
                         },
-                        "conditions": [
+                        conditions: [
                             {
-                                "id": "a1b3ee6c-7ad1-49fb-9994-3eb32e87202b",
-                                "leftValue": "={{ JSON.parse($json.query.data).query.action }}",
-                                "rightValue": "getSkladHeader",
-                                "operator": {
-                                    "type": "string",
-                                    "operation": "equals",
-                                    "name": "filter.operator.equals"
-                                }
-                            }
+                                id: 'a1b3ee6c-7ad1-49fb-9994-3eb32e87202b',
+                                leftValue: '={{ JSON.parse($json.query.data).query.action }}',
+                                rightValue: 'getSkladHeader',
+                                operator: {
+                                    type: 'string',
+                                    operation: 'equals',
+                                    name: 'filter.operator.equals',
+                                },
+                            },
                         ],
-                        "combinator": "and"
+                        combinator: 'and',
                     },
-                    "renameOutput": true,
-                    "outputKey": "getSkladHeader"
+                    renameOutput: true,
+                    outputKey: 'getSkladHeader',
                 },
                 {
-                    "conditions": {
-                        "options": {
-                            "caseSensitive": false,
-                            "leftValue": "",
-                            "typeValidation": "strict",
-                            "version": 2
+                    conditions: {
+                        options: {
+                            caseSensitive: false,
+                            leftValue: '',
+                            typeValidation: 'strict',
+                            version: 2,
                         },
-                        "conditions": [
+                        conditions: [
                             {
-                                "id": "5cbeb4ab-cd22-4fb0-85dd-d5fd3956d263",
-                                "leftValue": "={{ $json.query.action }}",
-                                "rightValue": "deleteItem",
-                                "operator": {
-                                    "type": "string",
-                                    "operation": "equals",
-                                    "name": "filter.operator.equals"
-                                }
-                            }
+                                id: '5cbeb4ab-cd22-4fb0-85dd-d5fd3956d263',
+                                leftValue: '={{ $json.query.action }}',
+                                rightValue: 'deleteItem',
+                                operator: {
+                                    type: 'string',
+                                    operation: 'equals',
+                                    name: 'filter.operator.equals',
+                                },
+                            },
                         ],
-                        "combinator": "and"
+                        combinator: 'and',
                     },
-                    "renameOutput": true,
-                    "outputKey": "deleteItem"
+                    renameOutput: true,
+                    outputKey: 'deleteItem',
                 },
                 {
-                    "conditions": {
-                        "options": {
-                            "caseSensitive": false,
-                            "leftValue": "",
-                            "typeValidation": "strict",
-                            "version": 2
+                    conditions: {
+                        options: {
+                            caseSensitive: false,
+                            leftValue: '',
+                            typeValidation: 'strict',
+                            version: 2,
                         },
-                        "conditions": [
+                        conditions: [
                             {
-                                "id": "7424ebf1-5451-48b4-bcc0-e7d0081fc560",
-                                "leftValue": "={{ $json.query.action }}",
-                                "rightValue": "=getHeader",
-                                "operator": {
-                                    "type": "string",
-                                    "operation": "equals",
-                                    "name": "filter.operator.equals"
-                                }
-                            }
+                                id: '7424ebf1-5451-48b4-bcc0-e7d0081fc560',
+                                leftValue: '={{ $json.query.action }}',
+                                rightValue: '=getHeader',
+                                operator: {
+                                    type: 'string',
+                                    operation: 'equals',
+                                    name: 'filter.operator.equals',
+                                },
+                            },
                         ],
-                        "combinator": "and"
+                        combinator: 'and',
                     },
-                    "renameOutput": true,
-                    "outputKey": "=getHeader"
-                }
-            ]
+                    renameOutput: true,
+                    outputKey: '=getHeader',
+                },
+            ],
         },
-        "options": {
-            "ignoreCase": true
-        }
+        options: {
+            ignoreCase: true,
+        },
     };
 
     @node({
-        name: "getAllItemsFromSklad1",
-        type: "n8n-nodes-base.googleSheets",
+        name: 'getAllItemsFromSklad1',
+        type: 'n8n-nodes-base.googleSheets',
         version: 4.5,
         position: [-300, -301.5],
-        credentials: {googleApi:{id:"hUOxiGKUqjjYiCun",name:"Google Sheets account"}}
+        credentials: { googleApi: { id: 'hUOxiGKUqjjYiCun', name: 'Google Sheets account' } },
     })
     Getallitemsfromsklad1 = {
-        "authentication": "serviceAccount",
-        "documentId": {
-            "__rl": true,
-            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
-            "mode": "id"
+        authentication: 'serviceAccount',
+        documentId: {
+            __rl: true,
+            value: '1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k',
+            mode: 'id',
         },
-        "sheetName": {
-            "__rl": true,
-            "value": "={{ $json.skladName1 }}",
-            "mode": "name"
+        sheetName: {
+            __rl: true,
+            value: '={{ $json.skladName1 }}',
+            mode: 'name',
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "When clicking ‘Test workflow’",
-        type: "n8n-nodes-base.manualTrigger",
+        name: 'When clicking ‘Test workflow’',
+        type: 'n8n-nodes-base.manualTrigger',
         version: 1,
-        position: [-1560, 1560]
+        position: [-1560, 1560],
     })
     WhenClickingTestWorkflow = {};
 
     @node({
-        name: "getAllItemsFromSklad",
-        type: "n8n-nodes-base.googleSheets",
+        name: 'getAllItemsFromSklad',
+        type: 'n8n-nodes-base.googleSheets',
         version: 4.5,
         position: [-300, -101.5],
-        credentials: {googleApi:{id:"hUOxiGKUqjjYiCun",name:"Google Sheets account"}}
+        credentials: { googleApi: { id: 'hUOxiGKUqjjYiCun', name: 'Google Sheets account' } },
     })
     Getallitemsfromsklad = {
-        "authentication": "serviceAccount",
-        "documentId": {
-            "__rl": true,
-            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
-            "mode": "id"
+        authentication: 'serviceAccount',
+        documentId: {
+            __rl: true,
+            value: '1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k',
+            mode: 'id',
         },
-        "sheetName": {
-            "__rl": true,
-            "value": "={{ $json.skladName2 }}",
-            "mode": "name"
+        sheetName: {
+            __rl: true,
+            value: '={{ $json.skladName2 }}',
+            mode: 'name',
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "Aggregate1",
-        type: "n8n-nodes-base.aggregate",
+        name: 'Aggregate1',
+        type: 'n8n-nodes-base.aggregate',
         version: 1,
-        position: [-80, -300]
+        position: [-80, -300],
     })
     Aggregate1 = {
-        "aggregate": "aggregateAllItemData",
-        "destinationFieldName": "data1",
-        "options": {}
+        aggregate: 'aggregateAllItemData',
+        destinationFieldName: 'data1',
+        options: {},
     };
 
     @node({
-        name: "Aggregate2",
-        type: "n8n-nodes-base.aggregate",
+        name: 'Aggregate2',
+        type: 'n8n-nodes-base.aggregate',
         version: 1,
-        position: [-80, -101.5]
+        position: [-80, -101.5],
     })
     Aggregate2 = {
-        "aggregate": "aggregateAllItemData",
-        "destinationFieldName": "data2",
-        "options": {}
+        aggregate: 'aggregateAllItemData',
+        destinationFieldName: 'data2',
+        options: {},
     };
 
     @node({
-        name: "Merge",
-        type: "n8n-nodes-base.merge",
+        name: 'Merge',
+        type: 'n8n-nodes-base.merge',
         version: 3.1,
-        position: [140, -201.5]
+        position: [140, -201.5],
     })
     Merge = {};
 
     @node({
-        name: "Aggregate",
-        type: "n8n-nodes-base.aggregate",
+        name: 'Aggregate',
+        type: 'n8n-nodes-base.aggregate',
         version: 1,
-        position: [360, -201.5]
+        position: [360, -201.5],
     })
     Aggregate = {
-        "aggregate": "aggregateAllItemData",
-        "options": {}
+        aggregate: 'aggregateAllItemData',
+        options: {},
     };
 
     @node({
-        name: "Code",
-        type: "n8n-nodes-base.code",
+        name: 'Code',
+        type: 'n8n-nodes-base.code',
         version: 2,
-        position: [-520, 800]
+        position: [-520, 800],
     })
     Code = {
-        "jsCode": "\nreturn $input.first().json.body.data"
+        jsCode: '\nreturn $input.first().json.body.data',
     };
 
     @node({
-        name: "Webhook2",
-        type: "n8n-nodes-base.webhook",
+        name: 'Webhook2',
+        type: 'n8n-nodes-base.webhook',
         version: 2,
-        position: [-1580, 900]
+        position: [-1580, 900],
     })
     Webhook2 = {
-        "httpMethod": "POST",
-        "path": "sklad",
-        "responseMode": "responseNode",
-        "options": {
-            "allowedOrigins": "*",
-            "responseHeaders": {
-                "entries": [
+        httpMethod: 'POST',
+        path: 'sklad',
+        responseMode: 'responseNode',
+        options: {
+            allowedOrigins: '*',
+            responseHeaders: {
+                entries: [
                     {
-                        "name": "Access-Control-Allow-Origin",
-                        "value": "ALL"
-                    }
-                ]
-            }
-        }
+                        name: 'Access-Control-Allow-Origin',
+                        value: '*',
+                    },
+                ],
+            },
+        },
     };
 
     @node({
-        name: "updateRow",
-        type: "n8n-nodes-base.googleSheets",
+        name: 'updateRow',
+        type: 'n8n-nodes-base.googleSheets',
         version: 4.5,
         position: [160, 780],
-        credentials: {googleApi:{id:"hUOxiGKUqjjYiCun",name:"Google Sheets account"}}
+        credentials: { googleApi: { id: 'hUOxiGKUqjjYiCun', name: 'Google Sheets account' } },
     })
     Updaterow = {
-        "authentication": "serviceAccount",
-        "operation": "update",
-        "documentId": {
-            "__rl": true,
-            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
-            "mode": "id"
+        authentication: 'serviceAccount',
+        operation: 'update',
+        documentId: {
+            __rl: true,
+            value: '1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k',
+            mode: 'id',
         },
-        "sheetName": {
-            "__rl": true,
-            "value": "={{ $('Какой склад?').item.json.SkladName }}",
-            "mode": "name"
+        sheetName: {
+            __rl: true,
+            value: "={{ $('Какой склад?').item.json.SkladName }}",
+            mode: 'name',
         },
-        "columns": {
-            "mappingMode": "autoMapInputData",
-            "value": {},
-            "matchingColumns": [
-                "num"
+        columns: {
+            mappingMode: 'autoMapInputData',
+            value: {},
+            matchingColumns: ['num'],
+            schema: [
+                {
+                    id: 'num',
+                    displayName: 'num',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: false,
+                },
+                {
+                    id: 'article',
+                    displayName: 'article',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'Brand',
+                    displayName: 'Brand',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'type',
+                    displayName: 'type',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'subtype',
+                    displayName: 'subtype',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'description',
+                    displayName: 'description',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'Name',
+                    displayName: 'Name',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'fabric',
+                    displayName: 'fabric',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'color',
+                    displayName: 'color',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'size',
+                    displayName: 'size',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'manufacturer',
+                    displayName: 'manufacturer',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'netprice',
+                    displayName: 'netprice',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'Delivery_date',
+                    displayName: 'Delivery_date',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'quantity',
+                    displayName: 'quantity',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'crope price',
+                    displayName: 'crope price',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'price',
+                    displayName: 'price',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'discount_%',
+                    displayName: 'discount_%',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'discount_Fix',
+                    displayName: 'discount_Fix',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'Comments',
+                    displayName: 'Comments',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'netpriceFull',
+                    displayName: 'netpriceFull',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'scladprice',
+                    displayName: 'scladprice',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'salePrice',
+                    displayName: 'salePrice',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'Зал',
+                    displayName: 'Зал',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'Склад',
+                    displayName: 'Склад',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'Склад-вешалка',
+                    displayName: 'Склад-вешалка',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'Дом',
+                    displayName: 'Дом',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'Улица',
+                    displayName: 'Улица',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'производитель',
+                    displayName: 'производитель',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'отгрузка',
+                    displayName: 'отгрузка',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'col_7',
+                    displayName: 'col_7',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'data',
+                    displayName: 'data',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'query',
+                    displayName: 'query',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                },
+                {
+                    id: 'row_number',
+                    displayName: 'row_number',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    readOnly: true,
+                    removed: true,
+                },
             ],
-            "schema": [
-                {
-                    "id": "num",
-                    "displayName": "num",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": false
-                },
-                {
-                    "id": "article",
-                    "displayName": "article",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "Brand",
-                    "displayName": "Brand",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "type",
-                    "displayName": "type",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "subtype",
-                    "displayName": "subtype",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "description",
-                    "displayName": "description",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "Name",
-                    "displayName": "Name",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "fabric",
-                    "displayName": "fabric",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "color",
-                    "displayName": "color",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "size",
-                    "displayName": "size",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "manufacturer",
-                    "displayName": "manufacturer",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "netprice",
-                    "displayName": "netprice",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "Delivery_date",
-                    "displayName": "Delivery_date",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "quantity",
-                    "displayName": "quantity",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "crope price",
-                    "displayName": "crope price",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "price",
-                    "displayName": "price",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "discount_%",
-                    "displayName": "discount_%",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "discount_Fix",
-                    "displayName": "discount_Fix",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "Comments",
-                    "displayName": "Comments",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "netpriceFull",
-                    "displayName": "netpriceFull",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "scladprice",
-                    "displayName": "scladprice",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "salePrice",
-                    "displayName": "salePrice",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "Зал",
-                    "displayName": "Зал",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "Склад",
-                    "displayName": "Склад",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "Склад-вешалка",
-                    "displayName": "Склад-вешалка",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "Дом",
-                    "displayName": "Дом",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "Улица",
-                    "displayName": "Улица",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "производитель",
-                    "displayName": "производитель",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "отгрузка",
-                    "displayName": "отгрузка",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "col_7",
-                    "displayName": "col_7",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "data",
-                    "displayName": "data",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "query",
-                    "displayName": "query",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true
-                },
-                {
-                    "id": "row_number",
-                    "displayName": "row_number",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "readOnly": true,
-                    "removed": true
-                }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": false
+            attemptToConvertTypes: false,
+            convertFieldsToString: false,
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "Code1",
-        type: "n8n-nodes-base.code",
+        name: 'Code1',
+        type: 'n8n-nodes-base.code',
         version: 2,
-        position: [-720, 300]
+        position: [-720, 300],
     })
     Code1 = {
-        "jsCode": "\nreturn $input.first().json.body"
+        jsCode: '\nreturn $input.first().json.body',
     };
 
     @node({
-        name: "updateRow1",
-        type: "n8n-nodes-base.googleSheets",
+        name: 'updateRow1',
+        type: 'n8n-nodes-base.googleSheets',
         version: 4.5,
         position: [1700, 440],
-        credentials: {googleApi:{id:"hUOxiGKUqjjYiCun",name:"Google Sheets account"}}
+        credentials: { googleApi: { id: 'hUOxiGKUqjjYiCun', name: 'Google Sheets account' } },
     })
     Updaterow1 = {
-        "authentication": "serviceAccount",
-        "operation": "append",
-        "documentId": {
-            "__rl": true,
-            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
-            "mode": "id"
+        authentication: 'serviceAccount',
+        operation: 'append',
+        documentId: {
+            __rl: true,
+            value: '1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k',
+            mode: 'id',
         },
-        "sheetName": {
-            "__rl": true,
-            "value": "={{ $('Какой склад?').item.json.SkladName }}",
-            "mode": "name"
+        sheetName: {
+            __rl: true,
+            value: "={{ $('Какой склад?').item.json.SkladName }}",
+            mode: 'name',
         },
-        "columns": {
-            "mappingMode": "autoMapInputData",
-            "value": {},
-            "matchingColumns": [],
-            "schema": [
+        columns: {
+            mappingMode: 'autoMapInputData',
+            value: {},
+            matchingColumns: [],
+            schema: [
                 {
-                    "id": "num",
-                    "displayName": "num",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'num',
+                    displayName: 'num',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "article",
-                    "displayName": "article",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'article',
+                    displayName: 'article',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "Brand",
-                    "displayName": "Brand",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'Brand',
+                    displayName: 'Brand',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "type",
-                    "displayName": "type",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'type',
+                    displayName: 'type',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "subtype",
-                    "displayName": "subtype",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'subtype',
+                    displayName: 'subtype',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "description",
-                    "displayName": "description",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'description',
+                    displayName: 'description',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "Name",
-                    "displayName": "Name",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'Name',
+                    displayName: 'Name',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "fabric",
-                    "displayName": "fabric",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'fabric',
+                    displayName: 'fabric',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "color",
-                    "displayName": "color",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'color',
+                    displayName: 'color',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "size",
-                    "displayName": "size",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'size',
+                    displayName: 'size',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "manufacturer",
-                    "displayName": "manufacturer",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'manufacturer',
+                    displayName: 'manufacturer',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "netprice",
-                    "displayName": "netprice",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'netprice',
+                    displayName: 'netprice',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "Delivery_date",
-                    "displayName": "Delivery_date",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'Delivery_date',
+                    displayName: 'Delivery_date',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "quantity",
-                    "displayName": "quantity",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'quantity',
+                    displayName: 'quantity',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "crope price",
-                    "displayName": "crope price",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'crope price',
+                    displayName: 'crope price',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "price",
-                    "displayName": "price",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'price',
+                    displayName: 'price',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "made in",
-                    "displayName": "made in",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'made in',
+                    displayName: 'made in',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "discount_%",
-                    "displayName": "discount_%",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'discount_%',
+                    displayName: 'discount_%',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "discount_Fix",
-                    "displayName": "discount_Fix",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'discount_Fix',
+                    displayName: 'discount_Fix',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "Comments",
-                    "displayName": "Comments",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'Comments',
+                    displayName: 'Comments',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "netpriceFull",
-                    "displayName": "netpriceFull",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'netpriceFull',
+                    displayName: 'netpriceFull',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "scladprice",
-                    "displayName": "scladprice",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'scladprice',
+                    displayName: 'scladprice',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "salePrice",
-                    "displayName": "salePrice",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'salePrice',
+                    displayName: 'salePrice',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "Зал",
-                    "displayName": "Зал",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'Зал',
+                    displayName: 'Зал',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "Склад",
-                    "displayName": "Склад",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'Склад',
+                    displayName: 'Склад',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "Склад-вешалка",
-                    "displayName": "Склад-вешалка",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'Склад-вешалка',
+                    displayName: 'Склад-вешалка',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "Дом",
-                    "displayName": "Дом",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
+                    id: 'Дом',
+                    displayName: 'Дом',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
                 },
                 {
-                    "id": "Улица",
-                    "displayName": "Улица",
-                    "required": false,
-                    "defaultMatch": false,
-                    "display": true,
-                    "type": "string",
-                    "canBeUsedToMatch": true,
-                    "removed": true
-                }
+                    id: 'Улица',
+                    displayName: 'Улица',
+                    required: false,
+                    defaultMatch: false,
+                    display: true,
+                    type: 'string',
+                    canBeUsedToMatch: true,
+                    removed: true,
+                },
             ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": false
+            attemptToConvertTypes: false,
+            convertFieldsToString: false,
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "Respond to Webhook1",
-        type: "n8n-nodes-base.respondToWebhook",
+        name: 'Respond to Webhook1',
+        type: 'n8n-nodes-base.respondToWebhook',
         version: 1.2,
-        position: [1900, 480]
+        position: [1900, 480],
     })
     RespondToWebhook1 = {
-        "respondWith": "json",
-        "responseBody": "={{ $json.data }}",
-        "options": {
-            "responseHeaders": {
-                "entries": [
+        respondWith: 'json',
+        responseBody: '={{ $json.data }}',
+        options: {
+            responseHeaders: {
+                entries: [
                     {
-                        "name": "Access-Control-Allow-Origin",
-                        "value": "*"
-                    }
-                ]
-            }
-        }
+                        name: 'Access-Control-Allow-Origin',
+                        value: '*',
+                    },
+                ],
+            },
+        },
     };
 
     @node({
-        name: "getAllItemsFromSklad2",
-        type: "n8n-nodes-base.googleSheets",
+        name: 'getAllItemsFromSklad2',
+        type: 'n8n-nodes-base.googleSheets',
         version: 4.5,
         position: [-520, 373.5],
-        credentials: {googleApi:{id:"hUOxiGKUqjjYiCun",name:"Google Sheets account"}}
+        credentials: { googleApi: { id: 'hUOxiGKUqjjYiCun', name: 'Google Sheets account' } },
     })
     Getallitemsfromsklad2 = {
-        "authentication": "serviceAccount",
-        "documentId": {
-            "__rl": true,
-            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
-            "mode": "id"
+        authentication: 'serviceAccount',
+        documentId: {
+            __rl: true,
+            value: '1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k',
+            mode: 'id',
         },
-        "sheetName": {
-            "__rl": true,
-            "value": "={{ $('Какой склад?').item.json.SkladName }}",
-            "mode": "name"
+        sheetName: {
+            __rl: true,
+            value: "={{ $('Какой склад?').item.json.SkladName }}",
+            mode: 'name',
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "Summarize",
-        type: "n8n-nodes-base.summarize",
+        name: 'Summarize',
+        type: 'n8n-nodes-base.summarize',
         version: 1.1,
-        position: [-300, 330]
+        position: [-300, 330],
     })
     Summarize = {
-        "fieldsToSummarize": {
-            "values": [
+        fieldsToSummarize: {
+            values: [
                 {
-                    "aggregation": "max",
-                    "field": "num"
-                }
-            ]
+                    aggregation: 'max',
+                    field: 'num',
+                },
+            ],
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "Edit Fields1",
-        type: "n8n-nodes-base.set",
+        name: 'Edit Fields1',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [160, 280]
+        position: [160, 280],
     })
     EditFields1 = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "8e828fa3-6da6-4403-a918-48fb062f9a19",
-                    "name": "num",
-                    "value": "={{ $input.last().json.max_num.toNumber() +1 }}",
-                    "type": "string"
+                    id: '8e828fa3-6da6-4403-a918-48fb062f9a19',
+                    name: 'num',
+                    value: '={{ $input.last().json.max_num.toNumber() +1 }}',
+                    type: 'string',
                 },
                 {
-                    "id": "d11c3f90-89ef-4264-b1c9-36d8327324b6",
-                    "name": "row_number",
-                    "value": "={{ $input.first().json.max_row_number +1  }}",
-                    "type": "string"
-                }
-            ]
+                    id: 'd11c3f90-89ef-4264-b1c9-36d8327324b6',
+                    name: 'row_number',
+                    value: '={{ $input.first().json.max_row_number +1  }}',
+                    type: 'string',
+                },
+            ],
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "Merge1",
-        type: "n8n-nodes-base.merge",
+        name: 'Merge1',
+        type: 'n8n-nodes-base.merge',
         version: 3.2,
-        position: [-20, 320]
+        position: [-20, 320],
     })
     Merge1 = {
-        "numberInputs": 3
+        numberInputs: 3,
     };
 
     @node({
-        name: "Summarize1",
-        type: "n8n-nodes-base.summarize",
+        name: 'Summarize1',
+        type: 'n8n-nodes-base.summarize',
         version: 1.1,
-        position: [-300, 520]
+        position: [-300, 520],
     })
     Summarize1 = {
-        "fieldsToSummarize": {
-            "values": [
+        fieldsToSummarize: {
+            values: [
                 {
-                    "aggregation": "max",
-                    "field": "row_number"
-                }
-            ]
+                    aggregation: 'max',
+                    field: 'row_number',
+                },
+            ],
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "getTypes",
-        type: "n8n-nodes-base.googleSheets",
+        name: 'getTypes',
+        type: 'n8n-nodes-base.googleSheets',
         version: 4.5,
         position: [-740, 1130],
-        credentials: {googleApi:{id:"hUOxiGKUqjjYiCun",name:"Google Sheets account"}}
+        credentials: { googleApi: { id: 'hUOxiGKUqjjYiCun', name: 'Google Sheets account' } },
     })
     Gettypes = {
-        "authentication": "serviceAccount",
-        "documentId": {
-            "__rl": true,
-            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
-            "mode": "id"
+        authentication: 'serviceAccount',
+        documentId: {
+            __rl: true,
+            value: '1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k',
+            mode: 'id',
         },
-        "sheetName": {
-            "__rl": true,
-            "value": 4332114,
-            "mode": "list",
-            "cachedResultName": "type",
-            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=4332114"
+        sheetName: {
+            __rl: true,
+            value: 4332114,
+            mode: 'list',
+            cachedResultName: 'type',
+            cachedResultUrl:
+                'https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=4332114',
         },
-        "options": {
-            "dataLocationOnSheet": {
-                "values": {
-                    "rangeDefinition": "specifyRange"
-                }
-            }
-        }
+        options: {
+            dataLocationOnSheet: {
+                values: {
+                    rangeDefinition: 'specifyRange',
+                },
+            },
+        },
     };
 
     @node({
-        name: "Respond to Webhook2",
-        type: "n8n-nodes-base.respondToWebhook",
+        name: 'Respond to Webhook2',
+        type: 'n8n-nodes-base.respondToWebhook',
         version: 1.2,
-        position: [580, 1173.5]
+        position: [580, 1173.5],
     })
     RespondToWebhook2 = {
-        "respondWith": "allIncomingItems",
-        "options": {
-            "responseHeaders": {
-                "entries": [
+        respondWith: 'allIncomingItems',
+        options: {
+            responseHeaders: {
+                entries: [
                     {
-                        "name": "Access-Control-Allow-Origin",
-                        "value": "*"
-                    }
-                ]
-            }
-        }
+                        name: 'Access-Control-Allow-Origin',
+                        value: '*',
+                    },
+                ],
+            },
+        },
     };
 
     @node({
-        name: "getSubTypes",
-        type: "n8n-nodes-base.googleSheets",
+        name: 'getSubTypes',
+        type: 'n8n-nodes-base.googleSheets',
         version: 4.5,
         position: [-740, 1330],
-        credentials: {googleApi:{id:"hUOxiGKUqjjYiCun",name:"Google Sheets account"}}
+        credentials: { googleApi: { id: 'hUOxiGKUqjjYiCun', name: 'Google Sheets account' } },
     })
     Getsubtypes = {
-        "authentication": "serviceAccount",
-        "documentId": {
-            "__rl": true,
-            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
-            "mode": "id"
+        authentication: 'serviceAccount',
+        documentId: {
+            __rl: true,
+            value: '1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k',
+            mode: 'id',
         },
-        "sheetName": {
-            "__rl": true,
-            "value": 745164943,
-            "mode": "list",
-            "cachedResultName": "subtype",
-            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=745164943"
+        sheetName: {
+            __rl: true,
+            value: 745164943,
+            mode: 'list',
+            cachedResultName: 'subtype',
+            cachedResultUrl:
+                'https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=745164943',
         },
-        "options": {
-            "dataLocationOnSheet": {
-                "values": {
-                    "rangeDefinition": "specifyRange"
-                }
-            }
-        }
+        options: {
+            dataLocationOnSheet: {
+                values: {
+                    rangeDefinition: 'specifyRange',
+                },
+            },
+        },
     };
 
     @node({
-        name: "Merge2",
-        type: "n8n-nodes-base.merge",
+        name: 'Merge2',
+        type: 'n8n-nodes-base.merge',
         version: 3.2,
-        position: [-80, 1173.5]
+        position: [-80, 1173.5],
     })
     Merge2 = {};
 
     @node({
-        name: "Aggregate4",
-        type: "n8n-nodes-base.aggregate",
+        name: 'Aggregate4',
+        type: 'n8n-nodes-base.aggregate',
         version: 1,
-        position: [-520, 1330]
+        position: [-520, 1330],
     })
     Aggregate4 = {
-        "fieldsToAggregate": {
-            "fieldToAggregate": [
+        fieldsToAggregate: {
+            fieldToAggregate: [
                 {
-                    "fieldToAggregate": "={{$json.keys()[1]}}"
+                    fieldToAggregate: '={{$json.keys()[1]}}',
                 },
                 {
-                    "fieldToAggregate": "={{$json.keys()[3]}}"
-                }
-            ]
+                    fieldToAggregate: '={{$json.keys()[3]}}',
+                },
+            ],
         },
-        "options": {
-            "mergeLists": true
-        }
+        options: {
+            mergeLists: true,
+        },
     };
 
     @node({
-        name: "Удаляем пустые значения",
-        type: "n8n-nodes-base.code",
+        name: 'Удаляем пустые значения',
+        type: 'n8n-nodes-base.code',
         version: 2,
-        position: [-300, 1130]
+        position: [-300, 1130],
     })
     Node = {
-        "jsCode": "// Получаем все элементы, пришедшие в ноду\nconst items = $input.all();\n\nfor (const item of items) {\n  // Проходим по всем полям объекта item.json\n  for (const [key, value] of Object.entries(item.json)) {\n    // Очищаем только те поля, которые являются массивами\n    if (Array.isArray(value)) {\n      // .filter(Boolean) убирает '', null, undefined, false\n      // Если хотите сохранить числа 0, замените на (v) => v !== '' && v != null\n      item.json[key] = value.filter(Boolean);\n    }\n  }\n}\n\n// Отдаём результат\nreturn items;\n"
+        jsCode: "// Получаем все элементы, пришедшие в ноду\nconst items = $input.all();\n\nfor (const item of items) {\n  // Проходим по всем полям объекта item.json\n  for (const [key, value] of Object.entries(item.json)) {\n    // Очищаем только те поля, которые являются массивами\n    if (Array.isArray(value)) {\n      // .filter(Boolean) убирает '', null, undefined, false\n      // Если хотите сохранить числа 0, замените на (v) => v !== '' && v != null\n      item.json[key] = value.filter(Boolean);\n    }\n  }\n}\n\n// Отдаём результат\nreturn items;\n",
     };
 
     @node({
-        name: "Aggregate6",
-        type: "n8n-nodes-base.aggregate",
+        name: 'Aggregate6',
+        type: 'n8n-nodes-base.aggregate',
         version: 1,
-        position: [140, 1173.5]
+        position: [140, 1173.5],
     })
     Aggregate6 = {
-        "aggregate": "aggregateAllItemData",
-        "destinationFieldName": "",
-        "options": {}
+        aggregate: 'aggregateAllItemData',
+        destinationFieldName: '',
+        options: {},
     };
 
     @node({
-        name: "Удаляем пустые значения1",
-        type: "n8n-nodes-base.code",
+        name: 'Удаляем пустые значения1',
+        type: 'n8n-nodes-base.code',
         version: 2,
-        position: [-300, 1330]
+        position: [-300, 1330],
     })
     _1 = {
-        "jsCode": "// Получаем все элементы, пришедшие в ноду\nconst items = $input.all();\n\nfor (const item of items) {\n  // Проходим по всем полям объекта item.json\n  for (const [key, value] of Object.entries(item.json)) {\n    // Очищаем только те поля, которые являются массивами\n    if (Array.isArray(value)) {\n      // .filter(Boolean) убирает '', null, undefined, false\n      // Если хотите сохранить числа 0, замените на (v) => v !== '' && v != null\n      item.json[key] = value.filter(Boolean);\n    }\n  }\n}\n\n// Отдаём результат\nreturn items;\n"
+        jsCode: "// Получаем все элементы, пришедшие в ноду\nconst items = $input.all();\n\nfor (const item of items) {\n  // Проходим по всем полям объекта item.json\n  for (const [key, value] of Object.entries(item.json)) {\n    // Очищаем только те поля, которые являются массивами\n    if (Array.isArray(value)) {\n      // .filter(Boolean) убирает '', null, undefined, false\n      // Если хотите сохранить числа 0, замените на (v) => v !== '' && v != null\n      item.json[key] = value.filter(Boolean);\n    }\n  }\n}\n\n// Отдаём результат\nreturn items;\n",
     };
 
     @node({
-        name: "Code2",
-        type: "n8n-nodes-base.code",
+        name: 'Code2',
+        type: 'n8n-nodes-base.code',
         version: 2,
-        position: [360, 1173.5]
+        position: [360, 1173.5],
     })
     Code2 = {
-        "jsCode": "const out = {};\nfor (const o of $json[\"\"] || []) {\n  for (const [k, v] of Object.entries(o)) {\n    if (Array.isArray(v))\n      out[k] = [...(out[k] || []), ...v.filter(Boolean)];\n  }\n}\nfor (const k of Object.keys(out)) out[k] = [...new Set(out[k])];\nreturn [{ json: out }];\n"
+        jsCode: 'const out = {};\nfor (const o of $json[""] || []) {\n  for (const [k, v] of Object.entries(o)) {\n    if (Array.isArray(v))\n      out[k] = [...(out[k] || []), ...v.filter(Boolean)];\n  }\n}\nfor (const k of Object.keys(out)) out[k] = [...new Set(out[k])];\nreturn [{ json: out }];\n',
     };
 
     @node({
-        name: "Aggregate5",
-        type: "n8n-nodes-base.aggregate",
+        name: 'Aggregate5',
+        type: 'n8n-nodes-base.aggregate',
         version: 1,
-        position: [-520, 1130]
+        position: [-520, 1130],
     })
     Aggregate5 = {
-        "fieldsToAggregate": {
-            "fieldToAggregate": [
+        fieldsToAggregate: {
+            fieldToAggregate: [
                 {
-                    "fieldToAggregate": "={{$json.keys()[1]}}"
+                    fieldToAggregate: '={{$json.keys()[1]}}',
                 },
                 {
-                    "fieldToAggregate": "={{$json.keys()[3]}}"
+                    fieldToAggregate: '={{$json.keys()[3]}}',
                 },
                 {
-                    "fieldToAggregate": "={{$json.keys()[5]}}"
+                    fieldToAggregate: '={{$json.keys()[5]}}',
                 },
                 {
-                    "fieldToAggregate": "={{$json.keys()[7]}}"
+                    fieldToAggregate: '={{$json.keys()[7]}}',
                 },
                 {
-                    "fieldToAggregate": "={{$json.keys()[9]}}"
+                    fieldToAggregate: '={{$json.keys()[9]}}',
                 },
                 {
-                    "fieldToAggregate": "={{$json.keys()[11]}}"
-                }
-            ]
+                    fieldToAggregate: '={{$json.keys()[11]}}',
+                },
+            ],
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "sklad_header",
-        type: "n8n-nodes-base.set",
+        name: 'sklad_header',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [-520, 1560]
+        position: [-520, 1560],
     })
     SkladHeader = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "ff0d2757-b4c0-4496-a5a2-a2bb2556de82",
-                    "name": "=sklad_header",
-                    "value": "={{ $json.keys() }}",
-                    "type": "array"
-                }
-            ]
+                    id: 'ff0d2757-b4c0-4496-a5a2-a2bb2556de82',
+                    name: '=sklad_header',
+                    value: '={{ $json.keys() }}',
+                    type: 'array',
+                },
+            ],
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "Respond to Webhook3",
-        type: "n8n-nodes-base.respondToWebhook",
+        name: 'Respond to Webhook3',
+        type: 'n8n-nodes-base.respondToWebhook',
         version: 1.2,
-        position: [-300, 1555]
+        position: [-300, 1555],
     })
     RespondToWebhook3 = {
-        "respondWith": "allIncomingItems",
-        "options": {
-            "responseHeaders": {
-                "entries": [
+        respondWith: 'allIncomingItems',
+        options: {
+            responseHeaders: {
+                entries: [
                     {
-                        "name": "Access-Control-Allow-Origin",
-                        "value": "*"
-                    }
-                ]
-            }
-        }
+                        name: 'Access-Control-Allow-Origin',
+                        value: '*',
+                    },
+                ],
+            },
+        },
     };
 
     @node({
-        name: "getSkladHeader",
-        type: "n8n-nodes-base.googleSheets",
+        name: 'getSkladHeader',
+        type: 'n8n-nodes-base.googleSheets',
         version: 4.5,
         position: [-740, 1560],
-        credentials: {googleApi:{id:"hUOxiGKUqjjYiCun",name:"Google Sheets account"}}
+        credentials: { googleApi: { id: 'hUOxiGKUqjjYiCun', name: 'Google Sheets account' } },
     })
     Getskladheader = {
-        "authentication": "serviceAccount",
-        "documentId": {
-            "__rl": true,
-            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
-            "mode": "id"
+        authentication: 'serviceAccount',
+        documentId: {
+            __rl: true,
+            value: '1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k',
+            mode: 'id',
         },
-        "sheetName": {
-            "__rl": true,
-            "value": 1769905694,
-            "mode": "list",
-            "cachedResultName": "Sklad",
-            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=1769905694"
+        sheetName: {
+            __rl: true,
+            value: 1769905694,
+            mode: 'list',
+            cachedResultName: 'Sklad',
+            cachedResultUrl:
+                'https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=1769905694',
         },
-        "filtersUI": {
-            "values": [
+        filtersUI: {
+            values: [
                 {
-                    "lookupColumn": "num",
-                    "lookupValue": "001"
-                }
-            ]
+                    lookupColumn: 'num',
+                    lookupValue: '001',
+                },
+            ],
         },
-        "options": {
-            "dataLocationOnSheet": {
-                "values": {
-                    "rangeDefinition": "specifyRange"
-                }
+        options: {
+            dataLocationOnSheet: {
+                values: {
+                    rangeDefinition: 'specifyRange',
+                },
             },
-            "returnFirstMatch": true
-        }
+            returnFirstMatch: true,
+        },
     };
 
     @node({
-        name: "getTestEnvironment",
-        type: "n8n-nodes-base.set",
+        name: 'getTestEnvironment',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [-520, -320]
+        position: [-520, -320],
     })
     Gettestenvironment = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0",
-                    "name": "skladName1",
-                    "value": "Sklad3",
-                    "type": "string"
+                    id: '568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0',
+                    name: 'skladName1',
+                    value: "={{ (() => { const raw = (($json.query || {}).data); let query = {}; if (typeof raw === 'string' && raw) { try { query = (JSON.parse(raw) || {}).query || {}; } catch (error) { query = {}; } } return query.sheetName_sklad || query.sklad || query.skladName1 || 'Sklad3'; })() }}",
+                    type: 'string',
                 },
                 {
-                    "id": "3de5d333-7354-419d-94be-1b296c953f71",
-                    "name": "skladName2",
-                    "value": "Sklad4",
-                    "type": "string"
-                }
-            ]
+                    id: '3de5d333-7354-419d-94be-1b296c953f71',
+                    name: 'skladName2',
+                    value: "={{ (() => { const raw = (($json.query || {}).data); let query = {}; if (typeof raw === 'string' && raw) { try { query = (JSON.parse(raw) || {}).query || {}; } catch (error) { query = {}; } } return query.sheetName_sklad_2 || query.sklad2 || query.skladName2 || 'Sklad4'; })() }}",
+                    type: 'string',
+                },
+            ],
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "getProdEnvironment1",
-        type: "n8n-nodes-base.set",
+        name: 'getProdEnvironment1',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [-520, -20]
+        position: [-520, -20],
     })
     Getprodenvironment1 = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0",
-                    "name": "skladName1",
-                    "value": "Sklad",
-                    "type": "string"
+                    id: '568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0',
+                    name: 'skladName1',
+                    value: "={{ (() => { const raw = (($json.query || {}).data); let query = {}; if (typeof raw === 'string' && raw) { try { query = (JSON.parse(raw) || {}).query || {}; } catch (error) { query = {}; } } return query.sheetName_sklad || query.sklad || query.skladName1 || 'Sklad'; })() }}",
+                    type: 'string',
                 },
                 {
-                    "id": "3de5d333-7354-419d-94be-1b296c953f71",
-                    "name": "skladName2",
-                    "value": "Sklad2",
-                    "type": "string"
-                }
-            ]
+                    id: '3de5d333-7354-419d-94be-1b296c953f71',
+                    name: 'skladName2',
+                    value: "={{ (() => { const raw = (($json.query || {}).data); let query = {}; if (typeof raw === 'string' && raw) { try { query = (JSON.parse(raw) || {}).query || {}; } catch (error) { query = {}; } } return query.sheetName_sklad_2 || query.sklad2 || query.skladName2 || 'Sklad2'; })() }}",
+                    type: 'string',
+                },
+            ],
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "Тест или прод?",
-        type: "n8n-nodes-base.if",
+        name: 'Тест или прод?',
+        type: 'n8n-nodes-base.if',
         version: 2.2,
-        position: [-740, -201.5]
+        position: [-740, -201.5],
     })
     Node1 = {
-        "conditions": {
-            "options": {
-                "caseSensitive": true,
-                "leftValue": "",
-                "typeValidation": "strict",
-                "version": 2
+        conditions: {
+            options: {
+                caseSensitive: true,
+                leftValue: '',
+                typeValidation: 'strict',
+                version: 2,
             },
-            "conditions": [
+            conditions: [
                 {
-                    "id": "7cddd27c-1676-49ec-85ea-7f01deaccfeb",
-                    "leftValue": "={{ $json.query.data.parseJson().query.TESTING }}",
-                    "rightValue": 1,
-                    "operator": {
-                        "type": "number",
-                        "operation": "equals"
-                    }
-                }
+                    id: '7cddd27c-1676-49ec-85ea-7f01deaccfeb',
+                    leftValue: '={{ $json.query.data.parseJson().query.TESTING }}',
+                    rightValue: 1,
+                    operator: {
+                        type: 'number',
+                        operation: 'equals',
+                    },
+                },
             ],
-            "combinator": "and"
+            combinator: 'and',
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "Respond to Webhook5",
-        type: "n8n-nodes-base.respondToWebhook",
+        name: 'Respond to Webhook5',
+        type: 'n8n-nodes-base.respondToWebhook',
         version: 1.2,
-        position: [400, 780]
+        position: [400, 780],
     })
     RespondToWebhook5 = {
-        "respondWith": "json",
-        "responseBody": "={{ $json.data }}",
-        "options": {
-            "responseHeaders": {
-                "entries": [
+        respondWith: 'json',
+        responseBody: '={{ $json.data }}',
+        options: {
+            responseHeaders: {
+                entries: [
                     {
-                        "name": "Access-Control-Allow-Origin",
-                        "value": "*"
-                    }
-                ]
-            }
-        }
+                        name: 'Access-Control-Allow-Origin',
+                        value: '*',
+                    },
+                ],
+            },
+        },
     };
 
     @node({
-        name: "Тест или прод?2",
-        type: "n8n-nodes-base.if",
+        name: 'Тест или прод?2',
+        type: 'n8n-nodes-base.if',
         version: 2.2,
-        position: [-1600, 1200]
+        position: [-1600, 1200],
     })
     _2 = {
-        "conditions": {
-            "options": {
-                "caseSensitive": true,
-                "leftValue": "",
-                "typeValidation": "strict",
-                "version": 2
+        conditions: {
+            options: {
+                caseSensitive: true,
+                leftValue: '',
+                typeValidation: 'strict',
+                version: 2,
             },
-            "conditions": [
+            conditions: [
                 {
-                    "id": "7cddd27c-1676-49ec-85ea-7f01deaccfeb",
-                    "leftValue": "={{ $json.body.query.TESTING }}",
-                    "rightValue": 1,
-                    "operator": {
-                        "type": "number",
-                        "operation": "equals"
-                    }
-                }
+                    id: '7cddd27c-1676-49ec-85ea-7f01deaccfeb',
+                    leftValue: '={{ $json.body.query.TESTING }}',
+                    rightValue: 1,
+                    operator: {
+                        type: 'number',
+                        operation: 'equals',
+                    },
+                },
             ],
-            "combinator": "and"
+            combinator: 'and',
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "getTestEnvironment2",
-        type: "n8n-nodes-base.set",
+        name: 'getTestEnvironment2',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [-1320, 1120]
+        position: [-1320, 1120],
     })
     Gettestenvironment2 = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0",
-                    "name": "skladName1",
-                    "value": "Sklad3",
-                    "type": "string"
+                    id: '568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0',
+                    name: 'skladName1',
+                    value: "={{ (($json.body || {}).query || {}).sheetName_sklad || (($json.body || {}).query || {}).sklad || (($json.body || {}).query || {}).skladName1 || 'Sklad3' }}",
+                    type: 'string',
                 },
                 {
-                    "id": "3de5d333-7354-419d-94be-1b296c953f71",
-                    "name": "skladName2",
-                    "value": "Sklad4",
-                    "type": "string"
-                }
-            ]
+                    id: '3de5d333-7354-419d-94be-1b296c953f71',
+                    name: 'skladName2',
+                    value: "={{ (($json.body || {}).query || {}).sheetName_sklad_2 || (($json.body || {}).query || {}).sklad2 || (($json.body || {}).query || {}).skladName2 || 'Sklad4' }}",
+                    type: 'string',
+                },
+            ],
         },
-        "includeOtherFields": true,
-        "options": {}
+        includeOtherFields: true,
+        options: {},
     };
 
     @node({
-        name: "getProdEnvironment2",
-        type: "n8n-nodes-base.set",
+        name: 'getProdEnvironment2',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [-1320, 1380]
+        position: [-1320, 1380],
     })
     Getprodenvironment2 = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0",
-                    "name": "skladName1",
-                    "value": "Sklad",
-                    "type": "string"
+                    id: '568c9d1d-da8e-4dcd-b9c5-63580f1a3bb0',
+                    name: 'skladName1',
+                    value: "={{ (($json.body || {}).query || {}).sheetName_sklad || (($json.body || {}).query || {}).sklad || (($json.body || {}).query || {}).skladName1 || 'Sklad' }}",
+                    type: 'string',
                 },
                 {
-                    "id": "3de5d333-7354-419d-94be-1b296c953f71",
-                    "name": "skladName2",
-                    "value": "Sklad2",
-                    "type": "string"
-                }
-            ]
+                    id: '3de5d333-7354-419d-94be-1b296c953f71',
+                    name: 'skladName2',
+                    value: "={{ (($json.body || {}).query || {}).sheetName_sklad_2 || (($json.body || {}).query || {}).sklad2 || (($json.body || {}).query || {}).skladName2 || 'Sklad2' }}",
+                    type: 'string',
+                },
+            ],
         },
-        "includeOtherFields": true,
-        "options": {}
+        includeOtherFields: true,
+        options: {},
     };
 
     @node({
-        name: "Какой склад?",
-        type: "n8n-nodes-base.set",
+        name: 'Какой склад?',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [-1100, 1220]
+        position: [-1100, 1220],
     })
     Node2 = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "cb0c171d-9a59-40e7-b739-7ef99c1be280",
-                    "name": "=SkladName",
-                    "value": "={{ $json[\"skladName\"+$json.body.query.wid] }}",
-                    "type": "string"
-                }
-            ]
+                    id: 'cb0c171d-9a59-40e7-b739-7ef99c1be280',
+                    name: '=SkladName',
+                    value: '={{ $json["skladName"+$json.body.query.wid] }}',
+                    type: 'string',
+                },
+            ],
         },
-        "includeOtherFields": true,
-        "options": {}
+        includeOtherFields: true,
+        options: {},
     };
 
     @node({
-        name: "Формула для aarticle",
-        type: "n8n-nodes-base.set",
+        name: 'Формула для aarticle',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [340, 280]
+        position: [340, 280],
     })
     Aarticle = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "bd97c45b-4c25-41df-b9d5-7e6520a76b7a",
-                    "name": "article",
-                    "value": "={{'=IFERROR(VLOOKUP(C'+$json.row_number+';type!A:B;2;0)&\"\"&VLOOKUP(D'+$json.row_number+';subtype!A:B;2;0)&VLOOKUP(E'+$json.row_number+';subtype!C:D;2;0)&G'+$json.row_number+'&\"\"&A'+$json.row_number+')'\n}}",
-                    "type": "string"
-                }
-            ]
+                    id: 'bd97c45b-4c25-41df-b9d5-7e6520a76b7a',
+                    name: 'article',
+                    value: "={{'=IFERROR(VLOOKUP(C'+$json.row_number+';type!A:B;2;0)&\"\"&VLOOKUP(D'+$json.row_number+';subtype!A:B;2;0)&VLOOKUP(E'+$json.row_number+';subtype!C:D;2;0)&G'+$json.row_number+'&\"\"&A'+$json.row_number+')'\n}}",
+                    type: 'string',
+                },
+            ],
         },
-        "includeOtherFields": true,
-        "options": {}
+        includeOtherFields: true,
+        options: {},
     };
 
     @node({
-        name: "Формула для aarticle1",
-        type: "n8n-nodes-base.set",
+        name: 'Формула для aarticle1',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [-240, 800]
+        position: [-240, 800],
     })
     Aarticle1 = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "bd97c45b-4c25-41df-b9d5-7e6520a76b7a",
-                    "name": "article",
-                    "value": "={{'=IFERROR(VLOOKUP(C'+$json.row_number+';type!A:B;2;0)&\"\"&VLOOKUP(D'+$json.row_number+';subtype!A:B;2;0)&VLOOKUP(E'+$json.row_number+';subtype!C:D;2;0)&G'+$json.row_number+'&\"\"&A'+$json.row_number+')'\n}}",
-                    "type": "string"
-                }
-            ]
+                    id: 'bd97c45b-4c25-41df-b9d5-7e6520a76b7a',
+                    name: 'article',
+                    value: "={{'=IFERROR(VLOOKUP(C'+$json.row_number+';type!A:B;2;0)&\"\"&VLOOKUP(D'+$json.row_number+';subtype!A:B;2;0)&VLOOKUP(E'+$json.row_number+';subtype!C:D;2;0)&G'+$json.row_number+'&\"\"&A'+$json.row_number+')'\n}}",
+                    type: 'string',
+                },
+            ],
         },
-        "includeOtherFields": true,
-        "options": {}
+        includeOtherFields: true,
+        options: {},
     };
 
     @node({
-        name: "Code3",
-        type: "n8n-nodes-base.code",
+        name: 'Code3',
+        type: 'n8n-nodes-base.code',
         version: 2,
-        position: [-580, 1800]
+        position: [-580, 1800],
     })
     Code3 = {
-        "jsCode": "\nreturn $input.first().json.body.data"
+        jsCode: '\nreturn $input.first().json.body.data',
     };
 
     @node({
-        name: "updateRow2",
-        type: "n8n-nodes-base.googleSheets",
+        name: 'updateRow2',
+        type: 'n8n-nodes-base.googleSheets',
         version: 4.5,
         position: [-220, 1820],
-        credentials: {googleApi:{id:"hUOxiGKUqjjYiCun",name:"Google Sheets account"}}
+        credentials: { googleApi: { id: 'hUOxiGKUqjjYiCun', name: 'Google Sheets account' } },
     })
     Updaterow2 = {
-        "authentication": "serviceAccount",
-        "operation": "delete",
-        "documentId": {
-            "__rl": true,
-            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
-            "mode": "id"
+        authentication: 'serviceAccount',
+        operation: 'delete',
+        documentId: {
+            __rl: true,
+            value: '1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k',
+            mode: 'id',
         },
-        "sheetName": {
-            "__rl": true,
-            "value": "={{ $('Какой склад?').item.json.SkladName }}",
-            "mode": "name"
+        sheetName: {
+            __rl: true,
+            value: "={{ $('Какой склад?').item.json.SkladName }}",
+            mode: 'name',
         },
-        "startIndex": "={{ $json.row_number }}"
+        startIndex: '={{ $json.row_number }}',
     };
 
     @node({
-        name: "Respond to Webhook6",
-        type: "n8n-nodes-base.respondToWebhook",
+        name: 'Respond to Webhook6',
+        type: 'n8n-nodes-base.respondToWebhook',
         version: 1.2,
-        position: [140, 1840]
+        position: [140, 1840],
     })
     RespondToWebhook6 = {
-        "respondWith": "json",
-        "responseBody": "={{ $json.data }}",
-        "options": {
-            "responseHeaders": {
-                "entries": [
+        respondWith: 'json',
+        responseBody: '={{ $json.data }}',
+        options: {
+            responseHeaders: {
+                entries: [
                     {
-                        "name": "Access-Control-Allow-Origin",
-                        "value": "*"
-                    }
-                ]
-            }
-        }
+                        name: 'Access-Control-Allow-Origin',
+                        value: '*',
+                    },
+                ],
+            },
+        },
     };
 
     @node({
-        name: "updateRow3",
-        type: "n8n-nodes-base.googleSheets",
+        name: 'updateRow3',
+        type: 'n8n-nodes-base.googleSheets',
         version: 4.5,
         position: [-460, 1940],
-        credentials: {googleApi:{id:"hUOxiGKUqjjYiCun",name:"Google Sheets account"}}
+        credentials: { googleApi: { id: 'hUOxiGKUqjjYiCun', name: 'Google Sheets account' } },
     })
     Updaterow3 = {
-        "authentication": "serviceAccount",
-        "documentId": {
-            "__rl": true,
-            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
-            "mode": "id"
+        authentication: 'serviceAccount',
+        documentId: {
+            __rl: true,
+            value: '1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k',
+            mode: 'id',
         },
-        "sheetName": {
-            "__rl": true,
-            "value": "={{ $('Какой склад?').item.json.SkladName }}",
-            "mode": "name"
+        sheetName: {
+            __rl: true,
+            value: "={{ $('Какой склад?').item.json.SkladName }}",
+            mode: 'name',
         },
-        "filtersUI": {
-            "values": [
+        filtersUI: {
+            values: [
                 {
-                    "lookupColumn": "article",
-                    "lookupValue": "={{ $json.article }}"
-                }
-            ]
+                    lookupColumn: 'article',
+                    lookupValue: '={{ $json.article }}',
+                },
+            ],
         },
-        "combineFilters": "=",
-        "options": {}
+        combineFilters: '=',
+        options: {},
     };
 
     @node({
-        name: "Aggregate8",
-        type: "n8n-nodes-base.aggregate",
+        name: 'Aggregate8',
+        type: 'n8n-nodes-base.aggregate',
         version: 1,
-        position: [180, 540]
+        position: [180, 540],
     })
     Aggregate8 = {
-        "fieldsToAggregate": {
-            "fieldToAggregate": [
+        fieldsToAggregate: {
+            fieldToAggregate: [
                 {
-                    "fieldToAggregate": "data"
-                }
-            ]
+                    fieldToAggregate: 'data',
+                },
+            ],
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "Формула для aarticle2",
-        type: "n8n-nodes-base.set",
+        name: 'Формула для aarticle2',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [560, 60]
+        position: [560, 60],
     })
     Aarticle2 = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "113a9d79-acd7-4cff-9f66-62bcb7ad3357",
-                    "name": "data.num",
-                    "value": "={{ $json.num }}",
-                    "type": "string"
+                    id: '113a9d79-acd7-4cff-9f66-62bcb7ad3357',
+                    name: 'data.num',
+                    value: '={{ $json.num }}',
+                    type: 'string',
                 },
                 {
-                    "id": "69b85ba7-a95c-4f1d-9023-34670dacf47e",
-                    "name": "data.article",
-                    "value": "={{ $json.article }}",
-                    "type": "string"
-                }
-            ]
+                    id: '69b85ba7-a95c-4f1d-9023-34670dacf47e',
+                    name: 'data.article',
+                    value: '={{ $json.article }}',
+                    type: 'string',
+                },
+            ],
         },
-        "options": {
-            "ignoreConversionErrors": false
-        }
+        options: {
+            ignoreConversionErrors: false,
+        },
     };
 
     @node({
-        name: "Edit Fields",
-        type: "n8n-nodes-base.set",
+        name: 'Edit Fields',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [440, 580]
+        position: [440, 580],
     })
     EditFields = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "a7601c47-9be7-4157-b4aa-efcba695e248",
-                    "name": "data2",
-                    "value": "={{ $json.data.first().toJsonString() }}\n",
-                    "type": "object"
-                }
-            ]
+                    id: 'a7601c47-9be7-4157-b4aa-efcba695e248',
+                    name: 'data2',
+                    value: '={{ $json.data.first().toJsonString() }}\n',
+                    type: 'object',
+                },
+            ],
         },
-        "options": {
-            "ignoreConversionErrors": true
-        }
+        options: {
+            ignoreConversionErrors: true,
+        },
     };
 
     @node({
-        name: "Merge3",
-        type: "n8n-nodes-base.merge",
+        name: 'Merge3',
+        type: 'n8n-nodes-base.merge',
         version: 3.2,
-        position: [700, 340]
+        position: [700, 340],
     })
     Merge3 = {};
 
     @node({
-        name: "Edit Fields2",
-        type: "n8n-nodes-base.set",
+        name: 'Edit Fields2',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [960, 520]
+        position: [960, 520],
     })
     EditFields2 = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "0e8e8eeb-f93c-4efb-828b-98695694b7c1",
-                    "name": "[\"\"][1].data2.article",
-                    "value": "={{ $json[\"\"][0].data.article }}",
-                    "type": "string"
+                    id: '0e8e8eeb-f93c-4efb-828b-98695694b7c1',
+                    name: '[""][1].data2.article',
+                    value: '={{ $json[""][0].data.article }}',
+                    type: 'string',
                 },
                 {
-                    "id": "4cf40556-7354-4547-b720-5ba9b4dc7f7b",
-                    "name": "[\"\"][1].data2.num",
-                    "value": "={{ $json[\"\"][0].data.num }}",
-                    "type": "string"
-                }
-            ]
+                    id: '4cf40556-7354-4547-b720-5ba9b4dc7f7b',
+                    name: '[""][1].data2.num',
+                    value: '={{ $json[""][0].data.num }}',
+                    type: 'string',
+                },
+            ],
         },
-        "includeOtherFields": true,
-        "options": {
-            "ignoreConversionErrors": false
-        }
+        includeOtherFields: true,
+        options: {
+            ignoreConversionErrors: false,
+        },
     };
 
     @node({
-        name: "Aggregate9",
-        type: "n8n-nodes-base.aggregate",
+        name: 'Aggregate9',
+        type: 'n8n-nodes-base.aggregate',
         version: 1,
-        position: [800, 540]
+        position: [800, 540],
     })
     Aggregate9 = {
-        "aggregate": "aggregateAllItemData",
-        "destinationFieldName": "",
-        "options": {}
+        aggregate: 'aggregateAllItemData',
+        destinationFieldName: '',
+        options: {},
     };
 
     @node({
-        name: "Edit Fields3",
-        type: "n8n-nodes-base.set",
+        name: 'Edit Fields3',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [1180, 520]
+        position: [1180, 520],
     })
     EditFields3 = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "264ff8dc-41a8-45bb-a900-1bbb77c460a2",
-                    "name": "",
-                    "value": "={{ $json[\"\"][1].data2 }}",
-                    "type": "object"
-                }
-            ]
+                    id: '264ff8dc-41a8-45bb-a900-1bbb77c460a2',
+                    name: '',
+                    value: '={{ $json[""][1].data2 }}',
+                    type: 'object',
+                },
+            ],
         },
-        "options": {
-            "ignoreConversionErrors": false
-        }
+        options: {
+            ignoreConversionErrors: false,
+        },
     };
 
     @node({
-        name: "Edit Fields4",
-        type: "n8n-nodes-base.set",
+        name: 'Edit Fields4',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [1440, 500]
+        position: [1440, 500],
     })
     EditFields4 = {
-        "mode": "raw",
-        "jsonOutput": "={{ $json[\"\"] }}\n\n",
-        "options": {}
+        mode: 'raw',
+        jsonOutput: '={{ $json[""] }}\n\n',
+        options: {},
     };
 
     @node({
-        name: "sklad_header1",
-        type: "n8n-nodes-base.set",
+        name: 'sklad_header1',
+        type: 'n8n-nodes-base.set',
         version: 3.4,
-        position: [-1080, 2000]
+        position: [-1080, 2000],
     })
     SkladHeader1 = {
-        "assignments": {
-            "assignments": [
+        assignments: {
+            assignments: [
                 {
-                    "id": "ff0d2757-b4c0-4496-a5a2-a2bb2556de82",
-                    "name": "=sklad_header",
-                    "value": "={{ $json.keys() }}",
-                    "type": "array"
-                }
-            ]
+                    id: 'ff0d2757-b4c0-4496-a5a2-a2bb2556de82',
+                    name: '=sklad_header',
+                    value: '={{ $json.keys() }}',
+                    type: 'array',
+                },
+            ],
         },
-        "options": {}
+        options: {},
     };
 
     @node({
-        name: "Respond to Webhook4",
-        type: "n8n-nodes-base.respondToWebhook",
+        name: 'Respond to Webhook4',
+        type: 'n8n-nodes-base.respondToWebhook',
         version: 1.2,
-        position: [-960, 2380]
+        position: [-960, 2380],
     })
     RespondToWebhook4 = {
-        "respondWith": "allIncomingItems",
-        "options": {
-            "responseHeaders": {
-                "entries": [
+        respondWith: 'allIncomingItems',
+        options: {
+            responseHeaders: {
+                entries: [
                     {
-                        "name": "Access-Control-Allow-Origin",
-                        "value": "*"
-                    }
-                ]
-            }
-        }
+                        name: 'Access-Control-Allow-Origin',
+                        value: '*',
+                    },
+                ],
+            },
+        },
     };
 
     @node({
-        name: "getSkladHeader1",
-        type: "n8n-nodes-base.googleSheets",
+        name: 'getSkladHeader1',
+        type: 'n8n-nodes-base.googleSheets',
         version: 4.5,
         position: [-1000, 1660],
-        credentials: {googleApi:{id:"hUOxiGKUqjjYiCun",name:"Google Sheets account"}}
+        credentials: { googleApi: { id: 'hUOxiGKUqjjYiCun', name: 'Google Sheets account' } },
     })
     Getskladheader1 = {
-        "authentication": "serviceAccount",
-        "documentId": {
-            "__rl": true,
-            "value": "1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k",
-            "mode": "id"
+        authentication: 'serviceAccount',
+        documentId: {
+            __rl: true,
+            value: '1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k',
+            mode: 'id',
         },
-        "sheetName": {
-            "__rl": true,
-            "value": 1769905694,
-            "mode": "list",
-            "cachedResultName": "Sklad",
-            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=1769905694"
+        sheetName: {
+            __rl: true,
+            value: 1769905694,
+            mode: 'list',
+            cachedResultName: 'Sklad',
+            cachedResultUrl:
+                'https://docs.google.com/spreadsheets/d/1ukpmGUN1QGJDPfoXFlcdt-AY6ynsGD5HOMeYneagr3k/edit#gid=1769905694',
         },
-        "options": {
-            "dataLocationOnSheet": {
-                "values": {
-                    "rangeDefinition": "detectAutomatically"
-                }
+        options: {
+            dataLocationOnSheet: {
+                values: {
+                    rangeDefinition: 'detectAutomatically',
+                },
             },
-            "returnFirstMatch": false
-        }
+            returnFirstMatch: false,
+        },
     };
 
-
     // =====================================================================
-// ROUTAGE ET CONNEXIONS
-// =====================================================================
+    // ROUTAGE ET CONNEXIONS
+    // =====================================================================
 
     @links()
     defineRouting() {

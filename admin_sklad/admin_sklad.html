@@ -12,7 +12,17 @@
  <div id="global">
 
     <div class="toolbar">
-	      <button id="btnSaveAll" class="button button--success" data-i18n="Сохранить">Сохранить</button>
+      <div class="toolbar-controls">
+        <label class="toolbar-store-switcher" for="adminSkladFromSelect">
+          <span>Откуда</span>
+          <select id="adminSkladFromSelect" class="toolbar-store-select"></select>
+        </label>
+        <label class="toolbar-store-switcher" for="adminSkladToSelect">
+          <span>Куда</span>
+          <select id="adminSkladToSelect" class="toolbar-store-select"></select>
+        </label>
+      </div>
+      <button id="btnSaveAll" class="button button--success" data-i18n="Сохранить">Сохранить</button>
     </div>
 
     <div id="warehouseData1" data-warehouse1="[]"></div>
@@ -27,7 +37,7 @@
           <button class="button button--primary add-product" data-wid="1">+ Добавить товар</button>
         </div>
         <div id="products1-zone" class="warehouse-zone">
-          <span class="zone-label">Склад 1</span>
+          <span id="zoneLabel1" class="zone-label">Склад 1</span>
           <div id="products1" class="products-container"></div>
         </div>
       </section>
@@ -40,7 +50,7 @@
           <button class="button button--primary add-product" data-wid="2">+ Добавить товар</button>
         </div>
         <div id="products2-zone" class="warehouse-zone">
-          <span class="zone-label">Склад 2</span>
+          <span id="zoneLabel2" class="zone-label">Склад 2</span>
           <div id="products2" class="products-container"></div>
         </div>
       </section>

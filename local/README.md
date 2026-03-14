@@ -115,6 +115,11 @@ Workflow rules:
 - push by filename only, not by path
 - verify after push whenever possible
 - treat `workflows/**/*.workflow.ts` as production code, not as generated scratch files
+- when a frontend service depends on a webhook, validate the live endpoint with `tools/check_n8n_webhooks.mjs` or `tools/check_service_integrations.mjs` instead of assuming `push` means the webhook is registered
+- any changed production workflow is only considered done after it is published/activated in live `n8n`; editor-visible or merely synced workflows are not enough
+- webhook workflows in this repo must be finalized with `node tools/publish_n8n_workflow.mjs <workflowId>` because plain sync/push can leave `webhookId` missing from the live published version even when the workflow is visible in the editor
+- live verification must distinguish read-only and mutating endpoints; POST checks for Google Sheets-backed or other write-capable workflows are forbidden without explicit user approval
+- assume any webhook that writes to Sheets, config rows, or business data is destructive until proven otherwise; do not send probe payloads to it automatically
 
 Representative workflow examples:
 - `workflows/buttonrouge_org/n8n_алексей_м/personal/localization.workflow.ts`
@@ -129,6 +134,21 @@ For any non-trivial task:
 3. make the code change
 4. update docs if the architecture, workflow ownership, contracts, or operating assumptions changed
 5. record durable conclusions in `.memory_bank/decision-log.md` when the change introduces a new rule or architectural decision
+
+## Minimal change policy
+
+Default execution mode for routine feature work:
+1. start with the target file, one reference implementation, and one direct dependency
+2. prefer a local change over a shared abstraction
+3. do not touch `test/` mirrors unless the user asks for it or the root task explicitly depends on them
+4. do not touch `workflows/` unless the frontend change cannot work with the current backend contract
+5. do not update docs or memory files unless architecture, contracts, or process rules actually changed
+
+Practical consequences:
+- a page-to-page UI parity task should usually stay inside the two page folders plus direct API calls
+- a frontend ask does not automatically imply `n8n` edits
+- a successful local syntax/smoke check is enough unless the task changed live workflow behavior
+- avoid “nice to have” cleanup during feature delivery unless the user asked for cleanup
 
 Update expectations:
 - update `local/README.md` for stable project-level truths

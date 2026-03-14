@@ -1,0 +1,536 @@
+{
+  "updatedAt": "2025-09-19T10:29:03.000Z",
+  "createdAt": "2025-09-19T09:15:59.773Z",
+  "id": "5ELOA9aauQoT17x0",
+  "name": "Отправка Telegram",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 11
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -620,
+        -120
+      ],
+      "id": "c383cf7d-ca29-4d6b-a2eb-abcd82f60b4e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "chatId": "-4530967442",
+        "text": "=Расход: {{ $json.a.round().toLocaleString() }}\nПрибыль: {{ $json.b.round().toLocaleString() }}\nПрибыль (накоп) {{ $json.c.round().toLocaleString() }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        620,
+        160
+      ],
+      "id": "3f84b7b9-4b14-42cf-92e5-cedf2606e965",
+      "name": "Send a text message",
+      "webhookId": "fe9c59cf-e49c-4c27-8e52-a7dcefb90737",
+      "credentials": {
+        "telegramApi": {
+          "id": "lFQKH2n9JXxdFI4k",
+          "name": "Button Rouge Sales Chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "=1aBum8A3U6tK5VTdmSG3RwhwJrhB5Wbu_zhDUgHLey5M",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2146136298,
+          "mode": "list",
+          "cachedResultName": "PNL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aBum8A3U6tK5VTdmSG3RwhwJrhB5Wbu_zhDUgHLey5M/edit#gid=2146136298"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRange",
+              "headerRow": 4,
+              "firstDataRow": 28
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -60,
+        -80
+      ],
+      "id": "df6856e0-17f4-4a48-b3ca-e3684259713d",
+      "name": "getBudget",
+      "executeOnce": false,
+      "notesInFlow": false,
+      "credentials": {
+        "googleApi": {
+          "id": "hUOxiGKUqjjYiCun",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "52047c2c-de16-42a7-b0f5-6c90cb8d21e8",
+              "name": "=",
+              "value": "={{ $json[`01.${(new Date().getMonth() + 1).toString().padStart(2,\"0\")}.${new Date().getFullYear()}`] }}\n",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        -80
+      ],
+      "id": "2ef929f6-8206-4b9e-a640-5c3f1305ce06",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0dbb76db-a37f-4582-845a-1ae119a2d223",
+              "name": "a",
+              "value": "={{ $json.data[0][''] }}",
+              "type": "number"
+            },
+            {
+              "id": "06d4b3dd-0858-4b29-8ce4-c0776c8115fc",
+              "name": "b",
+              "value": "={{ $json.data[1][''] }}",
+              "type": "number"
+            },
+            {
+              "id": "30efcadd-1a5a-433f-8832-d273826a84c2",
+              "name": "c",
+              "value": "={{ $json.data[2][''] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        660,
+        -60
+      ],
+      "id": "f2f56bc9-e71f-494b-bfda-102e6ce3ef1a",
+      "name": "Edit Fields1",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        360,
+        100
+      ],
+      "id": "4928dc1b-5d19-439c-893e-6a05f3b7c5b8",
+      "name": "Aggregate"
+    }
+  ],
+  "connections": {
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "getBudget": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "getBudget",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "e281ff03-5ec2-4e1c-8293-13d9a0c85228",
+  "activeVersionId": "e281ff03-5ec2-4e1c-8293-13d9a0c85228",
+  "versionCounter": 7,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-09-19T09:15:59.783Z",
+      "createdAt": "2025-09-19T09:15:59.783Z",
+      "role": "workflow:owner",
+      "workflowId": "5ELOA9aauQoT17x0",
+      "projectId": "Cbzeqxofr5KXht6P",
+      "project": {
+        "updatedAt": "2025-03-07T10:59:25.834Z",
+        "createdAt": "2025-03-05T10:47:17.258Z",
+        "id": "Cbzeqxofr5KXht6P",
+        "name": "Алексей Мурыгин <l.murygin@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-03-05T10:47:17.259Z",
+            "createdAt": "2025-03-05T10:47:17.259Z",
+            "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+            "projectId": "Cbzeqxofr5KXht6P",
+            "user": {
+              "updatedAt": "2026-03-13T07:53:40.000Z",
+              "createdAt": "2025-03-05T10:47:16.542Z",
+              "id": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+              "email": "l.murygin@gmail.com",
+              "firstName": "Алексей",
+              "lastName": "Мурыгин",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "firstSuccessfulWorkflowId": "rVWIEki714lPBFxf",
+                "userActivatedAt": 1741418880091,
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-13",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-01-05T17:44:16.723Z",
+    "createdAt": "2026-01-05T17:44:16.723Z",
+    "versionId": "e281ff03-5ec2-4e1c-8293-13d9a0c85228",
+    "workflowId": "5ELOA9aauQoT17x0",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "triggerAtHour": 11
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -620,
+          -120
+        ],
+        "id": "c383cf7d-ca29-4d6b-a2eb-abcd82f60b4e",
+        "name": "Schedule Trigger"
+      },
+      {
+        "parameters": {
+          "chatId": "-4530967442",
+          "text": "=Расход: {{ $json.a.round().toLocaleString() }}\nПрибыль: {{ $json.b.round().toLocaleString() }}\nПрибыль (накоп) {{ $json.c.round().toLocaleString() }}",
+          "additionalFields": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          620,
+          160
+        ],
+        "id": "3f84b7b9-4b14-42cf-92e5-cedf2606e965",
+        "name": "Send a text message",
+        "webhookId": "fe9c59cf-e49c-4c27-8e52-a7dcefb90737",
+        "credentials": {
+          "telegramApi": {
+            "id": "lFQKH2n9JXxdFI4k",
+            "name": "Button Rouge Sales Chat"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "serviceAccount",
+          "documentId": {
+            "__rl": true,
+            "value": "=1aBum8A3U6tK5VTdmSG3RwhwJrhB5Wbu_zhDUgHLey5M",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 2146136298,
+            "mode": "list",
+            "cachedResultName": "PNL",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aBum8A3U6tK5VTdmSG3RwhwJrhB5Wbu_zhDUgHLey5M/edit#gid=2146136298"
+          },
+          "options": {
+            "dataLocationOnSheet": {
+              "values": {
+                "rangeDefinition": "specifyRange",
+                "headerRow": 4,
+                "firstDataRow": 28
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          -60,
+          -80
+        ],
+        "id": "df6856e0-17f4-4a48-b3ca-e3684259713d",
+        "name": "getBudget",
+        "executeOnce": false,
+        "notesInFlow": false,
+        "credentials": {
+          "googleApi": {
+            "id": "hUOxiGKUqjjYiCun",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "52047c2c-de16-42a7-b0f5-6c90cb8d21e8",
+                "name": "=",
+                "value": "={{ $json[`01.${(new Date().getMonth() + 1).toString().padStart(2,\"0\")}.${new Date().getFullYear()}`] }}\n",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          160,
+          -80
+        ],
+        "id": "2ef929f6-8206-4b9e-a640-5c3f1305ce06",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "0dbb76db-a37f-4582-845a-1ae119a2d223",
+                "name": "a",
+                "value": "={{ $json.data[0][''] }}",
+                "type": "number"
+              },
+              {
+                "id": "06d4b3dd-0858-4b29-8ce4-c0776c8115fc",
+                "name": "b",
+                "value": "={{ $json.data[1][''] }}",
+                "type": "number"
+              },
+              {
+                "id": "30efcadd-1a5a-433f-8832-d273826a84c2",
+                "name": "c",
+                "value": "={{ $json.data[2][''] }}",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          660,
+          -60
+        ],
+        "id": "f2f56bc9-e71f-494b-bfda-102e6ce3ef1a",
+        "name": "Edit Fields1",
+        "executeOnce": true
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          360,
+          100
+        ],
+        "id": "4928dc1b-5d19-439c-893e-6a05f3b7c5b8",
+        "name": "Aggregate"
+      }
+    ],
+    "connections": {
+      "Send a text message": {
+        "main": [
+          []
+        ]
+      },
+      "getBudget": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "Aggregate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields1": {
+        "main": [
+          [
+            {
+              "node": "Send a text message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "getBudget",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "system migration",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2025-09-19T10:29:03.000Z",
+        "id": 13,
+        "workflowId": "5ELOA9aauQoT17x0",
+        "versionId": "e281ff03-5ec2-4e1c-8293-13d9a0c85228",
+        "event": "activated",
+        "userId": null
+      }
+    ]
+  }
+}
