@@ -17,3 +17,4 @@ Current priorities:
 - keep frontend docs and workflow docs connected through shared service names
 - avoid reintroducing architecture context into `AGENTS.md`
 - update the memory bank whenever integration ownership or runtime assumptions change
+- use `.memory_bank/service-workflow-matrix.md` as the first stop for API-to-workflow impact analysis

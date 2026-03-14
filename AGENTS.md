@@ -7,6 +7,7 @@ Read order for non-trivial tasks:
 - `local/README.md`
 - `.memory_bank/active-context.md`
 - the matching domain file in `.memory_bank/`
+- `.memory_bank/service-workflow-matrix.md` if the task touches API or `n8n`
 - only then the target source files
 
 Bootstrap facts:
@@ -30,6 +31,7 @@ You are Codex, based on GPT-5. You are running as a coding agent in the Codex CL
 
 # General
 
+- Load project architecture from `local/README.md` and `.memory_bank/`; do not turn `AGENTS.md` back into the main long-form architecture document.
 - When searching for text or files, prefer using `rg` or `rg --files` respectively because `rg` is much faster than alternatives like `grep`. (If the `rg` command is not found, then use alternatives.)
 - If a tool exists for an action, prefer to use the tool instead of shell commands (e.g `read_file` over `cat`). Strictly avoid raw `cmd`/terminal when a dedicated tool exists. Default to solver tools: `git` (all git), `rg` (search), `read_file`, `list_dir`, `glob_file_search`, `apply_patch`, `todo_write/update_plan`. Use `cmd`/`run_terminal_cmd` only when no listed tool can perform the action.
 - When multiple tool calls can be parallelized (e.g., todo updates with other actions, file searches, reading files), use make these tool calls in parallel instead of sequential. Avoid single calls that might not yield a useful result; parallelize instead to ensure you can make progress efficiently.
@@ -56,7 +58,6 @@ You are Codex, based on GPT-5. You are running as a coding agent in the Codex CL
 - Efficient, coherent edits: Avoid repeated micro-edits: read enough context before changing a file and batch logical edits together instead of thrashing with many tiny patches.
 - Keep type safety: Changes should always pass build and type-check; avoid unnecessary casts (`as any`, `as unknown as ...`); prefer proper types and guards, and reuse existing helpers (e.g., normalizing identifiers) instead of type-asserting.
 - Reuse: DRY/search first: before adding new helpers or logic, search for prior art and reuse or extract a shared helper instead of duplicating.
-- Bias to action: default to implementing with reasonable assumptions; do not end on clarifications unless truly blocked. Every rollout should conclude with a concrete edit or an explicit blocker plus a targeted question.
 
 
 # Editing constraints

@@ -95,8 +95,9 @@ Important integration facts:
 When changing any API route:
 1. inspect the relevant entry in `system/api.js`
 2. inspect `system/n8n-service-workflow-map.json`
-3. inspect the linked workflow under `workflows/`
-4. update docs in `.memory_bank/` if the contract or ownership changed
+3. inspect `.memory_bank/service-workflow-matrix.md`
+4. inspect the linked workflow under `workflows/`
+5. update docs in `.memory_bank/` if the contract or ownership changed
 
 ## n8n-as-code layer
 
