@@ -71,3 +71,17 @@ Why:
 Implications:
 - live verification is still required for published workflows, but mutating checks must be approved first
 - automated health-check tooling must skip destructive POST probes unless the user explicitly authorizes them
+
+## 2026-04-04 - Make suppliers payment endpoint explicit in frontend API routes
+
+Decision:
+- add `markSupplierPaymentsDone` as a first-class route in `system/api.js` mapped to `POST /supliers` with `rawBody`
+- call this route from `supliers/supliers.js` through `window.API.markSupplierPaymentsDone(...)` instead of direct `requestViaN8nOrMock(...)`
+
+Why:
+- suppliers payment flow was using a direct low-level call with inline webhook override, which diverged from the rest of the frontend service model
+- explicit route ownership and method shape are required for consistent maintenance and service/workflow audits
+
+Implications:
+- suppliers payment behavior now follows the same service declaration path as other frontend integrations
+- `system/n8n-service-workflow-map.json` and `.memory_bank/service-workflow-matrix.md` must track this route as unresolved until workflow ownership is assigned

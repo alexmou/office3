@@ -34,7 +34,7 @@
   */
   // Fast n8n lookup for integration edits:
   // See system/n8n-service-workflow-map.json (service -> webhookAction -> workflow id/name/file).
-  // Generated after full sync on 2026-03-09; unresolved legacy services: addBudgetRecord, getToken.
+  // Generated after full sync on 2026-03-09; unresolved services are tracked in system/n8n-service-workflow-map.json.
   let API_ROUTES = {
     addBudgetRecord: { source: "n8n", webhook: "prod" },
 
@@ -74,6 +74,7 @@
     // Charts services (n8n webhook: /charts)
     getChartsData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "charts" },
     getChartsSummary: { source: "n8n", method: "GET", webhook: "test", webhookAction: "charts" },
+    markSupplierPaymentsDone: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "supliers", rawBody: true },
 
     // Sales services (n8n webhook: /sales)
     getSalesData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sales" }, 
@@ -203,6 +204,128 @@
       }
       return null;
     }
+  }
+
+  function sanitizeDownloadFilename(value, fallback = "download.bin") {
+    const raw = String(value || "").trim();
+    const normalized = raw.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, " ").trim();
+    return normalized || fallback;
+  }
+
+  function extensionFromContentType(contentType) {
+    const mime = String(contentType || "").split(";")[0].trim().toLowerCase();
+    if (!mime) return "";
+    const map = {
+      "application/vnd.ms-excel": "xls",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+      "application/pdf": "pdf",
+      "text/csv": "csv",
+      "application/zip": "zip",
+      "application/json": "json",
+      "text/plain": "txt",
+      "application/xml": "xml",
+      "text/xml": "xml"
+    };
+    return map[mime] || "";
+  }
+
+  function applyExtensionByContentType(fileName, contentType) {
+    const normalizedName = String(fileName || "").trim();
+    if (!normalizedName) return normalizedName;
+    const inferredExt = extensionFromContentType(contentType);
+    if (!inferredExt) return normalizedName;
+    const extMatch = normalizedName.match(/\.([a-z0-9]{1,8})$/i);
+    if (!extMatch) return `${normalizedName}.${inferredExt}`;
+    const currentExt = String(extMatch[1] || "").toLowerCase();
+    if (currentExt === "bin" && inferredExt !== "bin") {
+      return normalizedName.replace(/\.bin$/i, `.${inferredExt}`);
+    }
+    return normalizedName;
+  }
+
+  function parseFilenameFromContentDisposition(headerValue) {
+    const raw = String(headerValue || "");
+    if (!raw) return "";
+    const utf8Match = raw.match(/filename\*\s*=\s*UTF-8''([^;]+)/i);
+    if (utf8Match && utf8Match[1]) {
+      try {
+        return decodeURIComponent(utf8Match[1].trim().replace(/^"|"$/g, ""));
+      } catch (_) {
+        return utf8Match[1].trim().replace(/^"|"$/g, "");
+      }
+    }
+    const plainMatch = raw.match(/filename\s*=\s*([^;]+)/i);
+    if (plainMatch && plainMatch[1]) {
+      return plainMatch[1].trim().replace(/^"|"$/g, "");
+    }
+    return "";
+  }
+
+  function parseFilenameFromResponseHeaders(resp) {
+    const getHeader = (name) => String(resp?.headers?.get?.(name) || "").trim();
+    const byDisposition = parseFilenameFromContentDisposition(getHeader("content-disposition"));
+    if (byDisposition) return byDisposition;
+    const directCandidates = [
+      "file-name",
+      "filename",
+      "x-file-name",
+      "x-filename",
+      "x-download-filename",
+      "download-filename",
+      "name"
+    ];
+    for (const headerName of directCandidates) {
+      const value = getHeader(headerName);
+      if (value) return value;
+    }
+    return "";
+  }
+
+  function triggerBrowserDownload(blob, fileName) {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  }
+
+  async function parseResponseByMode(resp, opts = {}) {
+    if (opts.responseType === "blob") {
+      const headerContentType = String(resp.headers?.get?.("content-type") || "").toLowerCase();
+      if (headerContentType.includes("application/json")) {
+        return safeJson(resp);
+      }
+      const blob = await resp.blob();
+      const headerFileName = parseFilenameFromResponseHeaders(resp);
+      const fallbackName = sanitizeDownloadFilename(opts.downloadFileName, "report.bin");
+      const resolvedContentType = blob.type || resp.headers?.get?.("content-type") || "";
+      const fileName = applyExtensionByContentType(headerFileName || fallbackName, resolvedContentType);
+      if (!headerFileName) {
+        try {
+          const allHeaders = [...(resp.headers?.entries?.() || [])];
+          console.warn("Binary response has no filename headers; using fallback name", allHeaders);
+        } catch (_) {
+          console.warn("Binary response has no filename headers; using fallback name");
+        }
+      }
+      const shouldDownload = opts.download !== false;
+      if (shouldDownload) {
+        triggerBrowserDownload(blob, fileName);
+      }
+      return {
+        ok: true,
+        isBinary: true,
+        downloaded: shouldDownload,
+        fileName,
+        contentType: resolvedContentType,
+        size: blob.size
+      };
+    }
+    return safeJson(resp);
   }
 
   function normalizeWebhookMode(mode) {
@@ -351,7 +474,7 @@
           mode
         );
         if (!resp.ok) throw new Error(await resp.text());
-        const json = await safeJson(resp);
+        const json = await parseResponseByMode(resp, opts);
         showPage(overlayId);
         return json;
       }
@@ -375,7 +498,7 @@
           mode
         );
         if (!resp.ok) throw new Error(await resp.text());
-        const json = await safeJson(resp);
+        const json = await parseResponseByMode(resp, opts);
         showPage(overlayId);
         return json;
       }

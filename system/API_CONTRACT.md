@@ -60,6 +60,8 @@
   - `POST /tags` body: `{ "action":"saveTagsConfig", "payload": { ... } }`
   - `POST /budget` body: `{ "action":"saveBudgetChanges", "payload": [ ... ] }`
   - `POST /sklad` body: `{ "action":"saveSkladChanges", "payload": [ ... ] }`
+  - `POST /supliers` body (current legacy raw-body route): `{ "action":"markSupplierPaymentsDone", "token":"...", "supplier":"...", "monthISO":"YYYY-MM", "sales":[...], "unpaidSales":[...] }`
+  - `POST /supliers` response for `markSupplierPaymentsDone`: binary file (supplier report, downloadable attachment)
 
 ## Что нужно изменить в n8n (обязательное)
 

@@ -1,17 +1,17 @@
 # Service Workflow Matrix
 
-Last refreshed: 2026-03-13
+Last refreshed: 2026-04-04
 
 Source files:
 - `system/api.js`
 - `system/n8n-service-workflow-map.json`
 
 Coverage snapshot:
-- total services in `API_ROUTES`: 50
-- `n8n`-backed services: 40
+- total services in `API_ROUTES`: 51
+- `n8n`-backed services: 41
 - `auto` services: 10
 - mapped to a concrete workflow file: 37
-- `n8n` services still unmapped in the lookup file: 3
+- `n8n` services still unmapped in the lookup file: 4
 
 ## Mapped n8n services by workflow
 
@@ -137,6 +137,7 @@ Coverage snapshot:
 | Service | Method | Mode | Action | Note |
 | --- | --- | --- | --- | --- |
 | `addBudgetRecord` | `POST` | `prod` | none declared | Present in `API_ROUTES`, unresolved in lookup |
+| `markSupplierPaymentsDone` | `POST` | `prod` | `supliers` | Suppliers payment endpoint is declared in `API_ROUTES`, workflow ownership not assigned yet |
 | `getToken` | `GET` | `prod` | none declared | Present in `API_ROUTES`, unresolved in lookup |
 | `getSapoOrders` | `GET` | `prod` | `sapo` | New Sapo integration route, workflow ownership not assigned yet |
 
@@ -161,4 +162,4 @@ These routes are still marked `source: "auto"` in `system/api.js` and do not poi
 
 - When changing a frontend service, update both `system/api.js` and this file.
 - When workflow ownership changes, update `system/n8n-service-workflow-map.json` and this file in the same task.
-- Treat the two unmapped `n8n` routes as integration debt until ownership is made explicit.
+- Treat unmapped `n8n` routes as integration debt until ownership is made explicit.

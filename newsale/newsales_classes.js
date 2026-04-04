@@ -439,18 +439,30 @@ class SalesTableUI {
             const quantityIndex = headers.indexOf("quantity");
             let quantity;
             if (quantityIndex !== -1) {
-              quantity = values[quantityIndex];
+              quantity = this.parseStockQuantity(values[quantityIndex]);
             } else {
               showErrorPopup(CONFIG.noquantitycolumn);
               return false;
             }
 
             // Проверка на наличие остатка на складе
-            if (quantity == null || quantity.toString() === "0") {
+            if (quantity === -1) {
+              showErrorPopup("SYSTEM ERROR EXCEL ERROR");
+              return false;
+            }
+            const availableQuantity = quantity == null ? null : Math.floor(quantity);
+            if (availableQuantity == null || availableQuantity <= 0) {
               showErrorPopup(CONFIG.outofstock);
               return false;
-            } else if (quantity.toString() === "-1") {
-              showErrorPopup("SYSTEM ERROR EXCEL ERROR");
+            }
+
+            const articleFieldName = this.resolveArticleFieldName(headers);
+            const articleValue = articleFieldName
+              ? values[headers.indexOf(articleFieldName)]
+              : null;
+            const alreadyAddedCount = this.countArticlesInCart(articleFieldName, articleValue);
+            if (alreadyAddedCount >= availableQuantity) {
+              showErrorPopup(CONFIG.outofstock);
               return false;
             }
 
@@ -477,6 +489,45 @@ class SalesTableUI {
             systemError("Error creating new catalog item", error);
           }
   }
+
+    parseStockQuantity(value) {
+      if (value === null || value === undefined) return null;
+      const normalized = String(value).trim().replace(/\s+/g, "").replace(",", ".");
+      if (!normalized) return null;
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    normalizeCompareValue(value) {
+      if (value === null || value === undefined) return "";
+      return String(value).trim().toLowerCase();
+    }
+
+    resolveArticleFieldName(headers) {
+      if (!Array.isArray(headers)) return null;
+      const preferredNames = ["article", "articul", "артикул"];
+      const lowerHeaders = headers.map((h) => this.normalizeCompareValue(h));
+      for (const preferred of preferredNames) {
+        const index = lowerHeaders.indexOf(preferred);
+        if (index !== -1) return headers[index];
+      }
+      return null;
+    }
+
+    countArticlesInCart(articleFieldName, articleValue) {
+      if (!articleFieldName) return 0;
+      const target = this.normalizeCompareValue(articleValue);
+      if (!target) return 0;
+      if (!Array.isArray(this.rawData) || this.rawData.length === 0) return 0;
+
+      let count = 0;
+      this.rawData.forEach((item) => {
+        if (!item || typeof item !== "object") return;
+        const current = this.normalizeCompareValue(item[articleFieldName]);
+        if (current === target) count += 1;
+      });
+      return count;
+    }
 
 	    normalizeItemData(raw) {
 	      if (raw === undefined || raw === null) return null;

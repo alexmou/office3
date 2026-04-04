@@ -112,6 +112,14 @@
       "workflowName": "button/charts",
       "workflowFile": "button_charts.workflow.ts"
     },
+    "markSupplierPaymentsDone": {
+      "method": "POST",
+      "mode": "prod",
+      "action": "supliers",
+      "workflowId": null,
+      "workflowName": null,
+      "workflowFile": null
+    },
     "getConfig": {
       "method": "GET",
       "mode": "prod",
@@ -332,6 +340,7 @@
   "workflowToServices": {
     "__UNRESOLVED__": [
       "addBudgetRecord",
+      "markSupplierPaymentsDone",
       "getToken",
       "getSapoOrders"
     ],
@@ -407,6 +416,7 @@
   },
   "unresolvedServices": [
     "addBudgetRecord",
+    "markSupplierPaymentsDone",
     "getToken",
     "getSapoOrders"
   ]

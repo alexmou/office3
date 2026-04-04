@@ -14,6 +14,8 @@ Current contract shape:
 - route definitions live in `API_ROUTES`
 - some calls use `GET`, some `POST`
 - some routes still use `rawBody`
+- supplier payment is an explicit route: `markSupplierPaymentsDone` -> `POST /supliers` with `rawBody`
+- `markSupplierPaymentsDone` returns supplier report as binary; frontend requests it with `responseType: "blob"` and triggers file download
 - contract versioning is explicit via `API_CONTRACT_VERSION`
 
 Important compatibility notes:

@@ -5,7 +5,7 @@ const DEFAULT_INTERNAL_BRANDS = ["button rouge", "button rouge2", "button rouge 
 const supliersState = {
   rows: [],
   chart: null,
-  payingBrands: new Set()
+  payingActions: new Set()
 };
 
 function pad2(value) {
@@ -105,6 +105,12 @@ function getDaysInMonth(monthISO) {
 function getCurrentMonthISO() {
   const now = new Date();
   return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;
+}
+
+function getPreviousMonthISO() {
+  const now = new Date();
+  const previousMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  return `${previousMonthDate.getFullYear()}-${pad2(previousMonthDate.getMonth() + 1)}`;
 }
 
 function resolveConfigBrandList() {
@@ -265,7 +271,7 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function buildSupplierPaymentPayload(brand, supplierRows) {
+function buildSupplierPaymentPayload(brand, supplierRows, periodMeta) {
   const rows = supplierRows.map((row) => ({
     id: row.id,
     basketid: row.basketId || row.source?.basketid || row.source?.basketId || "",
@@ -284,48 +290,78 @@ function buildSupplierPaymentPayload(brand, supplierRows) {
     action: "markSupplierPaymentsDone",
     token: window.token || "",
     supplier: brand,
+    monthISO: periodMeta.monthISO || "",
+    period: periodMeta.period,
     done: "done",
     sales: rows,
     unpaidSales: rows.filter((row) => isSupplierPaymentUnpaid(row.done))
   };
 }
 
-async function markSupplierAsPaid(brand) {
+function getPayingActionKey(brandKey, period) {
+  return `${brandKey || ""}::${period || ""}`;
+}
+
+function resolvePeriodMeta(period, currentMonthISO, previousMonthISO) {
+  if (period === "current") {
+    return {
+      period: "current",
+      monthISO: currentMonthISO,
+      title: `текущий месяц (${formatMonthLabel(currentMonthISO)})`
+    };
+  }
+  return {
+    period: "previous",
+    monthISO: previousMonthISO,
+    title: "долг прошлых периодов"
+  };
+}
+
+async function markSupplierAsPaid(brand, brandKey, period) {
   if (!brand) return;
-  if (supliersState.payingBrands.has(brand)) return;
-  if (typeof window.requestViaN8nOrMock !== "function") {
-    throw new Error("requestViaN8nOrMock недоступен");
+  if (!["previous", "current"].includes(period)) {
+    throw new Error("Неизвестный период оплаты");
+  }
+  const actionKey = getPayingActionKey(brandKey, period);
+  if (supliersState.payingActions.has(actionKey)) return;
+  if (!window.API || typeof window.API.markSupplierPaymentsDone !== "function") {
+    throw new Error("Сервис markSupplierPaymentsDone недоступен");
   }
 
-  const supplierRows = supliersState.rows.filter((row) => row.brand === brand && row.amountToSupplier > 0);
+  const currentMonthISO = getCurrentMonthISO();
+  const previousMonthISO = getPreviousMonthISO();
+  const periodMeta = resolvePeriodMeta(period, currentMonthISO, previousMonthISO);
+  const supplierRows = supliersState.rows.filter((row) => (
+    row.brandKey === brandKey
+    && row.amountToSupplier > 0
+    && (period === "previous" ? row.monthISO < currentMonthISO : row.monthISO === currentMonthISO)
+  ));
   const targetRows = supplierRows.filter((row) => row.unpaid);
   if (!targetRows.length) {
-    throw new Error(`Для ${brand} нет неоплаченных продаж`);
+    throw new Error(`Для ${brand} нет неоплаченных строк: ${periodMeta.title}`);
   }
 
-  const payload = buildSupplierPaymentPayload(brand, supplierRows);
-  supliersState.payingBrands.add(brand);
+  const payload = buildSupplierPaymentPayload(brand, targetRows, periodMeta);
+  supliersState.payingActions.add(actionKey);
   renderDashboard();
-  showStatus(`Отправляю webhook оплаты для ${brand}...`);
+  showStatus(`Отправляю webhook оплаты для ${brand}: ${periodMeta.title}...`);
 
   try {
-    const response = await window.requestViaN8nOrMock(
-      "getChartsData",
-      { action: payload.action, token: payload.token },
-      {
-        method: "POST",
-        webhookAction: "charts",
-        rawBody: payload,
-        overlayId: "supliers"
-      }
-    );
+    const response = await window.API.markSupplierPaymentsDone(payload, {
+      overlayId: "supliers",
+      responseType: "blob",
+      download: true
+    });
 
     if (!response) {
-      throw new Error(`charts webhook не подтвердил оплату для ${brand}`);
+      throw new Error(`supliers webhook не подтвердил оплату для ${brand}`);
     }
 
     supliersState.rows = supliersState.rows.map((row) => (
-      row.brand === brand && row.unpaid && row.amountToSupplier > 0
+      row.brandKey === brandKey
+      && row.unpaid
+      && row.amountToSupplier > 0
+      && (period === "previous" ? row.monthISO < currentMonthISO : row.monthISO === currentMonthISO)
         ? {
             ...row,
             doneValue: "done",
@@ -337,10 +373,11 @@ async function markSupplierAsPaid(brand) {
         : row
     ));
 
-    showStatus(`Webhook оплаты для ${brand} отправлен. Локальная таблица обновлена.`, "info");
+    const downloadedFileName = response?.fileName ? ` Файл: ${response.fileName}.` : "";
+    showStatus(`Оплата для ${brand} отправлена (${periodMeta.title}). Отчет скачан.${downloadedFileName} Локальная таблица обновлена.`, "info");
     renderDashboard();
   } finally {
-    supliersState.payingBrands.delete(brand);
+    supliersState.payingActions.delete(actionKey);
     renderDashboard();
   }
 }
@@ -349,8 +386,10 @@ function bindPaymentButtons() {
   document.querySelectorAll("[data-supplier-pay]").forEach((button) => {
     button.addEventListener("click", async () => {
       const brand = button.getAttribute("data-supplier-pay");
+      const brandKey = button.getAttribute("data-supplier-key");
+      const period = button.getAttribute("data-supplier-period");
       try {
-        await markSupplierAsPaid(brand);
+        await markSupplierAsPaid(brand, brandKey, period);
       } catch (error) {
         console.error("Не удалось отметить оплату поставщику", error);
         showStatus(error?.message || "Не удалось отправить webhook оплаты.", "error");
@@ -427,11 +466,15 @@ function renderDashboard() {
         label,
         stores: [...new Set(bucket.items.map((row) => row.store).filter(Boolean))].sort(),
         unpaidCount: bucket.items.length,
+        previousUnpaidCount: previous.length,
+        currentUnpaidCount: current.length,
         previousTotal: sumAmount(previous),
         currentTotal: sumAmount(current),
         total: sumAmount(bucket.items),
-        isPaying: supliersState.payingBrands.has(label),
-        canPay: bucket.items.every((row) => row.brand)
+        isPayingPrevious: supliersState.payingActions.has(getPayingActionKey(bucket.key, "previous")),
+        isPayingCurrent: supliersState.payingActions.has(getPayingActionKey(bucket.key, "current")),
+        canPayPrevious: bucket.items.every((row) => row.brand) && previous.length > 0,
+        canPayCurrent: bucket.items.every((row) => row.brand) && current.length > 0
       };
     })
     .sort((a, b) => b.total - a.total);
@@ -558,14 +601,36 @@ function renderDashboard() {
                 <td class="num">${formatMoney(bucket.currentTotal)}</td>
                 <td class="num">${formatMoney(bucket.total)}</td>
                 <td>
-                  <button
-                    type="button"
-                    class="supliers-action-btn"
-                    data-supplier-pay="${escapeHtml(bucket.label)}"
-                    ${bucket.isPaying || !bucket.canPay ? "disabled" : ""}
-                  >
-                    ${bucket.isPaying ? "Отправка..." : (bucket.canPay ? `Оплатить (${formatCount(bucket.unpaidCount)})` : "Нужно указать бренд")}
-                  </button>
+                  <div class="supliers-action-group">
+                    <div class="supliers-action-row">
+                      <span class="supliers-action-label">Долг</span>
+                      <button
+                        type="button"
+                        class="supliers-action-btn"
+                        data-supplier-pay="${escapeHtml(bucket.label)}"
+                        data-supplier-key="${escapeHtml(bucket.key)}"
+                        data-supplier-period="previous"
+                        ${bucket.isPayingPrevious || !bucket.canPayPrevious ? "disabled" : ""}
+                        title="${bucket.canPayPrevious ? `Неоплаченных строк: ${formatCount(bucket.previousUnpaidCount)}` : "Нет долга прошлых периодов"}"
+                      >
+                        ${bucket.isPayingPrevious ? "Отправка..." : "Оплатить"}
+                      </button>
+                    </div>
+                    <div class="supliers-action-row">
+                      <span class="supliers-action-label">Текущий</span>
+                      <button
+                        type="button"
+                        class="supliers-action-btn supliers-action-btn--current"
+                        data-supplier-pay="${escapeHtml(bucket.label)}"
+                        data-supplier-key="${escapeHtml(bucket.key)}"
+                        data-supplier-period="current"
+                        ${bucket.isPayingCurrent || !bucket.canPayCurrent ? "disabled" : ""}
+                        title="${bucket.canPayCurrent ? `Неоплаченных строк: ${formatCount(bucket.currentUnpaidCount)}` : "Нет долга текущего месяца"}"
+                      >
+                        ${bucket.isPayingCurrent ? "Отправка..." : "Оплатить"}
+                      </button>
+                    </div>
+                  </div>
                 </td>
               </tr>
             `).join("")}

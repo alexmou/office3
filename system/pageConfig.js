@@ -93,8 +93,8 @@ window.PAGE_CONFIG = {
   supliers: {
     title: "Supliers",
     html: "../supliers/supliers.html",
-    js: ["../supliers/supliers.js?v=20260329-2"],
-    css: ["../supliers/supliers.css?v=20260329-2"],
+    js: ["../supliers/supliers.js?v=20260404-5"],
+    css: ["../supliers/supliers.css?v=20260404-1"],
     externalJs: ["../vendor/chartjs-4.4.1.umd.min.js"]
   },
   schedule: {
