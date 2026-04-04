@@ -47,8 +47,31 @@ body { margin:0; font-family: system-ui, sans-serif; background:#fafafa; color:#
   color: #222;
 }
 .warehouses{ display:grid; grid-template-columns:repeat(auto-fit,minmax(380px,1fr)); gap:24px; padding:20px }
-.filter-bar{ display:flex; align-items:center; gap:10px; margin-bottom:8px }
+.filter-bar{ display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap }
 .filter-input{ flex:1; padding:6px 10px; border:1px solid #ccc; border-radius:6px; height: 42px; }
+.warehouse-store-switcher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.warehouse-store-switcher span {
+  font-size: 0.95rem;
+  color: #5b6472;
+}
+.warehouse-store-select {
+  min-width: 220px;
+  max-width: 320px;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #ccd1d8;
+  border-radius: 8px;
+  background: #fff;
+  color: #222;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
 
 .warehouse-zone {
   position:relative; min-height:350px; padding:50px 10px 10px;
@@ -109,27 +132,41 @@ body { margin:0; font-family: system-ui, sans-serif; background:#fafafa; color:#
 
 .modal-content {
   background:#fff; color:#222; border-radius:14px; box-shadow:0 12px 28px rgba(0,0,0,.2);
-  display:flex; flex-direction:column; overflow:scroll;
+  display:flex; flex-direction:column; overflow:hidden;
   width:clamp(320px,90vw,720px); max-height:90vh;
   animation:cardPop .25s cubic-bezier(.22,1.05,.46,1);
 }
 @keyframes cardPop {
   from { transform:scale(.9); opacity:0 } to { transform:scale(1); opacity:1 }
 }
-.modal-content.small {    width: 660px; height: -webkit-fill-available; }
-.modal-content.large { width:660px }
+.modal-content.small { width:min(660px, calc(100vw - 32px)); }
+.modal-content.large { width:min(660px, calc(100vw - 32px)); }
+
+#detailsForm {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+}
 
 .modal-header, .modal-footer {
   display:flex; align-items:center; gap:12px;
-  background:#f7f9fc; border-bottom:1px solid #e2e5ea;
+  padding: 16px 24px;
+  background:#f7f9fc;
 }
-.modal-footer { width: 660px; justify-content:flex-end }
+.modal-header { border-bottom:1px solid #e2e5ea; }
+.modal-footer {
+  justify-content:flex-end;
+  border-top:1px solid #e2e5ea;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
 .modal-header h3  { margin:0; font-size:1.25rem; font-weight:600; color:#111 }
 .modal-close       { margin-left:auto; background:none; border:none; font-size:1.5rem; color:#999; cursor:pointer; transition:color .15s }
 .modal-close:hover { color:#ff5a5f }
 
 .modal-body {
-  padding:20px 24px; overflow:auto; overscroll-behavior:contain;
+  padding:20px 24px; overflow:auto; overscroll-behavior:contain; flex:1 1 auto; min-height:0;
 }
 .modal-body label {
   display:block; margin-top:14px; margin-bottom:4px;
@@ -173,6 +210,15 @@ body { margin:0; font-family: system-ui, sans-serif; background:#fafafa; color:#
   .toolbar-store-select {
     width: 100%;
     min-width: 0;
+  }
+  .warehouse-store-switcher {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .warehouse-store-select {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
   }
 }
 

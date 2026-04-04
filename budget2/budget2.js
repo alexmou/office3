@@ -16,7 +16,7 @@ var DATE_COLUMN_INDEX
 var TIP_COLUMN_INDEX
 
 var VOCABULARY
-const UI_LOCALE = window.APP_LANG === "en" ? "en-US" : "ru-RU";
+const BUDGET_UI_LOCALE = window.APP_LANG === "en" ? "en-US" : "ru-RU";
 const tr = (text, fallback = text) =>
   typeof window.localizeUiText === "function" ? window.localizeUiText(text, fallback) : fallback;
 
@@ -39,12 +39,12 @@ const tr = (text, fallback = text) =>
 */
   function formatMonth(dateStr) {
     const d = new Date(dateStr);
-    return d.toLocaleString(UI_LOCALE, { year: 'numeric', month: 'long' });
+    return d.toLocaleString(BUDGET_UI_LOCALE, { year: 'numeric', month: 'long' });
   }
   function formatNumber(amount) {
     const num = Number(amount);
     if (isNaN(num)) return amount;
-    return num.toLocaleString(UI_LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return num.toLocaleString(BUDGET_UI_LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 function getNumberClass(num) {
   const n = Number(num);
@@ -56,6 +56,7 @@ function getNumberClass(num) {
   let monthsSummary = {};
   let selectedMonth = null;
   let selectedArticle = null;
+  let selectedArticleFilter = "";
   let changedItems = new Map();
   let months = [];
 
@@ -259,7 +260,7 @@ function renderSummary() {
         <div>Выручка месяца:</div>
         <div class="num ${getNumberClass(s.profitMonth)}">${formatNumber(s.profitMonth)}</div>
 
-        <div>Выручка накопительно:</div>
+        <div>Выручка накоп:</div>
         <div class="num ${getNumberClass(s.profit)}">${formatNumber(s.profit)}</div>
       </div>
 
@@ -282,11 +283,15 @@ function renderArticles() {
   const tbody = document.getElementById('articles-tbody');
   tbody.innerHTML = '';
   if (!selectedMonth) return;
+  ensureArticleFilterControl();
   const data = budgetData[selectedMonth];
+  const activeFilter = String(selectedArticleFilter || "").trim();
+  let hasSelectedVisible = false;
 
   for (const articleKey in data) {
     const item = data[articleKey];
     const titleToShow = item.title || articleKey; // <= вот это
+    if (activeFilter && articleKey !== activeFilter) continue;
 
     const factVal = Number(item.outcome) || 0;
     const paid = !!item.paid;
@@ -323,7 +328,10 @@ function renderArticles() {
 
     row.appendChild(commentCell);
 
-    if (articleKey === selectedArticle) row.classList.add('selected');
+    if (articleKey === selectedArticle) {
+      row.classList.add('selected');
+      hasSelectedVisible = true;
+    }
 
     row.onclick = () => {
       selectArticle(articleKey);
@@ -332,7 +340,68 @@ function renderArticles() {
 
     tbody.appendChild(row);
   }
+
+  if (selectedArticle && !hasSelectedVisible) {
+    hideArticleDetail();
+  }
 }
+
+  function ensureArticleFilterControl() {
+    const articlesBlock = document.getElementById('articles');
+    if (!articlesBlock) return;
+    const data = budgetData[selectedMonth] || {};
+
+    let filterWrap = document.getElementById('articles-filter-wrap');
+    if (!filterWrap) {
+      filterWrap = document.createElement('div');
+      filterWrap.id = 'articles-filter-wrap';
+      filterWrap.style.margin = '8px 0 10px';
+
+      const filterSelect = document.createElement('select');
+      filterSelect.id = 'articles-filter-select';
+      filterSelect.setAttribute('aria-label', tr('Фильтр по статье расходов', 'Фильтр по статье расходов'));
+      filterSelect.style.width = '100%';
+
+      filterSelect.addEventListener('change', (event) => {
+        selectedArticleFilter = String(event.target?.value || "");
+        renderArticles();
+      });
+
+      filterWrap.appendChild(filterSelect);
+
+      const table = articlesBlock.querySelector('table');
+      if (table) {
+        articlesBlock.insertBefore(filterWrap, table);
+      } else {
+        articlesBlock.appendChild(filterWrap);
+      }
+    }
+
+    const filterSelect = document.getElementById('articles-filter-select');
+    if (!filterSelect) return;
+
+    const prevValue = String(selectedArticleFilter || "");
+    filterSelect.innerHTML = "";
+
+    const allOption = document.createElement('option');
+    allOption.value = "";
+    allOption.textContent = tr('Все статьи', 'Все статьи');
+    filterSelect.appendChild(allOption);
+
+    Object.keys(data).forEach((articleKey) => {
+      const option = document.createElement('option');
+      option.value = articleKey;
+      option.textContent = data[articleKey]?.title || articleKey;
+      filterSelect.appendChild(option);
+    });
+
+    selectedArticleFilter = Object.prototype.hasOwnProperty.call(data, prevValue) ? prevValue : "";
+    filterSelect.value = selectedArticleFilter;
+
+    if (selectedArticleFilter && selectedArticle && selectedArticle !== selectedArticleFilter) {
+      hideArticleDetail();
+    }
+  }
 
 
   function highlightSelectedRow(article) {
@@ -787,5 +856,3 @@ function isPastMonth(dateStr) {
 
   await init();
 })();
-
-

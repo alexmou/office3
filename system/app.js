@@ -8,6 +8,7 @@ const DEFAULT_NAV_ITEMS = [
   { id: "budget", label: "Budget", type: "page", level: 0 },
   { id: "statistic", label: "Statistic", type: "page", level: 0 },
   { id: "settings", label: "Settings", type: "page", level: 0 },
+  { id: "sapo", label: "Sapo CRM", type: "page", level: 0 },
 ];
 
 let currentNavItems = [];
@@ -179,6 +180,14 @@ function applyNavToHeader(navItems) {
   }
 }
 
+function ensureExtraNavItems(navItems) {
+  const items = Array.isArray(navItems) ? [...navItems] : [];
+  if (!items.some((it) => it?.id === "sapo")) {
+    items.push({ id: "sapo", label: "Sapo CRM", type: "page", level: 0 });
+  }
+  return items;
+}
+
 async function refreshMenu() {
   const username = String(window.currentLoginName || "").trim();
   if (!username || !window.API || typeof window.API.getMenu !== "function") {
@@ -194,7 +203,7 @@ async function refreshMenu() {
     const raw = await API.getMenu({ username });
     const items = normalizeMenuItems(unwrapMenuResponse(raw));
     const filtered = items.filter((it) => it.type !== "page" || !!it.id);
-    currentNavItems = filtered.length > 0 ? filtered : DEFAULT_NAV_ITEMS.slice();
+    currentNavItems = ensureExtraNavItems(filtered.length > 0 ? filtered : DEFAULT_NAV_ITEMS.slice());
     applyNavToHeader(currentNavItems);
     if (typeof window.setMenuEnabled === "function") {
       window.setMenuEnabled(true);
@@ -202,7 +211,7 @@ async function refreshMenu() {
     return currentNavItems;
   } catch (err) {
     console.error("Failed to load menu via API.getMenu()", err);
-    currentNavItems = DEFAULT_NAV_ITEMS.slice();
+    currentNavItems = ensureExtraNavItems(DEFAULT_NAV_ITEMS.slice());
     applyNavToHeader(currentNavItems);
     if (typeof window.setMenuEnabled === "function") {
       window.setMenuEnabled(true);

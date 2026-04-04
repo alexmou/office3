@@ -334,6 +334,7 @@ class SalesTableUI {
     constructor(header) {
         try {
             this.header = [];
+            this.allFieldNames = [];
             this.len = 0;
             this.price = 0;
             this.finalPrice = 0;
@@ -469,7 +470,7 @@ class SalesTableUI {
             productTable.calculateTotalColumns();
             productTable.update();
 
-            const dataObject = arraysToObject(headers, values);
+            const dataObject = this.buildCatalogItemObject(headers, values);
             dataObject.id = (productTable.len - 1).toString();
             productTable.rawData.push(dataObject);
           } catch (error) {
@@ -548,6 +549,28 @@ class SalesTableUI {
       return holder ? holder.error : null;
     }
 
+    buildCatalogItemObject(headers, values) {
+      const normalizedHeaders = Array.isArray(headers) ? headers : [];
+      const normalizedValues = Array.isArray(values) ? values : [];
+      const fieldOrder =
+        Array.isArray(this.allFieldNames) && this.allFieldNames.length > 0
+          ? this.allFieldNames
+          : normalizedHeaders;
+      const item = {};
+
+      fieldOrder.forEach((fieldName) => {
+        if (!fieldName) return;
+        item[fieldName] = "";
+      });
+
+      normalizedHeaders.forEach((fieldName, index) => {
+        if (!fieldName) return;
+        item[fieldName] = normalizedValues[index] ?? "";
+      });
+
+      return item;
+    }
+
 
 
 	    getHeader(data) {
@@ -583,6 +606,7 @@ class SalesTableUI {
 	            }
 
             productTable.editableFieldNames = [];
+            productTable.allFieldNames = Array.isArray(payload[0]) ? payload[0].slice() : [];
             productTable.editableContextRaw = payload[2];
             var header = updateHeader(payload);
             productTable.header = header[0];
@@ -1000,12 +1024,73 @@ class SalesManager {
                 return product; // Возвращаем обновленный продукт
             });
 
-            this.values = updatedData; // Обновляем свойство sales
-            return updatedData; // Возвращаем обновленные данные
+            const normalizedData = this.normalizeSaleItems(updatedData);
+            this.values = normalizedData; // Обновляем свойство sales
+            return normalizedData; // Возвращаем обновленные данные
         } catch (error) {
             systemError("Error updating product data", error);
             return rawData; // Возвращаем исходные данные в случае ошибки
         }
+    }
+
+    appendUniqueKeys(target, seen, keys) {
+        if (!Array.isArray(target) || !(seen instanceof Set) || !Array.isArray(keys)) return;
+        keys.forEach((key) => {
+            if (key === undefined || key === null) return;
+            const normalizedKey = String(key).trim();
+            if (!normalizedKey || seen.has(normalizedKey)) return;
+            seen.add(normalizedKey);
+            target.push(normalizedKey);
+        });
+    }
+
+    getSaleSchema(items) {
+        const schema = [];
+        const seen = new Set();
+        const baseFields = [
+            ...(Array.isArray(productTable?.allFieldNames) ? productTable.allFieldNames : []),
+            ...(Array.isArray(productTable?.header) ? productTable.header : []),
+            "id",
+            "finalPriceVND",
+            "finalPrice",
+            "curs",
+            "currency",
+            "paymentmethod",
+            "username",
+            "date",
+            "time",
+            "basketid",
+            "store",
+            "storeId",
+            "sheetName_sklad",
+            "sheetName_accounting"
+        ];
+
+        this.appendUniqueKeys(schema, seen, baseFields);
+
+        if (Array.isArray(items)) {
+            items.forEach((item) => {
+                if (!item || typeof item !== "object" || Array.isArray(item)) return;
+                this.appendUniqueKeys(schema, seen, Object.keys(item));
+            });
+        }
+
+        return schema;
+    }
+
+    normalizeSaleItems(items) {
+        if (!Array.isArray(items)) return [];
+        const schema = this.getSaleSchema(items);
+        return items.map((item) => {
+            const source = item && typeof item === "object" && !Array.isArray(item) ? item : {};
+            const normalizedItem = {};
+
+            schema.forEach((fieldName) => {
+                normalizedItem[fieldName] = source[fieldName] ?? "";
+            });
+
+            return normalizedItem;
+        });
     }
 
     createBasket(basket) {
@@ -1081,6 +1166,7 @@ class SalesManager {
               if (sheetNameAccounting) this.basket[0].sheetName_accounting = sheetNameAccounting;
             }
 
+            this.values = this.normalizeSaleItems(this.values);
             this.values = convertValuesToString(this.values);
             if (this.basket) {
               this.basket = convertValuesToString(this.basket);

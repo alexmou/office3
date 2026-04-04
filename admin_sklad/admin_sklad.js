@@ -323,13 +323,6 @@ function getWarehouseDisplayName(wid) {
   return store?.storeName || store?.label || (wid === 1 ? 'Склад 1' : 'Склад 2');
 }
 
-function updateWarehouseLabels() {
-  const zoneLabel1 = document.getElementById('zoneLabel1');
-  const zoneLabel2 = document.getElementById('zoneLabel2');
-  if (zoneLabel1) zoneLabel1.textContent = getWarehouseDisplayName(1);
-  if (zoneLabel2) zoneLabel2.textContent = getWarehouseDisplayName(2);
-}
-
 function syncSelectorsOnConflict(changedSide) {
   if (selectedSourceStore?.key !== selectedTargetStore?.key) return;
   const fallback = findAlternativeStore(availableStores, changedSide === 'source' ? selectedSourceStore?.key : selectedTargetStore?.key);
@@ -441,7 +434,6 @@ async function bodyOnload() {
       await ensureStoreSwitcher();
       warehousesInitialized = false;
       vocabularyCache = null;
-      updateWarehouseLabels();
       const query = buildSelectedStoreQuery({ action: "getSkladData", visible: true , TESTING:CONFIG.GLOBAL_EXECUTION_TESTING});
           try {
               const data = await window.API.getSkladData(query, { overlayId: "admin_sklad" });
@@ -517,7 +509,6 @@ const formatPrice = v => {
     warehousesInitialized = true;
   }
   await loadHeader();
-  updateWarehouseLabels();
   renderWarehouses();
   if (!pageListenersBound) {
     setupDragAndDrop();
@@ -683,11 +674,36 @@ function setupDragAndDrop() {
       openModal('quantityModal', false);
     });
   });
-  document.getElementById('confirmTransfer').addEventListener('click', ()=>{
+  document.getElementById('confirmTransfer').addEventListener('click', async ()=>{
     const qty = Number(document.getElementById('transferQuantity').value)||0;
-    moveProduct(currentTransfer.productArticle, currentTransfer.from, currentTransfer.to, qty);
-     renderWarehouses();
-    closeModal('quantityModal');
+    if (!currentTransfer?.productArticle || qty <= 0 || qty > Number(currentTransfer.max || 0)) {
+      showToast('Укажите корректное количество', 'error');
+      return;
+    }
+    try {
+      const change = {
+        productArticle: currentTransfer.productArticle,
+        from: currentTransfer.from,
+        to: currentTransfer.to,
+        qty,
+        timestamp: new Date().toISOString(),
+      };
+      const payload = {
+        query: buildSelectedStoreQuery({
+          action: 'saveSkladChanges',
+          visible: true,
+          TESTING: CONFIG.GLOBAL_EXECUTION_TESTING,
+        }),
+        data: [change],
+      };
+      const resp = await window.API.saveSkladChanges(payload, { timeout: 8000, overlayId: 'admin_sklad' });
+      if (resp == null) throw new Error('Не удалось сохранить перемещение');
+      moveProduct(currentTransfer.productArticle, currentTransfer.from, currentTransfer.to, qty);
+      closeModal('quantityModal');
+      showToast('Перемещение сохранено', 'success');
+    } catch (error) {
+      showToast(`Ошибка: ${error.message}`, 'error');
+    }
   });
 }
 
@@ -720,11 +736,6 @@ function moveProduct(article, from, to, qty) {
     tList.push(newProd);
   }
 
-  // Отмечаем изменение
-  if (!isProductChanged(article)) {
-    changes.push({ productArticle: article, from, to, qty, timestamp: new Date().toISOString() });
-  }
-
   renderWarehouses();
 }
 
@@ -744,7 +755,9 @@ function setupFilters() {
 }
 
 function setupSaveButton() {
-  document.getElementById('btnSaveAll').addEventListener('click', async ()=>{
+  const saveBtn = document.getElementById('btnSaveAll');
+  if (!saveBtn) return;
+  saveBtn.addEventListener('click', async ()=>{
     if (!changes.length) {
       showToast('Нет изменений для сохранения','info');
       return;
@@ -758,11 +771,7 @@ function setupSaveButton() {
         }),
         data: changes,
       };
-      const resp = await window.API.call('saveSkladChanges', { action: 'saveSkladChanges' }, {
-        timeout: 8000,
-        overlayId: 'admin_sklad',
-        rawBody: payload,
-      });
+      const resp = await window.API.saveSkladChanges(payload, { timeout: 8000, overlayId: 'admin_sklad' });
       if (resp == null) throw new Error("Не удалось сохранить изменения");
       showToast('Изменения успешно сохранены!','success');
       changes.length=0;
@@ -1089,10 +1098,6 @@ document.addEventListener('submit', async e => {
 
     const prepared = ensureArticle(data);
     updateProductInWarehouse(wid, prepared);
-
-    if (!changes.some(c => String(c.productArticle) === String(prepared.article))) {
-      changes.push({ productArticle: prepared.article, timestamp: new Date().toISOString() });
-    }
 
    // renderWarehouses();
 warehousesInitialized=false

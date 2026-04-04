@@ -264,6 +264,14 @@
       "workflowName": "CashRegister",
       "workflowFile": "CashRegister.workflow.ts"
     },
+    "getSapoOrders": {
+      "method": "GET",
+      "mode": "prod",
+      "action": "sapo",
+      "workflowId": null,
+      "workflowName": null,
+      "workflowFile": null
+    },
     "saveBudgetChanges": {
       "method": "POST",
       "mode": "prod",
@@ -324,7 +332,8 @@
   "workflowToServices": {
     "__UNRESOLVED__": [
       "addBudgetRecord",
-      "getToken"
+      "getToken",
+      "getSapoOrders"
     ],
     "CashRegister.workflow.ts": [
       "addCacheRegisterRecord",
@@ -398,6 +407,7 @@
   },
   "unresolvedServices": [
     "addBudgetRecord",
-    "getToken"
+    "getToken",
+    "getSapoOrders"
   ]
 }

@@ -174,7 +174,7 @@ width: 100%;
 
 /* Заголовки секций */
 #articles h3, #article-detail h3{
-  margin: -50px 0 6px;
+  margin: -30px 0 6px;
   padding-bottom: 6px;
   border-bottom: 2px solid var(--primary);
   font-size: 1.2rem;
@@ -264,6 +264,7 @@ button{ transition: background-color .2s ease, transform .1s ease; }
   background:#2b8a3e; border:none; color:#fff;
   padding: 10px 18px; font-size: .95rem; border-radius: 10px;
   margin-bottom: 10px; width: 200px; box-shadow: 0 3px 10px rgba(43,138,62,.25);
+  margin-top: 10px;
   cursor: pointer;
 }
 #save-btn:disabled{ background:#a7d7b3; box-shadow:none; }

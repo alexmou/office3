@@ -1,4 +1,25 @@
 {
+  "version": 2,
+  "activeInstanceId": "legacy-https-buttonrouge-org-Cbzeqxofr5KXht6P",
+  "instances": [
+    {
+      "id": "legacy-https-buttonrouge-org-Cbzeqxofr5KXht6P",
+      "name": "buttonrouge.org",
+      "host": "https://buttonrouge.org/n8n",
+      "syncFolder": "workflows",
+      "projectId": "Cbzeqxofr5KXht6P",
+      "projectName": "Personal",
+      "instanceIdentifier": "buttonrouge_org/n8n_алексей_м",
+      "verification": {
+        "status": "verified",
+        "normalizedHost": "https://buttonrouge.org",
+        "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
+        "userName": "Алексей Мурыгин",
+        "userEmail": "l.murygin@gmail.com",
+        "lastCheckedAt": "2026-04-04T09:42:25.148Z"
+      }
+    }
+  ],
   "host": "https://buttonrouge.org/n8n",
   "syncFolder": "workflows",
   "projectId": "Cbzeqxofr5KXht6P",

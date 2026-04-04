@@ -93,13 +93,20 @@ window.PAGE_CONFIG = {
   supliers: {
     title: "Supliers",
     html: "../supliers/supliers.html",
-    js: [],
-    css: []
+    js: ["../supliers/supliers.js?v=20260329-2"],
+    css: ["../supliers/supliers.css?v=20260329-2"],
+    externalJs: ["../vendor/chartjs-4.4.1.umd.min.js"]
   },
   schedule: {
     title: "Schedule",
     html: "../schedule/schedule.html",
     js: ["../schedule/schedule.js"],
     css: ["../schedule/schedule.css"]
+  },
+  sapo: {
+    title: "Sapo CRM",
+    html: "../sapo/sapo.html",
+    js: ["../sapo/sapo.js?v=20260329-3"],
+    css: ["../sapo/sapo.css?v=20260329-2"]
   }
 };

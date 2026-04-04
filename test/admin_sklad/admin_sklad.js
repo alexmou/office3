@@ -5,7 +5,8 @@ const HIDDEN_FIELDS = ['row_number'];
 
 let ALL_FIELDS = [];
 let availableStores = [];
-let selectedStore = null;
+let selectedSourceStore = null;
+let selectedTargetStore = null;
 let pageListenersBound = false;
 
 function parseMaybeJson(value) {
@@ -140,39 +141,46 @@ function findDefaultStore(stores, currentStore) {
   return stores[0];
 }
 
-function deriveSecondaryWarehouseName(primaryName) {
-  const primary = String(primaryName || '').trim();
-  if (!primary) return '';
-  const match = primary.match(/^(.*?)(\d+)$/);
-  if (!match) return `${primary}2`;
-  return `${match[1]}${Number(match[2]) + 1}`;
+function findAlternativeStore(stores, excludedKey) {
+  return (stores || []).find((store) => store.key !== excludedKey) || null;
 }
 
 function buildSelectedStoreQuery(baseQuery = {}) {
   const query = { ...baseQuery };
-  const store = selectedStore || getCurrentUserStore();
-  if (!store) return query;
+  const source = selectedSourceStore || getCurrentUserStore();
+  const target = selectedTargetStore || findAlternativeStore(availableStores, source?.key) || source;
+  if (!source && !target) return query;
 
-  if (store.storeId !== '') {
-    query.store = store.storeId;
-    query.storeId = query.storeId || store.storeId;
+  if (source?.storeId !== '') {
+    query.store = source.storeId;
+    query.storeId = query.storeId || source.storeId;
   }
-  if (store.storeName) {
-    query.storeName = store.storeName;
+  if (source?.storeName) {
+    query.storeName = source.storeName;
   }
-  if (store.sheetName_sklad) {
-    const secondWarehouse = deriveSecondaryWarehouseName(store.sheetName_sklad);
-    query.sheetName_sklad = store.sheetName_sklad;
-    query.sklad = store.sheetName_sklad;
-    query.skladName1 = store.sheetName_sklad;
-    if (secondWarehouse) {
-      query.sheetName_sklad_2 = secondWarehouse;
-      query.sklad2 = secondWarehouse;
-      query.skladName2 = secondWarehouse;
-    }
+  if (source?.sheetName_sklad) {
+    query.sheetName_sklad = source.sheetName_sklad;
+    query.sklad = source.sheetName_sklad;
+    query.skladName1 = source.sheetName_sklad;
   }
-  if (store.sheetName_accounting) {
-    query.sheetName_accounting = store.sheetName_accounting;
+  if (source?.sheetName_accounting) {
+    query.sheetName_accounting = source.sheetName_accounting;
+  }
+
+  if (target?.storeId !== '') {
+    query.store2 = target.storeId;
+    query.storeId2 = target.storeId;
+  }
+  if (target?.storeName) {
+    query.storeName2 = target.storeName;
+  }
+  if (target?.sheetName_sklad) {
+    query.sheetName_sklad_2 = target.sheetName_sklad;
+    query.sklad2 = target.sheetName_sklad;
+    query.skladName2 = target.sheetName_sklad;
+  }
+  if (target?.sheetName_accounting) {
+    query.sheetName_accounting_2 = target.sheetName_accounting;
   }
 
   return query;
@@ -227,22 +235,14 @@ function renderStoreOptions(selectEl, stores, currentStore) {
 }
 
 function getWarehouseDisplayName(wid) {
-  const store = selectedStore || getCurrentUserStore();
-  if (!store?.sheetName_sklad) return wid === 1 ? 'Склад 1' : 'Склад 2';
-  if (wid === 1) return store.sheetName_sklad;
-  return deriveSecondaryWarehouseName(store.sheetName_sklad) || 'Склад 2';
-}
-
-function updateWarehouseLabels() {
-  const zoneLabel1 = document.getElementById('zoneLabel1');
-  const zoneLabel2 = document.getElementById('zoneLabel2');
-  if (zoneLabel1) zoneLabel1.textContent = getWarehouseDisplayName(1);
-  if (zoneLabel2) zoneLabel2.textContent = getWarehouseDisplayName(2);
+  const store = wid === 1 ? selectedSourceStore : selectedTargetStore;
+  return store?.storeName || store?.label || (wid === 1 ? 'Склад 1' : 'Склад 2');
 }
 
 async function ensureStoreSwitcher() {
-  const selectEl = document.getElementById('adminSkladStoreSelect');
-  if (!selectEl) return;
+  const fromSelectEl = document.getElementById('adminSkladFromSelect');
+  const toSelectEl = document.getElementById('adminSkladToSelect');
+  if (!fromSelectEl || !toSelectEl) return;
 
   const storesFromService = await fetchStoresForAdminSklad();
   const currentStore = getCurrentUserStore();
@@ -260,35 +260,64 @@ async function ensureStoreSwitcher() {
     }
   }
 
-  if (!selectedStore) {
-    selectedStore = findDefaultStore(availableStores, currentStore);
+  if (!selectedSourceStore) {
+    selectedSourceStore = findDefaultStore(availableStores, currentStore);
   } else {
-    selectedStore = availableStores.find((store) => store.key === selectedStore.key) || selectedStore;
+    selectedSourceStore = availableStores.find((store) => store.key === selectedSourceStore.key) || selectedSourceStore;
   }
 
-  renderStoreOptions(selectEl, availableStores, selectedStore);
+  if (!selectedTargetStore) {
+    selectedTargetStore = findAlternativeStore(availableStores, selectedSourceStore?.key) || selectedSourceStore;
+  } else {
+    selectedTargetStore = availableStores.find((store) => store.key === selectedTargetStore.key) || selectedTargetStore;
+  }
 
-  if (!selectEl.dataset.bound) {
+  if (selectedSourceStore?.key === selectedTargetStore?.key) {
+    const fallbackStore = findAlternativeStore(availableStores, selectedSourceStore?.key);
+    if (fallbackStore) selectedTargetStore = fallbackStore;
+  }
+
+  renderStoreOptions(fromSelectEl, availableStores, selectedSourceStore);
+  renderStoreOptions(toSelectEl, availableStores, selectedTargetStore);
+
+  const bindSelector = (selectEl, side) => {
+    if (selectEl.dataset.bound) return;
     selectEl.addEventListener('change', async (event) => {
       const nextKey = String(event.target.value || '');
       const nextStore = availableStores.find((store) => store.key === nextKey);
-      if (!nextStore || nextStore.key === selectedStore?.key) return;
+      const currentStoreForSide = side === 'source' ? selectedSourceStore : selectedTargetStore;
+      if (!nextStore || nextStore.key === currentStoreForSide?.key) return;
 
       if (changes.length > 0) {
-        const shouldReset = window.confirm('Есть несохраненные изменения. Переключить магазин и сбросить их?');
+        const shouldReset = window.confirm('Есть несохраненные изменения. Переключить склад и сбросить их?');
         if (!shouldReset) {
-          event.target.value = selectedStore?.key || '';
+          event.target.value = currentStoreForSide?.key || '';
           return;
         }
         changes.length = 0;
       }
 
-      selectedStore = nextStore;
+      if (side === 'source') selectedSourceStore = nextStore;
+      else selectedTargetStore = nextStore;
+
+      if (selectedSourceStore?.key === selectedTargetStore?.key) {
+        const fallbackStore = findAlternativeStore(availableStores, nextStore.key);
+        if (fallbackStore) {
+          if (side === 'source') selectedTargetStore = fallbackStore;
+          else selectedSourceStore = fallbackStore;
+        }
+      }
+
+      renderStoreOptions(fromSelectEl, availableStores, selectedSourceStore);
+      renderStoreOptions(toSelectEl, availableStores, selectedTargetStore);
       vocabularyCache = null;
       await bodyOnload();
     });
     selectEl.dataset.bound = '1';
-  }
+  };
+
+  bindSelector(fromSelectEl, 'source');
+  bindSelector(toSelectEl, 'target');
 }
 
 async function loadHeader() {
@@ -324,7 +353,6 @@ async function bodyOnload() {
       await ensureStoreSwitcher();
       warehousesInitialized = false;
       vocabularyCache = null;
-      updateWarehouseLabels();
       const query = buildSelectedStoreQuery({ action: "getSkladData", visible: true , TESTING:CONFIG.GLOBAL_EXECUTION_TESTING});
           try {
               const data = await window.API.getSkladData(query, { overlayId: "admin_sklad" });
@@ -400,7 +428,6 @@ const formatPrice = v => {
     warehousesInitialized = true;
   }
   await loadHeader();
-  updateWarehouseLabels();
   renderWarehouses();
   if (!pageListenersBound) {
     setupDragAndDrop();
@@ -633,7 +660,15 @@ function setupSaveButton() {
       return;
     }
     try {
-      const resp = await window.API.saveSkladChanges(changes, { timeout: 8000, overlayId: "admin_sklad" });
+      const payload = {
+        query: buildSelectedStoreQuery({
+          action: 'saveSkladChanges',
+          visible: true,
+          TESTING: CONFIG.GLOBAL_EXECUTION_TESTING,
+        }),
+        data: changes,
+      };
+      const resp = await window.API.saveSkladChanges(payload, { timeout: 8000, overlayId: "admin_sklad" });
       if (resp == null) throw new Error("Не удалось сохранить изменения");
       showToast('Изменения успешно сохранены!','success');
       changes.length=0;

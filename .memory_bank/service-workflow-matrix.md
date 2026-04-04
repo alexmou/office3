@@ -7,11 +7,11 @@ Source files:
 - `system/n8n-service-workflow-map.json`
 
 Coverage snapshot:
-- total services in `API_ROUTES`: 49
-- `n8n`-backed services: 39
+- total services in `API_ROUTES`: 50
+- `n8n`-backed services: 40
 - `auto` services: 10
 - mapped to a concrete workflow file: 37
-- `n8n` services still unmapped in the lookup file: 2
+- `n8n` services still unmapped in the lookup file: 3
 
 ## Mapped n8n services by workflow
 
@@ -138,6 +138,7 @@ Coverage snapshot:
 | --- | --- | --- | --- | --- |
 | `addBudgetRecord` | `POST` | `prod` | none declared | Present in `API_ROUTES`, unresolved in lookup |
 | `getToken` | `GET` | `prod` | none declared | Present in `API_ROUTES`, unresolved in lookup |
+| `getSapoOrders` | `GET` | `prod` | `sapo` | New Sapo integration route, workflow ownership not assigned yet |
 
 ## `auto` services
 

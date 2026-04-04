@@ -12,12 +12,6 @@
  <div id="global">
 
     <div class="toolbar">
-      <div class="toolbar-controls">
-        <label class="toolbar-store-switcher" for="adminSkladStoreSelect">
-          <span>Магазин</span>
-          <select id="adminSkladStoreSelect" class="toolbar-store-select"></select>
-        </label>
-      </div>
       <button id="btnSaveAll" class="button button--success" data-i18n="Сохранить">Сохранить</button>
     </div>
 
@@ -28,12 +22,15 @@
       <!-- Склад 1 -->
       <section class="warehouse">
         <div class="filter-bar">
+          <label class="warehouse-store-switcher" for="adminSkladFromSelect">
+            <span>Склад</span>
+            <select id="adminSkladFromSelect" class="warehouse-store-select"></select>
+          </label>
           <label><input type="checkbox" id="hideZero1" checked> Скрывать отсутствующие</label>
           <input id="filter1" class="filter-input" placeholder="Фильтр по всем полям">
           <button class="button button--primary add-product" data-wid="1">+ Добавить товар</button>
         </div>
         <div id="products1-zone" class="warehouse-zone">
-          <span id="zoneLabel1" class="zone-label">Склад 1</span>
           <div id="products1" class="products-container"></div>
         </div>
       </section>
@@ -41,12 +38,15 @@
       <!-- Склад 2 -->
       <section class="warehouse">
         <div class="filter-bar">
+          <label class="warehouse-store-switcher" for="adminSkladToSelect">
+            <span>Склад</span>
+            <select id="adminSkladToSelect" class="warehouse-store-select"></select>
+          </label>
           <label><input type="checkbox" id="hideZero2" checked> Скрывать отсутствующие</label>
           <input id="filter2" class="filter-input" placeholder="Фильтр по всем полям">
           <button class="button button--primary add-product" data-wid="2">+ Добавить товар</button>
         </div>
         <div id="products2-zone" class="warehouse-zone">
-          <span id="zoneLabel2" class="zone-label">Склад 2</span>
           <div id="products2" class="products-container"></div>
         </div>
       </section>

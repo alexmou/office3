@@ -6,6 +6,15 @@
 
 var salaryData
 
+function resolveSalaryUsername() {
+  return String(
+    document.getElementById("username")?.textContent ||
+    window.currentLoginName ||
+    window.username ||
+    (typeof username !== "undefined" ? username : "")
+  ).trim();
+}
+
 if (typeof registerPageInit === "function") {
   registerPageInit("salary", bodyOnLoad);
 } else {
@@ -13,12 +22,7 @@ if (typeof registerPageInit === "function") {
 }
 
 function bodyOnLoad() {
-  const resolvedUsername = String(
-    document.getElementById("username")?.textContent ||
-    window.currentLoginName ||
-    window.username ||
-    (typeof username !== "undefined" ? username : "")
-  ).trim();
+  const resolvedUsername = resolveSalaryUsername();
 
   if (!resolvedUsername) {
     const msg =

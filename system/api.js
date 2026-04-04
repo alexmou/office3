@@ -105,6 +105,9 @@
     getSchedule: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
     upsertShifts: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "schedule"},
 
+    // Sapo CRM integration services (n8n webhook: /sapo)
+    getSapoOrders: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sapo" },
+
 
     setStatisticBrandName: { source: "auto", webhook: "prod" },
     setToken: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "Auth" },
