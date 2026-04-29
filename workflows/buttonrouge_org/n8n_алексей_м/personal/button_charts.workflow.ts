@@ -310,6 +310,26 @@ export class ButtonChartsWorkflow {
     };
 
     @node({
+        name: 'FilterReturns',
+        type: 'n8n-nodes-base.filter',
+        version: 2,
+        position: [-848, -16],
+    })
+    FilterReturns = {
+        conditions: {
+            options: { caseSensitive: false, leftValue: '', typeValidation: 'loose', version: 2 },
+            conditions: [{
+                id: 'filter-is-return',
+                leftValue: '={{ $json.is_return }}',
+                rightValue: 'TRUE',
+                operator: { type: 'string', operation: 'notEquals', name: 'filter.operator.notEquals' },
+            }],
+            combinator: 'and',
+        },
+        options: {},
+    };
+
+    @node({
         name: 'Добавляем month_year',
         type: 'n8n-nodes-base.code',
         version: 2,
@@ -735,7 +755,8 @@ export class ButtonChartsWorkflow {
 
     @links()
     defineRouting() {
-        this.GetRowSInSheet.out(0).to(this.MonthYear.in(0));
+        this.GetRowSInSheet.out(0).to(this.FilterReturns.in(0));
+        this.FilterReturns.out(0).to(this.MonthYear.in(0));
         this.Summarize.out(0).to(this.Merge1.in(1));
         this.Webhook.out(0).to(this.Switch_.in(0));
         this.Stores.out(0).to(this.Merge.in(3));

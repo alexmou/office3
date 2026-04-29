@@ -109,6 +109,26 @@ export class SalaryWorkflow {
     };
 
     @node({
+        name: 'FilterReturns',
+        type: 'n8n-nodes-base.filter',
+        version: 2,
+        position: [-2176, -176],
+    })
+    FilterReturns = {
+        conditions: {
+            options: { caseSensitive: false, leftValue: '', typeValidation: 'loose', version: 2 },
+            conditions: [{
+                id: 'filter-is-return',
+                leftValue: '={{ $json.is_return }}',
+                rightValue: 'TRUE',
+                operator: { type: 'string', operation: 'notEquals', name: 'filter.operator.notEquals' },
+            }],
+            combinator: 'and',
+        },
+        options: {},
+    };
+
+    @node({
         name: 'Edit Fields',
         type: 'n8n-nodes-base.set',
         version: 3.4,
@@ -176,7 +196,8 @@ export class SalaryWorkflow {
 
     @links()
     defineRouting() {
-        this.Getsalary.out(0).to(this.EditFields.in(0));
+        this.Getsalary.out(0).to(this.FilterReturns.in(0));
+        this.FilterReturns.out(0).to(this.EditFields.in(0));
         this.Webhook.out(0).to(this.Getsalary.in(0));
         this.EditFields.out(0).to(this.RespondToWebhook.in(0));
     }

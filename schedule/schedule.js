@@ -550,16 +550,25 @@
     }
   }
 
+  const TOTAL_COLORS = 22; // --color0 … --color21
+
   function employeeColorIndex(employeeName){
     const name = normalizeEmployeeName(employeeName);
     if (!name) return null;
 
-    // Deterministic hash -> color bucket (stable even when the employee list changes).
+    // Assign color by position in the employee list so no two employees share a color.
+    const employees = getMetaEmployees();
+    const idx = employees.findIndex(
+      (e) => normalizeEmployeeName(e?.employee || e?.Employee || e?.name || e) === name
+    );
+    if (idx !== -1) return idx % TOTAL_COLORS;
+
+    // Fallback for employees not yet in META (deterministic, avoids obvious collisions).
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = (hash * 31 + name.charCodeAt(i)) | 0;
     }
-    return Math.abs(hash) % 12;
+    return Math.abs(hash) % TOTAL_COLORS;
   }
 
   async function loadMeta(){

@@ -292,7 +292,7 @@
             {
               "id": "ab788bc2-e1e6-43e5-b1e4-bdad2e02d157",
               "name": "Profit",
-              "value": "={{ $json.finalPriceVND - $json.salary- $json[\"AmountToSupplier\"] - $json.Terminal}}",
+              "value": "={{ $json.finalPriceVND - $json.salary- $json[\"AmountToSupplier\"] - ($json.Terminal || 0)}}",
               "type": "number"
             }
           ]
@@ -330,7 +330,7 @@
             {
               "id": "6eed4894-c054-493d-a5e7-8a970f8bbc3b",
               "name": "month",
-              "value": "={{ new Date().getUTCMonth($json.date) + 1 }}",
+              "value": "={{ new Date($json.date.split('.').reverse().join('-')).getUTCMonth() + 1 }}",
               "type": "string"
             },
             {
@@ -930,7 +930,7 @@
           "value": {
             "date": "={{ $json.date }}",
             "time": "={{ $json.time }}",
-            "month": "={{ new Date().getUTCMonth($json.date) + 1 }}",
+            "month": "={{ new Date($json.date.split('.').reverse().join('-')).getUTCMonth() + 1 }}",
             "year": "={{ new Date($json.date).getUTCFullYear() }}",
             "weekday": "={{   (() => {\n    const [d,m,y] = $json.date.split('.');\n    return ((new Date(`${y}-${m}-${d}T00:00:00Z`).getUTCDay() + 6) % 7) + 1;\n  })() }}\n",
             "article": "={{ $json.article }}",
@@ -2903,7 +2903,7 @@
               {
                 "id": "ab788bc2-e1e6-43e5-b1e4-bdad2e02d157",
                 "name": "Profit",
-                "value": "={{ $json.finalPriceVND - $json.salary- $json[\"AmountToSupplier\"] - $json.Terminal}}",
+                "value": "={{ $json.finalPriceVND - $json.salary- $json[\"AmountToSupplier\"] - ($json.Terminal || 0)}}",
                 "type": "number"
               }
             ]
@@ -2941,7 +2941,7 @@
               {
                 "id": "6eed4894-c054-493d-a5e7-8a970f8bbc3b",
                 "name": "month",
-                "value": "={{ new Date().getUTCMonth($json.date) + 1 }}",
+                "value": "={{ new Date($json.date.split('.').reverse().join('-')).getUTCMonth() + 1 }}",
                 "type": "string"
               },
               {
@@ -3541,7 +3541,7 @@
             "value": {
               "date": "={{ $json.date }}",
               "time": "={{ $json.time }}",
-              "month": "={{ new Date().getUTCMonth($json.date) + 1 }}",
+              "month": "={{ new Date($json.date.split('.').reverse().join('-')).getUTCMonth() + 1 }}",
               "year": "={{ new Date($json.date).getUTCFullYear() }}",
               "weekday": "={{   (() => {\n    const [d,m,y] = $json.date.split('.');\n    return ((new Date(`${y}-${m}-${d}T00:00:00Z`).getUTCDay() + 6) % 7) + 1;\n  })() }}\n",
               "article": "={{ $json.article }}",

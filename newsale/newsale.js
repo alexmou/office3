@@ -237,6 +237,7 @@
         basket.addData(key, cartUI[key]);
       }
       salesManager.createBasket(basket);
+      cartUI.setOrderButtonEnabled(false);
       salesManager.submitSales();
     } else {
       showErrorPopup(CONFIG.productlistisempty);
@@ -249,6 +250,7 @@
    * - Ошибка: JSON с ошибкой: `{ "success": false, "error": "..." }` или `{ "error": "..." }` (или любая "ложная" строка типа `"error"`/`"failed"`).
    */
   function sendSalesToSheet_done(res) {
+    cartUI.setOrderButtonEnabled(true);
     if (isSuccessfulServiceResult(res)) {
       showInformationalPopup(CONFIG.saleregistred);
       productTable.clear();

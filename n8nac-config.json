@@ -10,13 +10,14 @@
       "projectId": "Cbzeqxofr5KXht6P",
       "projectName": "Personal",
       "instanceIdentifier": "buttonrouge_org/n8n_алексей_м",
+      "workflowDir": "workflows/buttonrouge_org/n8n_алексей_м/personal",
       "verification": {
         "status": "verified",
         "normalizedHost": "https://buttonrouge.org",
         "userId": "dd4645a9-84e7-47f3-a498-e225ad29b698",
         "userName": "Алексей Мурыгин",
         "userEmail": "l.murygin@gmail.com",
-        "lastCheckedAt": "2026-04-04T10:51:49.324Z"
+        "lastCheckedAt": "2026-04-28T09:17:02.347Z"
       }
     }
   ],
@@ -24,5 +25,6 @@
   "syncFolder": "workflows",
   "projectId": "Cbzeqxofr5KXht6P",
   "projectName": "Personal",
-  "instanceIdentifier": "buttonrouge_org/n8n_алексей_м"
+  "instanceIdentifier": "buttonrouge_org/n8n_алексей_м",
+  "workflowDir": "workflows/buttonrouge_org/n8n_алексей_м/personal"
 }

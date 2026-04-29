@@ -24,18 +24,32 @@
   --yellow:#ffc107;
   --rose:#e83e8c;
 
-  --color0:  #0f9d58; /* насыщенный зелёный */
-  --color1:  #17a2b8; /* яркий бирюзовый */
-  --color2:  #f6c343; /* солнечный жёлтый */
-  --color3:  #ff9f1c; /* насыщенный оранжевый */
-  --color4:  #ff5c5c; /* ярко-красный */
-  --color5:  #d7263d; /* насыщенный пурпур */
-  --color6:  #9c27b0; /* фиолетовый */
-  --color7:  #6f42c1; /* насыщенный синий */
-  --color8:  #3b60e4; /* королевский синий */
-  --color9:  #112b8f; /* насыщенный индиго */
-  --color10: #0c4a6e; /* темно-синий */
-  --color11: #1c1f4a; /* почти чёрный синий */ 
+
+ --color0:  #004d40; /* очень тёмный teal */
+--color1:  #00bcd4; /* яркий циан */
+
+--color2:  #0d47a1; /* тёмный синий */
+--color3:  #2979ff; /* чистый яркий синий */
+
+--color4:  #4a148c; /* тёмный фиолетовый */
+--color5:  #aa00ff; /* кислотный фиолетовый */
+
+--color6:  #880e4f; /* тёмный малиновый */
+--color7:  #ff4081; /* яркий розовый */
+
+--color8:  #813232; /* тёмный красный */
+--color9:  #ff1745; /* чистый красный */
+
+--color10: #e65100; /* тёмный оранжевый */
+
+
+--color11: #136484; /* тёмный жёлтый (горчичный) */
+--color12: #ffea00; /* максимально яркий жёлтый */
+
+--color13: #1b5e20; /* тёмный зелёный */
+--color14: #00e676; /* неоновый зелёный */
+
+--color15: #263238; /* почти чёрный (контрастный якорь) */
 
 
 
@@ -265,3 +279,13 @@ Hide other-month dates: keep grid slot empty */
 .assignment.color9 { background-color: var(--color9); }
 .assignment.color10 { background-color: var(--color10); }
 .assignment.color11 { background-color: var(--color11); }
+.assignment.color12 { background-color: var(--color12); }
+.assignment.color13 { background-color: var(--color13); }
+.assignment.color14 { background-color: var(--color14); }
+.assignment.color15 { background-color: var(--color15); }
+.assignment.color16 { background-color: var(--color16); }
+.assignment.color17 { background-color: var(--color17); }
+.assignment.color18 { background-color: var(--color18); }
+.assignment.color19 { background-color: var(--color19); }
+.assignment.color20 { background-color: var(--color20); }
+.assignment.color21 { background-color: var(--color21); }

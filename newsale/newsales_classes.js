@@ -153,6 +153,7 @@ this.DEFAULT_CURRENCY_AFTER_SUBMIT = "VND"
 
         // Создаем кнопку
         const orderButton = document.createElement('button');
+        orderButton.id = 'orderButton';
         orderButton.textContent = 'Register a sale';
         orderButton.setAttribute("onClick", 'makeOrder()')
         orderSummary.appendChild(orderButton);
@@ -295,6 +296,12 @@ setSelectValue(selectId, desiredValue) {
             }
 
 
+    }
+
+    setOrderButtonEnabled(enabled) {
+        const btn = document.getElementById('orderButton');
+        if (!btn) return;
+        btn.disabled = !enabled;
     }
 
 
@@ -800,9 +807,6 @@ class SalesTableUI {
                 totalPrice += !isNaN(priceValue) ? priceValue : 0;
                 totalDiscount += !isNaN(discountPersValue) ? (priceValue * discountPersValue) / 100 : 0;
                 totalDiscount += !isNaN(discountFixValue) ? discountFixValue : 0
-
-                console.log('totalPrice',totalPrice)
-                console.log('totalDiscount',totalDiscount)
             }
 
             productTable.totalPrice = totalPrice;
@@ -1223,14 +1227,10 @@ class SalesManager {
               this.basket = convertValuesToString(this.basket);
             }
 
-            // В каждый sale добавляем полный результат getStores (объектами, не строкой)
-            if (Array.isArray(stores) && stores.length > 0) {
-              this.values.forEach((sale) => {
-                sale.stores = stores;
-              });
-            }
-
             sendData.sales = this.values;
+            if (Array.isArray(stores) && stores.length > 0) {
+              sendData.stores = stores;
+            }
             if (storeNameToSend) {
               sendData.store = storeNameToSend;
             }

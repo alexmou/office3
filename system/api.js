@@ -77,7 +77,11 @@
     markSupplierPaymentsDone: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "supliers", rawBody: true },
 
     // Sales services (n8n webhook: /sales)
-    getSalesData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sales" }, 
+    getSalesData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sales" },
+
+    // Return services (n8n webhook: /return)
+    requestReturn: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "return" },
+    approveReturn: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "return" },
 
     // Budget services (n8n webhook: /budget)
     // NOTE: backend action can be overridden via params.action (keeps API_ROUTES simple).
