@@ -1,0 +1,5 @@
+#profile-title: RU AUTO
+
+vless://1ab92b9c-9a46-4a06-9a12-1c118fd138f6@188.166.182.158:443?type=tcp&security=reality&encryption=none&pbk=8aRRz5a2rhOHIRjE3o3qckxmQNWh-IVGTv16Snyze2M&flow=xtls-rprx-vision&sni=www.bing.com&sid=c44f5e04e67b2c74&fp=firefox#RU_REALITY
+hysteria2://_yIALDkfIqldL0REYsRl0wRWGUZ2i8p9TfDyiCmw-zg%3D@188.166.182.158:443/?sni=vpn.buttonrouge.org&insecure=0&obfs=salamander&obfs-password=SJ7uwKIiFVIzaCr3gfejUHhTRNwYuE_gZh7F2npioI4%3D#RU-02-HY2
+vless://ec88e991-7f74-4615-a488-c3a91cc6f362@188.166.182.158:8443?type=tcp&security=reality&encryption=none&pbk=PQ8fVzaFrD3ANIzDmgE67H6FhCkQUbNymBkqe35fPjw&flow=xtls-rprx-vision&sni=www.bing.com&sid=6f903d8e630fc0aa&fp=firefox#RU-03-REALITY

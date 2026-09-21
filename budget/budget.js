@@ -1,236 +1,1031 @@
 
-
-<script>
-
 const OPERATION_TYPE_FIELD_ID="OperationType"
 const OPERATION_VID_FIELD_ID="Vid_Prognoz-Fact"
 const ACTIVITY_FIELD_ID="activity"
 const SUMM_FIELD_ID="CashSum"
 const COMMENT_FIELD_ID="Comment"
-  const BUDGET_NAME="BUTTON ROUGE"
-    var BUDGET_TYPE
-  var ID_COLUMN_INDEX
+const BUDGET_NAME="BUTTON ROUGE"
+var BUDGET_TYPE
+var ID_COLUMN_INDEX
 var VID_COLUMN_INDEX 
 var DATE_COLUMN_INDEX
 var TIP_COLUMN_INDEX
 
 var VOCABULARY
-    const fmt = (n, c) => new Intl.NumberFormat('ru-RU', { style:'currency', currency:c }).format(n ?? 0);
-    const tr = (text, fallback = text) =>
-      typeof window.localizeUiText === "function" ? window.localizeUiText(text, fallback) : fallback;
-    const ymKey = s => s?.slice(0,7);
-    const groupBy = (arr, keyFn) => arr.reduce((a,x)=>{(a[keyFn(x)] ||= []).push(x);return a;},{});
+const BUDGET_UI_LOCALE = window.APP_LANG === "en" ? "en-US" : "ru-RU";
+const tr = (text, fallback = text) =>
+  typeof window.localizeUiText === "function" ? window.localizeUiText(text, fallback) : fallback;
 
-    // ---------- Stub data (no server yet) ----------
-    const demo = {
-      currency:'VND',
-      items:[
-        { id:'i0501', date:'2025-05-05', kind:'income',  category: tr('Продажи'),   title: tr('Розница'), amount:157000000, editable:true },
-        { id:'e0502', date:'2025-05-03', kind:'expense', category: tr('ФОТ'),       title: tr('Оклады'),  amount:32000000,  editable:true },
-        { id:'i0601', date:'2025-06-04', kind:'income',  category: tr('Продажи'),   title: tr('Розница'), amount:141960990, editable:true },
-        { id:'e0602', date:'2025-06-03', kind:'expense', category: tr('ФОТ'),       title: tr('Оклады'),  amount:31000000,  editable:true },
-        { id:'i0701', date:'2025-07-05', kind:'income',  category: tr('Продажи'),   title: tr('Розница'), amount:187943000, editable:true },
-        { id:'e0702', date:'2025-07-04', kind:'expense', category: tr('ФОТ'),       title: tr('Оклады'),  amount:33500000,  editable:true },
-        { id:'e0703', date:'2025-07-07', kind:'expense', category: tr('Коммунальные'), title: tr('Электроэнергия'), amount:3400000, editable:true },
-        { id:'e0704', date:'2025-07-10', kind:'expense', category: tr('Аренда'),    title: tr('ТЦ Новый'), amount:45000000, editable:false }
-      ]
-    };
+  (async function() {
 
-    // ---------- State ----------
-    let currency = demo.currency;
-    let items = demo.items;
-    let drafts = {}; // {id: newAmount}
-    let selectedYM = null;
+  const ARTICLE_DICTIONARY = await window.API.getBudgetVocabulary(
+    { action: "getVocabulary", visible: true, mode: "notest" },
+    { overlayId: "budget" }
+  );
 
-    const effectiveItems = () => items.map(it => it.id in drafts ? { ...it, amount: drafts[it.id] } : it);
-    const computeMonths = () => {
-      const groups = groupBy(effectiveItems(), x=>ymKey(x.date));
-      return Object.keys(groups).sort().map(ym=>{
-        const arr = groups[ym];
-        const income = arr.filter(x=>x.kind==='income').reduce((s,x)=>s+x.amount,0);
-        const expense= arr.filter(x=>x.kind==='expense').reduce((s,x)=>s+x.amount,0);
-        return { ym, items:arr, income, expense, profit:income-expense };
+  //console.log("ARTICLE_DICTIONARY",ARTICLE_DICTIONARY)
+/* 
+     
+      [
+    "Company management","Store maintenance","Fixed salaries","Miscellaneous","Refund","Tailoring",
+    "Accountant salary","Store service","Taxes","Rent","Fabric purchase",
+    "Goods purchase","Visual merchandising","Marketing","Logistics","IT support"
+  ];
+
+*/
+  function formatMonth(dateStr) {
+    const d = parseBudgetDate(dateStr);
+    return d.toLocaleString(BUDGET_UI_LOCALE, { year: 'numeric', month: 'long' });
+  }
+
+  function getMonthKey(dateStr) {
+    const value = String(dateStr || '').trim();
+    const match = value.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/);
+    if (match) return `${match[1]}-${match[2]}`;
+
+    const legacyMatch = value.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    return legacyMatch ? `${legacyMatch[3]}-${legacyMatch[2]}` : value;
+  }
+
+  function parseBudgetDate(dateStr) {
+    const value = String(dateStr || '').trim();
+    const isoMatch = value.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);
+    if (isoMatch) return new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3] || 1));
+
+    const legacyMatch = value.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (legacyMatch) return new Date(Number(legacyMatch[3]), Number(legacyMatch[2]) - 1, Number(legacyMatch[1]));
+
+    return new Date(value);
+  }
+
+  function getBudgetRecordId(item) {
+    return item?.id ?? item?.Id ?? item?.ID ?? item?.recordId ?? null;
+  }
+
+  function getBudgetRecordTitle(item, fallback = '') {
+    return item?.title || item?.article || item?.Article || fallback;
+  }
+
+  function getDisplayArticleTitle(item, fallback = '') {
+    const id = getBudgetRecordId(item);
+    const title = getBudgetRecordTitle(item, fallback);
+    if (id == null) return title;
+
+    const titleWithoutId = String(title).endsWith(`__${id}`)
+      ? String(title).slice(0, -(`__${id}`).length)
+      : String(title);
+    return titleWithoutId.replace(/ #\d+$/, '');
+  }
+
+  function getBudgetRecordKey(item, fallback, usedKeys) {
+    const id = getBudgetRecordId(item);
+    const baseKey = id == null ? String(fallback) : `${getBudgetRecordTitle(item, fallback)}__${id}`;
+    let key = baseKey;
+    let suffix = 2;
+    while (Object.prototype.hasOwnProperty.call(usedKeys, key)) {
+      key = `${baseKey} #${suffix}`;
+      suffix += 1;
+    }
+    return key;
+  }
+
+  function normalizeBudgetData(rawData) {
+    const normalized = {};
+    Object.entries(rawData || {}).forEach(([month, monthData]) => {
+      if (Array.isArray(monthData)) {
+        const records = {};
+        monthData.forEach((item, index) => {
+          const key = getBudgetRecordKey(item, getBudgetRecordTitle(item, `record-${index + 1}`), records);
+          records[key] = item;
+        });
+        normalized[month] = records;
+        return;
+      }
+
+      const records = {};
+      Object.entries(monthData || {}).forEach(([fallback, item]) => {
+        const key = getBudgetRecordKey(item, fallback, records);
+        records[key] = item;
       });
-    };
+      normalized[month] = records;
+    });
+    return normalized;
+  }
 
-    // ---------- Render ----------
-    function render(){
-      const months = computeMonths();
-      if(!selectedYM && months.length) selectedYM = months[months.length-1].ym;
-      const cur = months.find(m=>m.ym===selectedYM) || months.at(-1);
-      renderMonthsList(months);
-      renderStrip(months);
-      renderSummary(cur);
-      renderPanels(cur);
-      updateSaveBtn();
+  function getBudgetMonthData(month) {
+    const monthKey = getMonthKey(month);
+    const matchingKey = Object.keys(budgetData).find(key => getMonthKey(key) === monthKey);
+    return matchingKey ? budgetData[matchingKey] : {};
+  }
+
+  function ensureBudgetMonthData(month) {
+    const monthKey = Object.keys(budgetData).find(key => getMonthKey(key) === getMonthKey(month));
+    if (monthKey) return budgetData[monthKey];
+    budgetData[month] = {};
+    return budgetData[month];
+  }
+
+  function formatNumber(amount) {
+    const num = Number(amount);
+    if (isNaN(num)) return amount;
+    return num.toLocaleString(BUDGET_UI_LOCALE, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  function parseBudgetAmount(value) {
+    if (typeof value === 'number') return value;
+    let normalized = String(value ?? '').replace(/[\s\u00a0]/g, '');
+    const commaIndex = normalized.lastIndexOf(',');
+    const dotIndex = normalized.lastIndexOf('.');
+
+    if (commaIndex !== -1 && dotIndex !== -1) {
+      normalized = commaIndex > dotIndex
+        ? normalized.replace(/\./g, '').replace(',', '.')
+        : normalized.replace(/,/g, '');
+    } else if (commaIndex !== -1) {
+      normalized = BUDGET_UI_LOCALE === 'en-US'
+        ? normalized.replace(/,/g, '')
+        : normalized.replace(',', '.');
     }
 
-    function ymLabel(ym){
-      const [y,m]=ym.split('-');
-      const dt=new Date(+y,+m-1,1);
-      return dt.toLocaleDateString('ru-RU',{month:'long',year:'numeric'}).replace(' г.','');
+    const amount = Number(normalized);
+    return Number.isFinite(amount) ? amount : 0;
+  }
+
+  function formatBudgetInput(input) {
+    const start = input.selectionStart ?? input.value.length;
+    const digitsBeforeCaret = input.value.slice(0, start).replace(/\D/g, '').length;
+    const rawValue = input.value.trim();
+    if (!rawValue) return;
+
+    const amount = parseBudgetAmount(rawValue);
+    if (!Number.isFinite(amount)) return;
+
+    const formatted = formatNumber(amount);
+    input.value = formatted;
+    let caret = 0;
+    let digitsSeen = 0;
+    while (caret < formatted.length && digitsSeen < digitsBeforeCaret) {
+      if (/\d/.test(formatted[caret])) digitsSeen += 1;
+      caret += 1;
+    }
+    input.setSelectionRange(caret, caret);
+  }
+
+  function commentToPlainText(comment) {
+    const container = document.createElement('div');
+    container.innerHTML = String(comment || '');
+
+    function readNode(node, isFirstNode = false) {
+      if (node.nodeType === Node.TEXT_NODE) return node.nodeValue || '';
+      if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+      const content = Array.from(node.childNodes)
+        .map((child, index) => readNode(child, index === 0))
+        .join('');
+      if (node.tagName === 'BR') return '\n';
+      if (node.tagName === 'DIV' || node.tagName === 'P' || node.tagName === 'LI') {
+        return `${isFirstNode ? '' : '\n'}${content}`;
+      }
+      return content;
     }
 
-    function renderMonthsList(months){
-      const box=document.getElementById('monthsList');
-      box.innerHTML='';
-      months.forEach(m=>{
-        const el=document.createElement('button');
-        el.className='monthBtn'+(m.ym===selectedYM?' active':'');
-        el.innerHTML=`
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <div style="font-weight:600">${ymLabel(m.ym)}</div>
-            <div style="font-weight:700; ${m.profit>=0?'color:var(--ok)':'color:var(--bad)'}">${fmt(m.profit,currency)}</div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
-            <div>Доходы<div style="font-weight:600">${fmt(m.income,currency)}</div></div>
-            <div>Расходы<div style="font-weight:600">${fmt(m.expense,currency)}</div></div>
-          </div>`;
-        el.onclick=()=>{selectedYM=m.ym;render()};
-        box.appendChild(el);
-      });
-    }
+    return Array.from(container.childNodes)
+      .map((node, index) => readNode(node, index === 0))
+      .join('')
+      .trim();
+  }
+function getNumberClass(num) {
+  const n = Number(num);
+  if (!n) return 'zero';
+  return n < 0 ? 'neg' : 'pos';
+}
 
-    function renderStrip(months){
-      const strip=document.getElementById('monthsStrip');
-      strip.innerHTML='';
-      months.forEach(m=>{
-        const b=document.createElement('button');
-        b.className='pill'+(m.ym===selectedYM?' active':'');
-        b.innerHTML=`<span class="muted" style="font-size:12px">${ymLabel(m.ym)}</span><span style="font-weight:700">${fmt(m.profit,currency)}</span>`;
-        b.onclick=()=>{selectedYM=m.ym;render()};
-        strip.appendChild(b);
-      });
-    }
+  let budgetData = {};  
+  let monthsSummary = {};
+  let selectedMonth = null;
+  let selectedArticle = null;
+  let selectedArticleFilter = "";
+  let changedItems = new Map();
+  let months = [];
 
-    function renderSummary(cur){
-      const box=document.getElementById('monthSummary');
-      if(!cur){box.style.display='none';return}
-      box.style.display='flex';
-      const badge = cur.profit>=0? '<span class="chip ok">Плюс</span>' : '<span class="chip warn">Минус</span>';
-      box.innerHTML=`
-        <div style="font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px">${ymLabel(cur.ym)} ${badge}</div>
-        <div class="stats">
-          <div class="stat"><div class="label">Доходы</div><div class="value ok">${fmt(cur.income,currency)}</div></div>
-          <div class="stat"><div class="label">Расходы</div><div class="value bad">${fmt(cur.expense,currency)}</div></div>
-          <div class="stat"><div class="label">Выручка</div><div class="value ${cur.profit>=0?'ok':'bad'}">${fmt(cur.profit,currency)}</div></div>
-        </div>`;
-    }
+  // ===== Новое: карусель =====
+  let carouselInited = false;
+  function ensureCarouselShell() {
+    const summary = document.getElementById('summary');
+    if (!summary) return null;
 
-    function renderPanels(cur){
-      const root=document.getElementById('panels');
-      root.innerHTML='';
-      if(!cur) return;
-      const cats = monthCats(cur);
-      root.appendChild(categoryPanel('Доходы','income',cats.income));
-      root.appendChild(categoryPanel('Расходы','expense',cats.expense));
-    }
+    // оборачиваем один раз
+    if (!carouselInited) {
+      const wrap = document.createElement('div');
+      wrap.id = 'summary-wrap';
+      summary.parentNode.insertBefore(wrap, summary);
+      wrap.appendChild(summary);
 
-    function monthCats(month){
-      const gi=groupBy(month.items.filter(x=>x.kind==='income'), x=>x.category);
-      const ge=groupBy(month.items.filter(x=>x.kind==='expense'),x=>x.category);
-      const sum=arr=>arr.reduce((s,x)=>s+x.amount,0);
-      return {
-        income:Object.fromEntries(Object.entries(gi).map(([k,a])=>[k,{total:sum(a),rows:a}])),
-        expense:Object.fromEntries(Object.entries(ge).map(([k,a])=>[k,{total:sum(a),rows:a}]))
+      // стрелки
+      const btnLeft = document.createElement('button');
+      btnLeft.className = 'carousel-arrow left';
+      btnLeft.setAttribute('aria-label', 'Прокрутить к прошлым');
+      btnLeft.textContent = '◀';
+
+      const btnRight = document.createElement('button');
+      btnRight.className = 'carousel-arrow right';
+      btnRight.setAttribute('aria-label', 'Прокрутить к будущим');
+      btnRight.textContent = '▶';
+
+      wrap.append(btnLeft, btnRight);
+
+      // скролл по кнопкам на ширину одной карточки
+      const stepByOneCard = (dir) => {
+        const first = summary.querySelector('.month-summary');
+        if (!first) return;
+        const styles = getComputedStyle(summary);
+        const gap = parseFloat(styles.gap) || 0;
+        const step = first.getBoundingClientRect().width + gap;
+        summary.scrollBy({ left: dir * step, behavior: 'smooth' });
       };
+      btnLeft.addEventListener('click', () => stepByOneCard(-1));
+      btnRight.addEventListener('click', () => stepByOneCard(1));
+
+      // колесо мыши -> горизонтальный скролл
+      /*
+      summary.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          summary.scrollLeft += e.deltaY;
+        }
+      }, { passive: false });
+*/
+      // обновление доступности стрелок
+      const updateArrows = () => {
+        const maxLeft = summary.scrollWidth - summary.clientWidth - 1;
+        btnLeft.disabled  = summary.scrollLeft <= 0;
+        btnRight.disabled = summary.scrollLeft >= maxLeft;
+      };
+      summary.addEventListener('scroll', updateArrows, { passive: true });
+      window.addEventListener('resize', updateArrows);
+      setTimeout(updateArrows, 0);
+
+      carouselInited = true;
     }
 
-    function categoryPanel(title,kind,data){
-      const card=document.createElement('div');
-      card.className='card card-pad';
-      const entries=Object.entries(data).sort((a,b)=>b[1].total-a[1].total);
-      card.innerHTML=`<div class="panel-title">${title}</div>`;
-      entries.forEach(([cat,{total,rows}],i)=>{
-        const sec=document.createElement('div');
-        sec.className='section';
-        const head=document.createElement('div');
-        head.className='section-head';
-        head.innerHTML=`${chev()}<div style="font-weight:600">${cat}</div><div class="section-total ${kind==='income'?'income':'expense'}">${fmt(total,currency)}</div>`;
-        const tableWrap=document.createElement('div');
-        tableWrap.style.display='none';
-        tableWrap.innerHTML=tableHTML(rows);
-        head.onclick=()=>{
-          const open = tableWrap.style.display==='none';
-          tableWrap.style.display = open?'block':'none';
-          head.querySelector('.chev').classList.toggle('rotate90', open);
-        };
-        sec.appendChild(head); sec.appendChild(tableWrap); card.appendChild(sec);
+    // 6 карточек в вьюпорте: текущий + 5 справа
+    summary.style.setProperty('--per-view', 5);
+    return summary;
+  }
+
+  function scrollSelectedMonthToLeftEdge() {
+    const summary = document.getElementById('summary');
+    if (!summary || !selectedMonth) return;
+    const el = summary.querySelector(`.month-summary[data-month="${CSS.escape(selectedMonth)}"]`);
+    if (!el) return;
+    requestAnimationFrame(() => { summary.scrollLeft = el.offsetLeft; });
+  }
+  // ===== /карусель =====
+
+  async function init() {
+        let query
+    let params
+
+     query = { action: "getBudgetData", visible: true, mode:"no test" };
+    budgetData = normalizeBudgetData(await window.API.getBudgetData(query, { overlayId: "budget" }));
+
+     query = { action: "getMonthsSummary", visible: true};
+     monthsSummary = await window.API.getMonthsSummary(query, { overlayId: "budget" });
+
+
+
+    months = Object.keys(monthsSummary).sort((a, b) => parseBudgetDate(a) - parseBudgetDate(b));
+
+    const today = new Date();
+    let foundCurrent = months.find(m => {
+      const md = parseBudgetDate(m);
+      return md.getFullYear() === today.getFullYear() && md.getMonth() === today.getMonth();
+    });
+    selectedMonth = foundCurrent || months[0];
+
+    populateArticleSelect();
+    renderSummary();     // построит карточки
+    renderArticles();
+    selectMonth(selectedMonth); // и выставит выбранный с проскроллом
+    scrollSelectedMonthToLeftEdge();
+    enableSaveButton();
+
+  const raw = transformToRaw(monthsSummary);
+  const prepared = prepareDatasets(raw);
+  renderPnLChart(prepared);
+
+  }
+
+  function calculateMonthlySummary(month) {
+    const data = getBudgetMonthData(month);
+    let sumIncome = 0, sumOutcome = 0;
+   //   console.log("month",month)
+    const hasDetailedExpenses = Object.values(data).some(item =>
+      item && Object.prototype.hasOwnProperty.call(item, 'outcome')
+    );
+    if (!hasDetailedExpenses) {
+      sumOutcome = parseBudgetAmount(monthsSummary[month]?.outcome);
+    }
+
+    for (const key in data) {
+    const item = data[key];
+    const outcome = parseBudgetAmount(item.outcome);
+
+    if (isPastMonth(month)) {
+      // прошедшие месяцы → только оплаченные
+      if (item.paid) {
+        sumOutcome += outcome;
+      }
+    } else {
+      // текущий и будущие месяцы → все
+      sumOutcome += outcome;
+    }
+    }
+
+          sumIncome = parseBudgetAmount(monthsSummary[month].income);
+        //  console.log("sumIncome",sumIncome)
+    const revenueFact = sumIncome - sumOutcome ;
+    const revenueForecast = sumOutcome;
+    return { income: sumIncome, outcome: sumOutcome, revenueFact, revenueForecast };
+  }
+
+
+// Хелпер: сортировка ключей-месяцев по возрастанию (YYYY-MM-DD)
+function sortMonthsAsc(arr) {
+  return [...arr].sort((a, b) => parseBudgetDate(a) - parseBudgetDate(b));
+}
+
+/**
+ * 1) Пересчитать monthsSummary на основе calculateMonthlySummary:
+ *    - outcome (факт/прогноз расходов по твоей логике paid/isPastMonth)
+ *    - revenueFact (доход - расход)
+ *    - profit (накопительная прибыль с начала периода)
+ * 2) Отрисовать карточки месяцев в прежнем порядке (с prepend)
+ */
+function renderSummary() {
+  const summaryDiv = document.getElementById('summary');
+  summaryDiv.innerHTML = '';
+
+  // 1) считаем в хронологическом порядке
+  const monthsAsc = months;
+  let cumulativeProfit = 0;
+
+  for (const m of monthsAsc) {
+    const sums = calculateMonthlySummary(m);         // { income, outcome, revenueFact }
+    if (!monthsSummary[m]) monthsSummary[m] = {};
+
+    const income  = Number(sums.income)       || 0;
+    const outcome = Number(sums.outcome)      || 0;
+    const profitMonth = Number(sums.revenueFact) || 0; // прибыль месяца = доход - расход
+
+    // обновляем сводку
+    monthsSummary[m].income      = income;
+    monthsSummary[m].outcome     = outcome;
+    monthsSummary[m].revenueFact = profitMonth;  // можно оставить для совместимости
+    monthsSummary[m].profitMonth = profitMonth;  // ЯВНО: прибыль месяца
+
+    cumulativeProfit += profitMonth;
+    monthsSummary[m].profit = cumulativeProfit;  // ЯВНО: накопительная прибыль
+  }
+
+  // 2) рендерим карточки в твоём порядке (prepend)
+  months.forEach(m => {
+    const div = document.createElement('div');
+    const s = monthsSummary[m] || { income: 0, outcome: 0, revenueFact: 0, profit: 0, profitMonth: 0 };
+
+    const total = Math.abs(s.income) + Math.abs(s.outcome) || 1;
+    const factPct = Math.round((Math.abs(s.income) / total) * 100);
+    const forecastPct = 100 - factPct;
+
+    div.className = 'month-summary' + (m === selectedMonth ? ' selected' : '');
+    div.dataset.month = m;
+    div.tabIndex = 0;
+
+    div.innerHTML = `
+      <div class="ms-head">
+        <b>${formatMonth(m)}</b>
+      </div>
+      <div class="ms-grid">
+        <div>Доход:</div>
+        <div class="num ${getNumberClass(s.income)}">${formatNumber(s.income)}</div>
+
+        <div>Расход:</div>
+        <div class="num ${getNumberClass(s.outcome)}">${formatNumber(s.outcome)}</div>
+
+        <div>Выручка месяца:</div>
+        <div class="num ${getNumberClass(s.profitMonth)}">${formatNumber(s.profitMonth)}</div>
+
+        <div>Выручка накоп:</div>
+        <div class="num ${getNumberClass(s.profit)}">${formatNumber(s.profit)}</div>
+      </div>
+
+      <div class="ms-bar" id="ms-bar"
+           aria-label="Соотношение факт/прогноз"
+           title="Факт/Прогноз"
+           style="--fact-pct:${factPct}%; --forecast-pct:${forecastPct}%"></div>
+    `;
+
+    div.onclick = () => selectMonth(m);
+    summaryDiv.appendChild(div);
+  });
+
+  ensureCarouselShell();
+  return monthsSummary;
+}
+
+
+function renderArticles() {
+  const tbody = document.getElementById('articles-tbody');
+  tbody.innerHTML = '';
+  if (!selectedMonth) return;
+  ensureArticleFilterControl();
+  const data = getBudgetMonthData(selectedMonth);
+  const activeFilter = String(selectedArticleFilter || "").trim();
+  let hasSelectedVisible = false;
+
+  for (const articleKey in data) {
+    const item = data[articleKey];
+    const titleToShow = getDisplayArticleTitle(item, articleKey);
+    if (activeFilter && titleToShow !== activeFilter) continue;
+
+    const factVal = parseBudgetAmount(item.outcome);
+    const paid = !!item.paid;
+    const comment = item.comment;
+
+    const row = document.createElement('tr');
+    row.dataset.article = articleKey;
+
+    const artCell = document.createElement('td');
+    artCell.style.textAlign = 'left';
+
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = titleToShow;         // <= вот это
+    titleSpan.className = 'article-title';
+
+    const badge = document.createElement('span');
+    badge.className = 'payment-status ' + (paid ? 'paid' : 'not-paid');
+    badge.textContent = paid ? tr('Оплачено') : tr('Не оплачено', 'Не оплачено');
+
+    artCell.appendChild(titleSpan);
+    artCell.appendChild(badge);
+
+
+    const factCell = document.createElement('td');
+    factCell.textContent = formatNumber(factVal);
+    factCell.className = getNumberClass(factVal);
+
+    const commentCell = document.createElement('td');
+    commentCell.className = 'comment-cell';
+    commentCell.textContent = commentToPlainText(comment);
+
+
+    row.appendChild(artCell);
+    row.appendChild(factCell);
+
+    row.appendChild(commentCell);
+
+    if (articleKey === selectedArticle) {
+      row.classList.add('selected');
+      hasSelectedVisible = true;
+    }
+
+    row.onclick = () => {
+      selectArticle(articleKey);
+      highlightSelectedRow(articleKey);
+    };
+
+    tbody.appendChild(row);
+  }
+
+  if (selectedArticle && !hasSelectedVisible) {
+    hideArticleDetail();
+  }
+}
+
+  function ensureArticleFilterControl() {
+    const articlesBlock = document.getElementById('articles');
+    if (!articlesBlock) return;
+    const data = getBudgetMonthData(selectedMonth);
+
+    let filterWrap = document.getElementById('articles-filter-wrap');
+    if (!filterWrap) {
+      filterWrap = document.createElement('div');
+      filterWrap.id = 'articles-filter-wrap';
+      filterWrap.style.margin = '8px 0 10px';
+
+      const filterSelect = document.createElement('select');
+      filterSelect.id = 'articles-filter-select';
+      filterSelect.setAttribute('aria-label', tr('Фильтр по статье расходов', 'Фильтр по статье расходов'));
+      filterSelect.style.width = '100%';
+
+      filterSelect.addEventListener('change', (event) => {
+        selectedArticleFilter = String(event.target?.value || "");
+        renderArticles();
       });
-      return card;
-    }
 
-    function chev(){
-      return `<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>`
-    }
+      filterWrap.appendChild(filterSelect);
 
-    function lockIcon(){
-      return `<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
-    }
-
-    function resetIcon(){
-      return `<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.36 2.64L3 8"/><path d="M3 3v5h5"/></svg>`
-    }
-
-    function tableHTML(rows){
-      return `<table><thead><tr><th>Статья</th><th>Сумма</th><th style="width:120px">Статус</th></tr></thead><tbody>${rows.map(r=>rowHTML(r)).join('')}</tbody></table>`;
-    }
-
-    function rowHTML(row){
-      const isDirty = row.id in drafts;
-      if(row.editable){
-        return `<tr data-id="${row.id}"><td><div style="font-weight:600">${row.title}</div></td><td>
-          <div style="display:flex;align-items:center;gap:8px">
-            <input class="input ${isDirty?'dirty':''}" value="${row.amount}" inputmode="numeric" />
-            ${isDirty?`<button class="btn btn-ghost" data-reset="1" title="Сбросить">${resetIcon()}</button>`:''}
-            <span class="muted">${fmt(Number(row.amount)||0,currency)}</span>
-          </div>
-        </td><td>${isDirty?'<span class="chip warn">Изменено</span>':'<span class="chip ok">Можно ред.</span>'}</td></tr>`
+      const table = articlesBlock.querySelector('table');
+      if (table) {
+        articlesBlock.insertBefore(filterWrap, table);
       } else {
-        return `<tr><td><div style="font-weight:600">${row.title}</div></td><td><div style="display:flex;align-items:center;gap:8px" class="muted">${lockIcon()} ${fmt(row.amount,currency)}</div></td><td><span class="chip lock">Закрыто</span></td></tr>`
+        articlesBlock.appendChild(filterWrap);
       }
     }
 
-    // ---------- Events ----------
-    document.getElementById('panels').addEventListener('input', (e)=>{
-      const inp = e.target.closest('input');
-      if(!inp) return;
-      const tr = inp.closest('tr[data-id]');
-      if(!tr) return;
-      const id = tr.getAttribute('data-id');
-      const n = Number(String(inp.value).replace(/\s+/g,'').replace(',','.'));
-      if(!Number.isFinite(n)) return;
-      drafts[id]=n;
-      const preview = tr.querySelector('span.muted');
-      if(preview) preview.textContent = fmt(n, currency);
-      inp.classList.add('dirty');
-      const status = tr.querySelector('td:last-child');
-      status.innerHTML = '<span class="chip warn">Изменено</span>';
-      if(!tr.querySelector('[data-reset]')){
-        const btn=document.createElement('button');
-        btn.className='btn btn-ghost'; btn.setAttribute('data-reset','1'); btn.innerHTML=resetIcon(); btn.title='Сбросить';
-        btn.onclick=()=>{ delete drafts[id]; render(); };
-        inp.parentElement.insertBefore(btn, inp.nextSibling);
-      }
-      render();
+    const filterSelect = document.getElementById('articles-filter-select');
+    if (!filterSelect) return;
+
+    const prevValue = String(selectedArticleFilter || "");
+    filterSelect.innerHTML = "";
+
+    const allOption = document.createElement('option');
+    allOption.value = "";
+    allOption.textContent = tr('Все статьи', 'Все статьи');
+    filterSelect.appendChild(allOption);
+
+    const articleTitles = new Set();
+    Object.keys(data).forEach((articleKey) => {
+      const title = getDisplayArticleTitle(data[articleKey], articleKey);
+      if (articleTitles.has(title)) return;
+      articleTitles.add(title);
+
+      const option = document.createElement('option');
+      option.value = title;
+      option.textContent = title;
+      filterSelect.appendChild(option);
     });
 
-    document.getElementById('saveBtn').addEventListener('click', ()=>{
-      // Stub save – just flush drafts into base
-      items = items.map(it=> it.id in drafts ? { ...it, amount: drafts[it.id] } : it);
-      drafts = {};
-      document.getElementById('header-note').textContent = 'Изменения сохранены (заглушка)';
-      render();
-    });
+    selectedArticleFilter = Array.from(articleTitles).includes(prevValue) ? prevValue : "";
+    filterSelect.value = selectedArticleFilter;
 
-    function updateSaveBtn(){
-      const btn=document.getElementById('saveBtn');
-      const dirty=Object.keys(drafts).length;
-      btn.disabled = !dirty;
-      btn.textContent = dirty?`Сохранить (${dirty})`:'Сохранить';
+    if (selectedArticleFilter && selectedArticle &&
+        getDisplayArticleTitle(data[selectedArticle], selectedArticle) !== selectedArticleFilter) {
+      hideArticleDetail();
     }
+  }
 
-    // Boot
-    render();
 
-</script>
+  function highlightSelectedRow(article) {
+    const rows = document.querySelectorAll('#articles tbody tr');
+    rows.forEach(row => {
+      if (row.dataset.article === article) row.classList.add('selected');
+      else row.classList.remove('selected');
+    });
+  }
+
+  function selectMonth(month) {
+    selectedMonth = month;
+    selectedArticle = null;
+    renderSummary();
+    renderArticles();
+    populateArticleSelect();
+    hideArticleDetail();
+    // после перерисовки снова выставляем выбранный месяц левым краем
+    //scrollSelectedMonthToLeftEdge();
+  }
+
+  function populateArticleSelect() {
+    const select = document.getElementById('modal-article-select');
+    select.innerHTML = '';
+    if (!selectedMonth) return;
+
+
+
+    const existingArticles = new Set(Object.keys(getBudgetMonthData(selectedMonth)));
+    ARTICLE_DICTIONARY.forEach(article => {
+    //  if (existingArticles.has(article)) return;
+      const option = document.createElement('option');
+      option.value = article;
+      option.textContent = article;
+      select.appendChild(option);
+    });
+
+    updateModalAddButtonState();
+  }
+
+  function updateModalAddButtonState() {
+    const select = document.getElementById('modal-article-select');
+    const addBtn = document.getElementById('modal-add-btn');
+    addBtn.disabled = (select.options.length === 0 || !select.value);
+  }
+
+  const modalBackground = document.getElementById('modal-background');
+  const modalAddBtn = document.getElementById('modal-add-btn');
+  const modalCancelBtn = document.getElementById('modal-cancel-btn');
+  const modalArticleSelect = document.getElementById('modal-article-select');
+  const addArticleBtn = document.getElementById('add-article-btn');
+
+  addArticleBtn.addEventListener('click', () => {
+    populateArticleSelect();
+    modalBackground.style.display = 'flex';
+    modalArticleSelect.focus();
+  });
+  modalCancelBtn.addEventListener('click', () => { modalBackground.style.display = 'none'; });
+  modalArticleSelect.addEventListener('change', updateModalAddButtonState);
+
+ modalAddBtn.addEventListener('click', () => {
+  const newArticleTitle = modalArticleSelect.value;
+  if (!newArticleTitle) return;
+
+  const uniqueKey = makeUniqueKey(selectedMonth, newArticleTitle);
+
+  ensureBudgetMonthData(selectedMonth)[uniqueKey] = {
+    title: newArticleTitle,          // <- человекочитаемое имя
+    income: 0,
+    outcome: 0,
+    editable: true,
+    paid: false,
+    newArticle: true,
+    comment: ""
+  };
+
+    changedItems.set(selectedMonth + '|' + uniqueKey, {
+    month: selectedMonth,
+    article: uniqueKey,              // <- ключ (идентификатор)
+    displayTitle: newArticleTitle,   // <- полезно отправлять на бэк
+    outcome: 0,
+    paid: false,
+    newArticle: true,
+    comment: ""
+  });
+
+  modalBackground.style.display = 'none';
+  renderArticles();
+  renderSummary();
+  populateArticleSelect();
+  enableSaveButton();
+});
+
+
+  modalBackground.addEventListener('click', e => {
+    if (e.target === modalBackground) modalBackground.style.display = 'none';
+  });
+
+  function selectArticle(article) {
+    selectedArticle = article;
+    highlightSelectedRow(article);
+
+    const detailDiv = document.getElementById('article-detail');
+    const data = getBudgetMonthData(selectedMonth)[article];
+
+    document.getElementById('detail-article-name').textContent = getDisplayArticleTitle(data, article);
+    const factInput = document.getElementById('outcome-value');
+    const commentField = document.getElementById('commentField');
+    
+   // const forecastInput = document.getElementById('forecast-value');
+    const paidCheckbox = document.getElementById('paid-checkbox');
+
+    factInput.value = formatNumber(data.outcome);
+    commentField.innerHTML = data.comment || '';
+
+    //forecastInput.value = data.forecast;
+
+    factInput.disabled = !data.editable;
+    //forecastInput.disabled = !data.editable;
+
+    paidCheckbox.checked = !!data.paid;
+    paidCheckbox.disabled = !data.editable;
+
+    detailDiv.style.display = 'flex';
+  }
+
+  function hideArticleDetail() {
+    selectedArticle = null;
+    highlightSelectedRow(null);
+    const detailDiv = document.getElementById('article-detail');
+    detailDiv.style.display = 'none';
+  }
+
+  function onArticleValueChange(event) {
+    if (!selectedMonth || !selectedArticle) return;
+
+    const factInput = document.getElementById('outcome-value');
+    //const forecastInput = document.getElementById('forecast-value');
+    const paidCheckbox = document.getElementById('paid-checkbox');
+    const commentField = document.getElementById('commentField');
+
+    const articleData = getBudgetMonthData(selectedMonth)[selectedArticle];
+    if (!articleData.editable) return;
+
+    const outcome = event?.target === factInput
+      ? parseBudgetAmount(factInput.value)
+      : parseBudgetAmount(articleData.outcome);
+    if (event?.target === factInput) formatBudgetInput(factInput);
+    //const forecast = parseFloat(forecastInput.value) || 0;
+    const paid = paidCheckbox.checked;
+
+    articleData.outcome = outcome;
+   // articleData.forecast = forecast;
+    articleData.paid = paid;
+    
+
+    let newArticle 
+    if(articleData.newArticle==true) {newArticle= true} else {newArticle= false}
+
+    const comment = commentField.innerHTML;
+    articleData.comment = comment;
+    const recordId = getBudgetRecordId(articleData);
+
+    changedItems.set(selectedMonth + '|' + selectedArticle, {
+      ...(recordId == null ? {} : { id: recordId }),
+      month: selectedMonth,
+      article: getDisplayArticleTitle(articleData, selectedArticle),
+      outcome,
+      paid,
+      newArticle,
+      comment
+    });
+
+    renderArticles();
+    monthsSummary= renderSummary();
+    enableSaveButton();
+
+  const raw = transformToRaw(monthsSummary);
+  const prepared = prepareDatasets(raw);
+  renderPnLChart(prepared);
+
+  }
+
+
+ document.getElementById('commentField').addEventListener('input', onArticleValueChange);
+  document.getElementById('outcome-value').addEventListener('input', onArticleValueChange);
+ document.getElementById('outcome-value').addEventListener('blur', () => {
+   formatBudgetInput(document.getElementById('outcome-value'));
+ });
+ // document.getElementById('forecast-value').addEventListener('input', onArticleValueChange);
+  document.getElementById('paid-checkbox').addEventListener('change', onArticleValueChange);
+  document.getElementById('close-detail').addEventListener('click', () => { hideArticleDetail(); });
+
+  document.getElementById('save-btn').addEventListener('click', async function() {
+    const changedArray = Array.from(changedItems.values());
+    if (changedArray.length === 0) return;
+    try {
+      //console.log("Сохраняем", changedArray)
+      await new Promise(r => setTimeout(r, 1000));
+
+      const resp = await window.API.saveBudgetChanges(changedArray, { timeout: 8000, overlayId: "budget" });
+      if (resp == null) throw new Error("Не удалось сохранить изменения бюджета");
+      showToast('Изменения успешно сохранены!','success');
+      changedItems.clear();
+      enableSaveButton();
+      await init();
+    } catch (e) {
+      alert('Ошибка при сохранении: ' + e.message);
+    }
+  });
+
+  function enableSaveButton() {
+    const saveBtn = document.getElementById('save-btn');
+    if (!saveBtn) return;
+    saveBtn.disabled = changedItems.size === 0;
+    //saveBtn.style.display = changedItems.size > 0 ? 'inline-block' : 'none';
+  }
+
+
+
+
+
+//-----------------------------------------------PNL Chart-----------------------------------------------------------
+
+
+
+// Форматтеры для подсказок и подписей осей
+const currencyFmt = (value, currency = "VND", locale = "ru-RU") =>
+  new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
+
+const percentFmt = (value, locale = "ru-RU") =>
+  new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 1 }).format(value / 100);
+
+/**
+ * Подготовка данных для графика
+ */
+function prepareDatasets({ months, income, expense, profitMonth, cumulativeProfit, currency }) {
+  // Рентабельность, %
+  const profitabilityPct = income.map((inc, i) => {
+    const exp = expense[i] ?? 0;
+    if (!inc) return null;
+    return ((inc - exp) / inc) * 100;
+  });
+
+  // labels у тебя уже человекочитаемые (из transformToRaw)
+  const labels = months;
+
+  return { labels, income, expense, profitMonth, cumulativeProfit, currency };
+}
+
+
+/**
+ * Создание/обновление графика
+ */
+let pnlChart; // ссылка на экземпляр Chart.js
+
+function renderPnLChart(prepared) {
+  const { labels, income, expense, profitMonth, cumulativeProfit, profitabilityPct, currency } = prepared;
+
+  const data = {
+    labels,
+    datasets: [
+      {
+        type: "bar",
+        label: "Накопительно",
+        data: cumulativeProfit,
+        yAxisID: "yMoney",
+        borderWidth: 0,
+        backgroundColor: "rgba(124, 77, 255, 0.35)"
+      },
+      {
+        type: "bar",
+        label: "Доход",
+        data: income,
+        yAxisID: "yMoney",
+        borderWidth: 0,
+        backgroundColor: "rgba(33, 150, 243, 0.6)"
+      },
+      {
+        type: "bar",
+        label: "Расход",
+        data: expense,
+        yAxisID: "yMoney",
+        borderWidth: 0,
+        backgroundColor: "rgba(239, 83, 80, 0.6)"
+      },
+      {
+        type: "line",
+        label: "Прибыль (абс.)",
+        data: profitMonth,              // <-- помесячная прибыль
+        yAxisID: "yMoney",
+        tension: 0.25,
+        borderWidth: 2,
+        pointRadius: 3,
+        borderColor: "rgba(0, 150, 136, 1)",
+        fill: false
+      },
+      {
+        type: "line",
+        label: "Рентабельность, %",
+        data: profitabilityPct,
+        yAxisID: "yPct",
+        tension: 0.25,
+        borderWidth: 2,
+        pointRadius: 3,
+        borderColor: "rgba(255, 193, 7, 1)",
+        fill: false
+      }
+    ]
+  };
+
+  const ctx = document.getElementById("pnlChart1").getContext("2d");
+  if (pnlChart) {
+    pnlChart.data = data;
+    pnlChart.options = buildOptions(currency);
+    pnlChart.update();
+    return pnlChart;
+  }
+  pnlChart = new Chart(ctx, { data, options: buildOptions(currency) });
+  return pnlChart;
+}
+
+
+/**
+ * Опции графика (2 оси Y + форматтеры)
+ */
+function buildOptions(currency) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: "index", intersect: false },
+    plugins: {
+      legend: { position: "top" },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const dsLabel = ctx.dataset.label || "";
+            const raw = ctx.raw;
+            if (ctx.dataset.yAxisID === "yPct") {
+              return ` ${dsLabel}: ${percentFmt(raw)}`;
+            } else {
+              return ` ${dsLabel}: ${currencyFmt(raw, currency)}`;
+            }
+          },
+          footer: (items) => {
+            // В футере подсказки показываем «Профит» и «Маржа %» суммарно по точке,
+            // если вам нужно — можно оставить только стандартные лейблы.
+            let inc = 0, exp = 0;
+            for (const it of items) {
+              if (it.dataset.label === "Доход") inc = it.raw || 0;
+              if (it.dataset.label === "Расход") exp = it.raw || 0;
+            }
+            const p = inc - exp;
+            const pct = inc ? (p / inc) * 100 : null;
+            const lines = [];
+            lines.push(` Профит: ${currencyFmt(p, items[0].chart.options.scales.yMoney.currencyCode)}`);
+            lines.push(` Маржа накопительно: ${pct == null ? "—" : percentFmt(pct)}`);
+            return lines.join("\n");
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false }
+      },
+      yMoney: {
+        type: "linear",
+        position: "left",
+        title: { display: true, text: "Деньги" },
+        ticks: {
+          callback: (v) => currencyFmt(v, currency)
+        },
+        currencyCode: currency
+      },
+      yPct: {
+        type: "linear",
+        position: "right",
+        title: { display: true, text: "Рентабельность, %" },
+        min: 0,
+        max: 100,
+        grid: { drawOnChartArea: false },
+        ticks: {
+          callback: (v) => percentFmt(v)
+        }
+      }
+    }
+  };
+}
+
+
+/**
+ * Преобразует monthsSummary в объект raw для графика
+ * @param {Object} monthsSummary
+ * @param {String} currency
+ * @returns {Object} raw
+ */
+
+function transformToRaw(monthsSummary, currency = "VND") {
+  const entries = Object.entries(monthsSummary)
+    .sort(([a],[b]) => parseBudgetDate(a) - parseBudgetDate(b)); // по возрастанию
+
+  const months = [];
+  const income = [];
+  const expense = [];
+  const profitMonth = [];      // линия «Прибыль (абс.)»
+  const cumulativeProfit = []; // столбец/линия «Накопительно»
+
+  for (const [date, v] of entries) {
+    const inc  = Number(v?.income)      || 0;
+    const out  = Number(v?.outcome)     || 0;
+    const pMon = Number(v?.profitMonth) || Number(v?.revenueFact) || (inc - out);
+    const pCum = Number(v?.profit)      || 0;
+
+    const d = parseBudgetDate(date);
+    const label = d.toLocaleDateString("ru-RU", { year: "numeric", month: "short" });
+
+    months.push(label);
+    income.push(inc);
+    expense.push(out);
+    profitMonth.push(pMon);
+    cumulativeProfit.push(pCum);
+  }
+
+  return { months, income, expense, profitMonth, cumulativeProfit, currency };
+}
+
+function makeUniqueKey(month, baseTitle) {
+  const data = getBudgetMonthData(month);
+  // вариант 1: нумерация "Название #2"
+  let idx = 1;
+  let key = baseTitle;
+  while (Object.prototype.hasOwnProperty.call(data, key)) {
+    idx += 1;
+    key = `${baseTitle} #${idx}`;
+  }
+  return key;
+
+  // альтернатива — короткий UID:
+  // return `${baseTitle}__${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+}
+
+
+
+
+function isPastMonth(dateStr) {
+  // создаём дату из строки (например, "2025-08-01" или "2025-08")
+  const d = parseBudgetDate(dateStr);
+
+  // берём только год и месяц
+  const year = d.getFullYear();
+  const month = d.getMonth(); // 0 = январь
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+
+  // сравнение
+  return year < currentYear || (year === currentYear && month < currentMonth);
+}
+
+
+
+  await init();
+})();

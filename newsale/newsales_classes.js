@@ -196,6 +196,7 @@ setTooltipCurrency(value){
        var tooltip = document.getElementById('tooltip-currency')
   if(value!="") {
   icon.setAttribute("style","visibility: visible");
+    tooltip.style.whiteSpace = "pre-line";
    tooltip.innerText = value;
   } else {
   icon.setAttribute("style","visibility: hidden");
@@ -230,8 +231,23 @@ setSelectValue(selectId, desiredValue) {
 }
 
     valueChanged(el) {
+        if (el && el.name === this.paymentmethodId) {
+            const previous = this.paymentmethod;
+            const nextValue = String(el.value || "").trim();
+
+            if (nextValue === "RUB QR") {
+                if (previous && previous !== "RUB QR") {
+                    this.lastNonRubQrPaymentMethod = previous;
+                } else if (!this.lastNonRubQrPaymentMethod) {
+                    this.lastNonRubQrPaymentMethod = this.DEFAULT_PAYMENT_METHOD || "Cash";
+                }
+            } else {
+                this.lastNonRubQrPaymentMethod = nextValue || previous || this.DEFAULT_PAYMENT_METHOD || "Cash";
+            }
+        }
+
         cartUI[el.name] = el.value;
-         this.update()
+        this.update();
     }
 
     setDiscountGeneral(value) {
@@ -306,6 +322,7 @@ setSelectValue(selectId, desiredValue) {
 
 
     clear(){
+            this.lastNonRubQrPaymentMethod = this.DEFAULT_PAYMENT_METHOD || "Cash";
 
             this.discountGeneral=this.DEFAULT_DISCOUNT_GENERAL
             this.setDiscountGeneral(this.DEFAULT_DISCOUNT_GENERAL)
@@ -440,6 +457,7 @@ class SalesTableUI {
               showErrorPopup(CONFIG.articlenotfound);
               return false;
             }
+
             const headers = normalized[0];
             const values = normalized[1];
 
@@ -452,11 +470,11 @@ class SalesTableUI {
               return false;
             }
 
-            // Проверка на наличие остатка на складе
             if (quantity === -1) {
               showErrorPopup("SYSTEM ERROR EXCEL ERROR");
               return false;
             }
+
             const availableQuantity = quantity == null ? null : Math.floor(quantity);
             if (availableQuantity == null || availableQuantity <= 0) {
               showErrorPopup(CONFIG.outofstock);
@@ -477,25 +495,35 @@ class SalesTableUI {
             if (priceIndex !== -1) {
               values[priceIndex] = toLocaleStringCorrect(values[priceIndex]);
             }
+
             const discountFixIndex = headers.indexOf(CONFIG.FIELDNAME_DISCOUNTFIX);
             if (discountFixIndex !== -1) {
               values[discountFixIndex] = toLocaleStringCorrect(values[discountFixIndex]);
             }
 
             const mapped = [headers, values];
-            const visible_article = mapFields(productTable.header, mapped);
-            this.createRow(visible_article, productTable.len);
-            productTable.len += 1;
-            productTable.calculateTotalColumns();
-            productTable.update();
+            const visibleArticle = mapFields(this.header, mapped);
+            const index = this.len;
 
+            // Build and store the FULL object BEFORE update().
+            // update() -> cartUI.update() -> updateSale() -> saveNewsaleDraft(),
+            // so rawData must already contain every hidden catalog field at that moment.
             const dataObject = this.buildCatalogItemObject(headers, values);
-            dataObject.id = (productTable.len - 1).toString();
-            productTable.rawData.push(dataObject);
-          } catch (error) {
+            dataObject.id = String(index);
+
+            this.createRow(visibleArticle, index);
+            this.rawData.push(dataObject);
+            this.len += 1;
+
+            this.calculateTotalColumns();
+            this.update();
+
+            return true;
+        } catch (error) {
             systemError("Error creating new catalog item", error);
-          }
-  }
+            return false;
+        }
+    }
 
     parseStockQuantity(value) {
       if (value === null || value === undefined) return null;
@@ -877,7 +905,7 @@ class SalesTableUI {
             removeLink.id = "remove_" + index;
             removeLink.className = 'font-medium text-red-600 dark:text-red-500 hover:underline ms-3';
             removeLink.setAttribute('onclick', 'productTable.removeArticle(this)');
-            removeLink.innerHTML = '<img src="../vendor/icons/remove.png" title="Remove" style="width: 20px; ">'
+            removeLink.innerHTML = '<img src="vendor/icons/remove.png" title="Remove" style="width: 20px; ">'
 
             actionTd.appendChild(removeLink);
             row.appendChild(actionTd);
@@ -1004,35 +1032,150 @@ class SalesManager {
 
 
               this.values.forEach(s => {
-                // Проверяем и получаем корректные значения скидок и цены
-                const price = parseFloatCorrect(s.price);
-                
-                const discountPercent = getValidNumber(s[CONFIG.FIELDNAME_DISCOUNTPERS]);
-                const discountFix = getValidNumber(s[CONFIG.FIELDNAME_DISCOUNTFIX]);
-                
+    /*
+     * Исходная цена товара
+     */
+    const price =
+        parseFloatCorrect(s.price);
 
+    /*
+     * Скидка по товару, %
+     */
+    const discountPercent =
+        getValidNumber(
+            s[CONFIG.FIELDNAME_DISCOUNTPERS]
+        );
 
-                // Вычисляем финальную цену с учетом скидок и добавляем нужные поля в объект `s`
-                console.log("finalPriceVND -1",s['finalPriceVND'])
-                s['finalPriceVND'] = parseFloatCorrect(minusPercent(price, discountPercent)) - discountFix;
-              //  console.log("1",s['finalPriceVND'])
-               console.log("finalPriceVND 0",s['finalPriceVND'])
-               console.log("discountGeneral",parseFloatCorrect(cartUI.discountGeneral))
-                s['finalPriceVND']=parseFloatCorrect(minusPercent(s['finalPriceVND'], parseFloatCorrect(cartUI.discountGeneral))) 
-                console.log("finalPriceVND 1",s['finalPriceVND'])
+    /*
+     * Фиксированная скидка
+     */
+    const discountFix =
+        getValidNumber(
+            s[CONFIG.FIELDNAME_DISCOUNTFIX]
+        );
 
-                s['finalPrice']=calculatefinalPrice( s['finalPriceVND'], cartUI.currency, cartUI.curs)
-             //   console.log(" s['finalPrice']",s['finalPrice'])
-                console.log("finalPriceVND 2",s['finalPriceVND'])
+    /*
+     * Общая скидка корзины
+     */
+    const discountGeneral =
+        parseFloatCorrect(
+            cartUI.discountGeneral
+        ) || 0;
 
-                Object.assign(s, {
-                  curs: cartUI.curs,
-                  currency: cartUI.currency,
-                  paymentmethod: cartUI.paymentmethod,
-                  username: cartUI.username
-                });
-              });
+    /*
+     * 1. Скидка товара в процентах.
+     */
+    let finalPriceVND =
+        minusPercent(
+            price,
+            discountPercent
+        );
 
+    /*
+     * 2. Фиксированная скидка товара.
+     */
+    finalPriceVND -= discountFix;
+
+    /*
+     * 3. Общая скидка корзины.
+     */
+    finalPriceVND =
+        minusPercent(
+            finalPriceVND,
+            discountGeneral
+        );
+
+    /*
+     * 4. Комиссия способа оплаты.
+     *
+     * Та же логика, что используется
+     * в updateSale().
+     */
+    let paymentPercent = 0;
+
+    switch (cartUI.paymentmethod) {
+        case "Cash":
+            paymentPercent =
+                parseFloatCorrect(
+                    CONFIG.cashPercent
+                ) || 0;
+            break;
+
+        case "Terminal":
+            paymentPercent =
+                parseFloatCorrect(
+                    CONFIG.terminalPercent
+                ) || 0;
+            break;
+
+        case "Transfer":
+            paymentPercent =
+                parseFloatCorrect(
+                    CONFIG.transferPercent
+                ) || 0;
+            break;
+
+        default:
+            paymentPercent = 0;
+            break;
+    }
+
+    /*
+     * Добавляем процент способа оплаты
+     * непосредственно к цене каждого товара.
+     */
+    if (paymentPercent !== 0) {
+        finalPriceVND =
+            plusPercent(
+                finalPriceVND,
+                paymentPercent
+            );
+    }
+
+    /*
+     * Защита от NaN.
+     */
+    finalPriceVND =
+        parseFloatCorrect(
+            finalPriceVND
+        );
+
+    if (!Number.isFinite(finalPriceVND)) {
+        finalPriceVND = 0;
+    }
+
+    /*
+     * Цена в VND уже с:
+     *
+     * - скидкой товара %
+     * - фиксированной скидкой
+     * - общей скидкой
+     * - комиссией способа оплаты
+     */
+    s.finalPriceVND =
+        finalPriceVND;
+
+    /*
+     * Пересчитываем эту же итоговую
+     * стоимость в выбранную валюту.
+     */
+    s.finalPrice =
+        calculatefinalPrice(
+            s.finalPriceVND,
+            cartUI.currency,
+            cartUI.curs
+        );
+
+    /*
+     * Runtime-поля продажи.
+     */
+    Object.assign(s, {
+        curs: cartUI.curs,
+        currency: cartUI.currency,
+        paymentmethod: cartUI.paymentmethod,
+        username: cartUI.username
+    });
+});
         } catch (error) {
             systemError("Error initializing SalesManager", error);
         }

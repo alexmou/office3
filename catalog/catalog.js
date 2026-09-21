@@ -6,8 +6,8 @@ const TABLEID = "catalog-list";
 const NEWSALE_DRAFT_STORAGE_PREFIX = "newsaleDraft.v1";
 const COLUMNS_TO_KEEP = [
   "article",
-  "Brand",
-  "Name",
+  "brand",
+  "name",
   "price",
   "quantity",
   "type",

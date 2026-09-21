@@ -11,7 +11,7 @@ function getRuntimeQueryParam(name) {
     return params.get(name) || "";
   } catch (_) {
     return "";
-  }
+  } 
 }
 
 function normalizeN8nBaseUrl(value) {
@@ -35,11 +35,11 @@ function resolveN8nBaseUrl() {
   const normalizedConfigured = normalizeN8nBaseUrl(configured);
   if (normalizedConfigured) return normalizedConfigured;
 
-  if (window.location && window.location.origin) {
-    return `${window.location.origin}/n8n`;
-  }
+ // if (window.location && window.location.origin) {
+ //   return `${window.location.origin}/n8n`;
+ // }
 
-  return "https://buttonrouge.org/n8n";
+  return "https://n8n.buttonrouge.org";
 }
 
 function normalizeWebhookMode(value) {

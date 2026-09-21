@@ -70,9 +70,9 @@ async function runPageInit(pageId) {
 let currentPageScripts = [];
 let currentPageStyles = [];
 const CORE_SCRIPTS = [
-  "../system/n8n.js",
-  "../system/api.js",
-  "../shared/class_TableUI.js",
+  "system/n8n.js",
+  "system/api.js",
+  "shared/class_TableUI.js",
 ];
 
 function extractBodyHtml(htmlText) {
@@ -455,7 +455,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadCoreScripts()
     .then(() => fetchConfigFromN8n())
-    .then(() => fetchUserStoreFromToken())
+    //.then(() => fetchUserStoreFromToken())
     .then(() => preloadLocalizationDictionary())
     .then(() => headerTask)
     .then(() => {
@@ -494,6 +494,8 @@ async function ensureValidToken(pageId) {
     const parsed = typeof res === "string" ? JSON.parse(res) : res;
     const respToken = parsed?.token;
     if (respToken && respToken === window.token) {
+      window.AUTH_DATA = parsed;
+      window.__authData = parsed;
       if (!window.__headerHydrated) {
         await updateHeaderUserInfo(parsed);
         await refreshMenu();

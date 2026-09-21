@@ -4,7 +4,7 @@
 
 let CASH_REGISTER_VOCAB = { operationTypes: ["Encashment", "Sale"], activities: [] };
 let cashRegisterSubmitInProgress = false;
-const tr = (text, fallback = text) =>
+const cashRegisterTr = (text, fallback = text) =>
   typeof window.localizeUiText === "function" ? window.localizeUiText(text, fallback) : fallback;
 
 if (typeof registerPageInit === "function") {
@@ -256,20 +256,20 @@ function renderCashRegisterForm({ operationTypes, activities }) {
   const contentRight = document.getElementById("content_right");
   if (!contentRight) return;
 
-  contentRight.innerHTML = `<p><strong>${tr("Операция с Кассой")}</strong></p>`;
+  contentRight.innerHTML = `<p><strong>${cashRegisterTr("Операция с Кассой")}</strong></p>`;
 
   const opTypes = extractList(operationTypes);
   const activityList = extractList(activities);
 
-  createNewChoice(opTypes, "OperationType", tr("Тип операции"), "budgetFieldChanged", "content_right");
-  createNewChoice(activityList, "activityCashRegister", tr("Статья расходов"), "budgetFieldChanged", "content_right");
-  createNewInput("CashSum", `${tr("Сумма")} (${CONFIG.currency})`, "", "budgetFieldChanged", "content_right");
+  createNewChoice(opTypes, "OperationType", cashRegisterTr("Тип операции"), "budgetFieldChanged", "content_right");
+  createNewChoice(activityList, "activityCashRegister", cashRegisterTr("Статья расходов"), "budgetFieldChanged", "content_right");
+  createNewInput("CashSum", `${cashRegisterTr("Сумма")} (${CONFIG.currency})`, "", "budgetFieldChanged", "content_right");
 
   let attributes = { id: "Comment", onclick: "" };
   createElement("textarea", "", attributes, contentRight);
 
   attributes = { id: "submitButton", class: "button-24", onclick: "sendDataToCashRegister()" };
-  createElement("button", tr("Отправить"), attributes, contentRight);
+  createElement("button", cashRegisterTr("Отправить"), attributes, contentRight);
 
   CASH_REGISTER_VOCAB = {
     operationTypes: opTypes.length ? opTypes : ["Расход", "Приход"],
@@ -294,7 +294,7 @@ function renderCashRegisterForm({ operationTypes, activities }) {
 async function returnVocabulary(data){
   try {
     const parsed = parseMaybeJson(data);
-console.log(parsed)
+//console.log(parsed)
     // 0) n8n CashRegister getVocabulary: array of row objects
     const extractedFromObjects = extractVocabularyFromRowObjects(parsed);
     if (extractedFromObjects) {
@@ -359,7 +359,7 @@ function returnCashRegisterRecords(res){
       }
       return;
     }
-	    console.log("res",res)
+	   // console.log("res",res)
 	    const parsed = parseMaybeJson(res);
 	    const normalized = parsed && typeof parsed === "object" ? parsed : {};
 	
@@ -479,8 +479,9 @@ const BUDGETNAME="BUTTON ROUGE"
 
 var budgetRecord={}
 const now = new Date();
-budgetRecord["Date"]=getCurrentDate()
-budgetRecord["Time"]=getCurrentTime()
+const unixTimestamp = Math.floor(now.getTime() / 1000);
+budgetRecord["Date"]=unixTimestamp
+budgetRecord["Time"]=unixTimestamp
 budgetRecord["Бюджет"]=BUDGETNAME
 budgetRecord["Вид"]="Факт"
 budgetRecord["Год"]=now.getFullYear()
@@ -640,7 +641,7 @@ function dataRegistredToCashRegister(result){
 
 
 function returnCash(data){
-  console.log("data_for_cards", data);
+  //console.log("data_for_cards", data);
 
   const parsed = parseMaybeJson(data[0]);
   let cardValue1 = parsed;

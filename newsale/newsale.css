@@ -6,4 +6,73 @@ display: flex;
   padding-left: 80px;
 }
 
+/* Amelie QR overlay */
+#amelie-qr-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+#amelie-qr-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px 40px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+#amelie-qr-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+#amelie-qr-status {
+  font-size: 15px;
+  color: #333;
+}
+
+#amelie-qr-image {
+  width: 240px;
+  height: 240px;
+  object-fit: contain;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+#amelie-qr-paylink {
+  font-size: 14px;
+  color: #1a6fbb;
+  text-decoration: underline;
+}
+
+#amelie-qr-timer {
+  font-size: 13px;
+  color: #888;
+}
+
+#amelie-qr-back {
+  margin-top: 8px;
+  padding: 8px 24px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#amelie-qr-back:hover {
+  background: #e0e0e0;
+}
+
 
