@@ -1,7 +1,6 @@
 (function() {
   const DEFAULT_TIMEOUT = 80000;
 
-  
   /*
     Examples from legacy mock fixtures (removed). Used as response shape reference:
     - addBudgetRecord -> true
@@ -68,13 +67,18 @@
     getPivot: { source: "auto", webhook: "prod" },
     getPnl: { source: "auto", webhook: "prod" },
     getSalesFilterOptions: { source: "auto", webhook: "prod" },
-    getUserStoreByToken: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "stores" },
+    //getUserStoreByToken: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "stores" },
     getVocabulary:  { source: "n8n", method: "GET", webhook: "prod", webhookAction: "CashRegister" },
 
     // Charts services (n8n webhook: /charts)
-    getChartsData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "charts" },
-    getChartsSummary: { source: "n8n", method: "GET", webhook: "test", webhookAction: "charts" },
-    markSupplierPaymentsDone: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "supliers", rawBody: true },
+    getStatisticData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "statistic" }, 
+    getStatisticSummary: { source: "n8n", method: "GET", webhook: "test", webhookAction: "statistic" },
+
+    //supliers
+    getSuppliersData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "Suppliers" }, 
+    markSupplierPaymentsDone: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "Suppliers", rawBody: true },
+
+
 
     // Sales services (n8n webhook: /sales)
     getSalesData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sales" },
@@ -95,19 +99,20 @@
     getTagsConfig: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "tags" },
     saveTagsConfig: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "tags", rawBody: true },
 
-    // Sklad services (n8n webhook: /sklad)
-    getSkladHeader: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sklad" },
-    getSkladData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sklad" },
+    // Sklad services (n8n webhook: /Warehouse)
+    getSkladHeader: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "Warehouse" },
+    getSkladData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "Warehouse" },
     // NOTE: backend action can be overridden via params.action.
-    getSkladVocabulary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "sklad" },
-    saveSkladChanges: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad", rawBody: true },
-    deleteSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad", rawBody: true },
-    addSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad", rawBody: true },
-    editSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "sklad", rawBody: true },
+    getSkladVocabulary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "Warehouse" },
+    saveSkladChanges: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "Warehouse", rawBody: true },
+    deleteSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "Warehouse", rawBody: true },
+    addSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "Warehouse", rawBody: true },
+    editSkladItem: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "Warehouse", rawBody: true },
 
-    // Schedule services (n8n webhook: /schedule)
+    // Schedule services (n8n webhook: /schedule)  
     getScheduleMeta: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
     getSchedule: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
+    getEmployeeColorMap: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
     upsertShifts: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "schedule"},
 
     // Sapo CRM integration services (n8n webhook: /sapo)
@@ -337,6 +342,27 @@
     return String(mode).trim().toLowerCase();
   }
 
+  function isEmptyServiceResponse(value) {
+    return value === null || value === undefined || (typeof value === "string" && value.trim() === "");
+  }
+
+  function createEmptyServiceError(action) {
+    const error = new Error(`Сервис "${action}" вернул пустой ответ`);
+    error.name = "EmptyServiceResponseError";
+    error.code = "EMPTY_SERVICE_RESPONSE";
+    error.service = action;
+    return error;
+  }
+
+  function ensureServiceResponse(value, action) {
+    if (isEmptyServiceResponse(value)) throw createEmptyServiceError(action);
+    return value;
+  }
+
+  function isEmptyServiceError(error) {
+    return error?.code === "EMPTY_SERVICE_RESPONSE";
+  }
+
   async function requestViaN8nOrMock(action, paramsWithToken = {}, opts = {}) {
     const route = API_ROUTES[action] || {};
     const method = (opts.method || route.method || "POST").toUpperCase();
@@ -361,11 +387,11 @@
         paramsWithToken.sklad = storeContext.sheetName_sklad;
       }
       if (action === "getItemByArticleName") {
-        console.log("getItemByArticleName payload ->", paramsWithToken);
+        //console.log("getItemByArticleName payload ->", paramsWithToken);
       } else if (action === "getHeader") {
-        console.log("getHeader payload ->", paramsWithToken);
+        //console.log("getHeader payload ->", paramsWithToken);
       } else if (action === "getAllItemsFromCatalogByQuery") {
-        console.log("getAllItemsFromCatalogByQuery payload ->", paramsWithToken);
+        //console.log("getAllItemsFromCatalogByQuery payload ->", paramsWithToken);
       }
     }
 
@@ -387,7 +413,7 @@
         // alias, если workflow ждёт другое имя
         paramsWithToken.accounting = paramsWithToken.accounting || storeContext.sheetName_accounting;
       }
-      console.log("getCash payload ->", paramsWithToken);
+      //console.log("getCash payload ->", paramsWithToken);
     }
 
     // Автодобавление sheetName_accounting для Cash Register Records (нужен лист accounting)
@@ -408,7 +434,7 @@
         // alias, если workflow ждёт другое имя
         paramsWithToken.accounting = paramsWithToken.accounting || storeContext.sheetName_accounting;
       }
-      console.log("getCashRegisterRecords payload ->", paramsWithToken);
+      //console.log("getCashRegisterRecords payload ->", paramsWithToken);
     }
 
     // Автодобавление username для Salary (нужен в n8n как $json.query.username)
@@ -426,7 +452,7 @@
         paramsWithToken.username = paramsWithToken.username || resolvedUsername;
         paramsWithToken.value = paramsWithToken.value || resolvedUsername;
       }
-      console.log("getMySalary payload ->", paramsWithToken);
+      //console.log("getMySalary payload ->", paramsWithToken);
     }
 
     const includeActionInPayload = !(opts.skipAction && method === "GET");
@@ -437,7 +463,7 @@
       : basePayload;
     const actionName = payload?.action || basePayload?.action || action;
     const endpointLabel = method === "GET" ? endpoint : (isV2 ? endpoint : targetAction);
-    console.info(`[API] ${method} ${endpointLabel} action=${actionName}`);
+   // console.info(`[API] ${method} ${endpointLabel} action=${actionName}`);
 
     const overlayId = opts.overlayId || `n8n-${action}-${Date.now()}`;
     hidePage(overlayId);
@@ -453,7 +479,7 @@
           opts
         );
         showPage(overlayId);
-        return res;
+        return ensureServiceResponse(res, action);
       }
 
       if (isV2) {
@@ -480,7 +506,7 @@
         if (!resp.ok) throw new Error(await resp.text());
         const json = await parseResponseByMode(resp, opts);
         showPage(overlayId);
-        return json;
+        return ensureServiceResponse(json, action);
       }
 
       // Some endpoints expect raw JSON array/object in request body (no wrapper).
@@ -504,15 +530,16 @@
         if (!resp.ok) throw new Error(await resp.text());
         const json = await parseResponseByMode(resp, opts);
         showPage(overlayId);
-        return json;
+        return ensureServiceResponse(json, action);
       }
 
       const res = await callN8n(targetAction, payload, opts.timeout || DEFAULT_TIMEOUT, mode);
       showPage(overlayId);
-      return res;
+      return ensureServiceResponse(res, action);
     } catch (error) {
       console.error(`Ошибка при выполнении ${action} через n8n:`, error);
       showPage(overlayId);
+      if (error?.code === "EMPTY_SERVICE_RESPONSE") throw error;
       return null;
     }
   }
@@ -675,9 +702,15 @@
         if (val && typeof val === "object" && val.data !== undefined) return unwrap(val.data);
         return val;
       };
-      return unwrap(parsed);
+      const authPayload = unwrap(parsed);
+      if (authPayload && typeof authPayload === "object") {
+        window.AUTH_DATA = authPayload;
+        window.__authData = authPayload;
+      }
+      return authPayload;
     } catch (error) {
       console.error("Не удалось получить токен из n8n", error);
+      if (isEmptyServiceError(error)) throw error;
       return null;
     }
   }
@@ -738,6 +771,7 @@
       return stores;
     } catch (error) {
       console.error("Не удалось получить токен из n8n", error);
+      if (isEmptyServiceError(error)) throw error;
       if (Array.isArray(window.STORES_CACHE) && window.STORES_CACHE.length > 0) {
         return window.STORES_CACHE;
       }
@@ -773,6 +807,7 @@
       return normalizeLocalizationResponse(data);
     } catch (error) {
       console.error("Не удалось получить словарь локализации из n8n", error);
+      if (isEmptyServiceError(error)) throw error;
       return {};
     }
   }
@@ -800,7 +835,7 @@
       sheetName_accounting: storeContext?.sheetName_accounting,
       sklad: storeContext?.sheetName_sklad,
     };
-    console.log("getItemByArticleName payload ->", payload);
+    //console.log("getItemByArticleName payload ->", payload);
 
     try {
       const data = await requestViaN8nOrMock("getItemByArticleName", payload, opts);
@@ -808,6 +843,7 @@
       return parsed?.data || parsed;
     } catch (error) {
       console.error("Не удалось получить товар по артикулу", error);
+      if (isEmptyServiceError(error)) throw error;
       return null;
     }
   }
@@ -822,6 +858,7 @@
       return cfg;
     } catch (error) {
       console.error("Не удалось получить CONFIG из n8n", error);
+      if (isEmptyServiceError(error)) throw error;
       return null;
     }
   }
@@ -872,6 +909,7 @@
     }
   }
 
+  /*
   async function fetchUserStoreFromToken() {
     if (!window.token) return null;
     try {
@@ -886,6 +924,7 @@
       return null;
     }
   }
+    */
 
   function applyUserStore(store) {
     if (!store || typeof store !== "object") return;
@@ -944,11 +983,12 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(cleanPayload),
       });
-      const text = await resp.text();
+      const text = ensureServiceResponse(await resp.text(), "setToken");
       const res = parseResult(text);
       if (res?.token) return res;
     } catch (e) {
       console.warn("Auth POST (query+json) failed", e);
+      if (isEmptyServiceError(e)) throw e;
     }
 
     // Fallback: POST form-url-encoded
@@ -958,11 +998,12 @@
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: qs.toString(),
       });
-      const text = await resp.text();
+      const text = ensureServiceResponse(await resp.text(), "setToken");
       const res = parseResult(text);
       if (res?.token) return res;
     } catch (e) {
       console.warn("Auth POST form failed", e);
+      if (isEmptyServiceError(e)) throw e;
     }
 
     // Fallback: через основной механизм (оставляем только POST)
@@ -973,6 +1014,7 @@
       return fromPost?.token ? fromPost : fromPost;
     } catch (error) {
       console.error("Не удалось получить токен из n8n", error);
+      if (isEmptyServiceError(error)) throw error;
       return null;
     }
   }
@@ -995,15 +1037,46 @@
         { dataOnly: true }
       );
       showPage(overlayId);
-      return res;
+      return ensureServiceResponse(res, "getScheduleMeta");
     } catch (error) {
       console.error("Ошибка при выполнении getScheduleMeta (legacy GET):", error);
       showPage(overlayId);
+      if (isEmptyServiceError(error)) throw error;
       return null;
     }
   }
 
   generatedApi.getScheduleMeta = getScheduleMetaLegacy;
+
+  async function getEmployeeColorMap(params = {}, opts = {}) {
+    const payload = {
+      action: params.action || "getEmployeeColorMap",
+      visible: params.visible !== false,
+      token: params.token || window.token,
+      employees: Array.isArray(params.employees) ? params.employees : [],
+    };
+
+    try {
+      const method = opts.method || API_ROUTES.getEmployeeColorMap?.method || "GET";
+      const data = await requestViaN8nOrMock("getEmployeeColorMap", payload, { ...opts, method });
+      const parsed = typeof data === "string" ? JSON.parse(data) : data;
+      const candidates = Array.isArray(parsed)
+        ? parsed
+        : Array.isArray(parsed?.data)
+          ? parsed.data
+          : Array.isArray(parsed?.items)
+            ? parsed.items
+            : Array.isArray(parsed?.employees)
+              ? parsed.employees
+              : [];
+      return candidates;
+    } catch (error) {
+      console.warn("Не удалось получить список цветов сотрудников", error);
+      return [];
+    }
+  }
+
+  generatedApi.getEmployeeColorMap = getEmployeeColorMap;
 
   async function upsertShifts(rows = [], opts = {}) {
     const normalizedRows = Array.isArray(rows) ? rows : [rows];
@@ -1033,7 +1106,7 @@
   window.requestViaN8nOrMock = requestViaN8nOrMock;
   window.fetchConfigFromN8n = fetchConfigFromN8n;
   window.applyConfig = applyConfig;
-  window.fetchUserStoreFromToken = fetchUserStoreFromToken;
+  //window.fetchUserStoreFromToken = fetchUserStoreFromToken;
   window.applyUserStore = applyUserStore;
   window.API = apiProxy;
 })();

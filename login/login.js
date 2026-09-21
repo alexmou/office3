@@ -200,6 +200,8 @@
       token = me.token;
       globalUrl = me.globalUrl || (window.location.origin + window.location.pathname + "?");
       setToken(token, globalUrl);
+      window.AUTH_DATA = me;
+      window.__authData = me;
       const preferred = typeof window.getPreferredInitialPage === "function"
         ? window.getPreferredInitialPage()
         : null;

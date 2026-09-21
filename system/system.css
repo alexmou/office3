@@ -1,5 +1,5 @@
 #main{
-  padding: 0 1rem;
+  margin-left: 10px;
 }
 
 select{
@@ -51,7 +51,7 @@ select{
         /* Стили для подсказки */
         .tooltip-text {
             visibility: hidden;
-            width: 120px;
+            width: 500px;
             background-color: #555;
             color: #fff;
             text-align: center;
@@ -61,7 +61,7 @@ select{
             z-index: 1;
             bottom: 125%; /* Позиция сверху иконки */
             left: 50%;
-            margin-left: -60px;
+            margin-left: -200px;
             opacity: 0;
             transition: opacity 0.3s;
         }
@@ -161,14 +161,18 @@ select{
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+.global {
+  position: fixed;
 
+}
 /* Add animation to "page content" */
 .animate-bottom {
   position: relative;
   -webkit-animation-name: animatebottom;
-  -webkit-animation-duration: 1s;
+  -webkit-animation-duration: 2s;
   animation-name: animatebottom;
-  animation-duration: 1s
+  animation-duration: 2s;
+  margin-top: 10px;
 }
 
 @-webkit-keyframes animatebottom {
@@ -255,6 +259,7 @@ select{
 #inputForm {
   width: fit-content;
   display: inline-block;
+  margin-top: 19px;
 
 }
 

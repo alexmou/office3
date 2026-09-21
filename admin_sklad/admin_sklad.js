@@ -1,5 +1,5 @@
 const PAGE_ID = 'admin_sklad';
-const MAIN_FIELDS   = ['article','Brand','Name','price'];
+const MAIN_FIELDS   = ['article','brand','name','price'];
 const EXTRA_FIELDS  = ['description','color','size'];
 const HIDDEN_FIELDS = ['row_number']; 
 
@@ -402,7 +402,7 @@ async function ensureStoreSwitcher() {
 }
 
 async function loadHeader() {
-ALL_FIELDS=['article','Brand','num','price','Brand','type','subtype','description','Name','fabric','color','size','manufacturer','price', 'quantity', 'netprice', 'netpriceFull', 'scladprice', 'salePrice']
+ALL_FIELDS=['article','brand','num','price','type','subtype','description','name','fabric','color','size','manufacturer','price', 'quantity', 'netprice', 'netpriceFull', 'scladprice', 'salePrice']
  
   const data = await window.API.getSkladHeader(
     buildSelectedStoreQuery({ visible: true, TESTING: CONFIG.GLOBAL_EXECUTION_TESTING }),
@@ -414,7 +414,7 @@ ALL_FIELDS=['article','Brand','num','price','Brand','type','subtype','descriptio
 
 }
 
-const SUGGEST_FIELDS = ['Brand','type','subtype','fabric','color','size','manufacturer'];
+const SUGGEST_FIELDS = ['brand','type','subtype','fabric','color','size','manufacturer'];
 const FIELDS_WITH_LOCALIZED_NUMBERS = ['price', 'quantity', 'netprice', 'netpriceFull', 'scladprice', 'salePrice']; // добавьте нужные поля
 const VOCABULARY_FIELDS = SUGGEST_FIELDS
 
@@ -453,17 +453,41 @@ async function bodyOnload() {
 
 
 
+function readTextField(record, key) {
+  const value = record?.[key];
+  if (value === undefined || value === null || value === '') return '';
+  return String(value).trim();
+}
+
+function normalizeScalarText(value) {
+  if (value === undefined || value === null) return '';
+  return String(value).trim();
+}
+
+function normalizeProductRecord(product = {}) {
+  const source = product && typeof product === 'object' ? product : {};
+  const normalized = {};
+
+  Object.entries(source).forEach(([key, value]) => {
+    normalized[String(key).toLowerCase()] = value;
+  });
+
+  normalized.article = readTextField(normalized, 'article');
+  normalized.brand = readTextField(normalized, 'brand');
+  normalized.name = readTextField(normalized, 'name');
+  normalized.description = readTextField(normalized, 'description');
+  normalized.color = readTextField(normalized, 'color');
+  normalized.size = readTextField(normalized, 'size');
+  normalized.quantity = Number(normalized.quantity ?? normalized.qty ?? '');
+  normalized.price = Number(normalized.price ?? '');
+
+  return normalized;
+}
+
 // Проверка и подготовка товара с article
 function ensureArticle(product) {
-  const clone = {...product};
- // if (!clone.article) throw new Error('У товара должно быть поле article');
-  const qty = Number(clone.quantity) ||  0;
-  clone.quantity = qty;
-
-
-
-  
-   return clone;
+  const clone = normalizeProductRecord(product);
+  return clone;
 }
 
 function debounce(fn, ms) {
@@ -478,8 +502,8 @@ function debounce(fn, ms) {
 
 const getQty = (p, wid) =>
   wid===1
-    ? Number(p.quantity ?? 0)
-    : Number(p.quantity ?? 0);
+    ? Number(p.quantity ?? '')
+    : Number(p.quantity ?? '');
 
 
 
@@ -577,13 +601,17 @@ console.log('Обновляем товар:', prod);
 
 // Строим карточку товара, помечая изменённые товары
 function buildCard(prod, wid, container) {
-  const qty = getQty(prod, wid);
+  const normalizedProduct = normalizeProductRecord(prod);
+  const qty = getQty(normalizedProduct, wid);
+  const articleValue = normalizeScalarText(normalizedProduct.article);
+  const brandValue = normalizeScalarText(normalizedProduct.brand);
+  const nameValue = normalizeScalarText(normalizedProduct.name);
   const card = document.createElement('div');
   card.className = 'product-card';
-  card.dataset.productArticle = prod.article;
+  card.dataset.productArticle = articleValue;
   card.dataset.warehouseId = wid;
   if (qty <= 0) card.classList.add('disabled');
-  if (isProductChanged(prod.article)) card.classList.add('moved');
+  if (isProductChanged(articleValue)) card.classList.add('moved');
 
   const dragCol = document.createElement('div');
   dragCol.className = 'dragcol';
@@ -594,7 +622,7 @@ function buildCard(prod, wid, container) {
     btn.draggable = true;
     btn.title = 'Перетащить';
     btn.addEventListener('dragstart', e=>{
-      e.dataTransfer.setData('product-article', prod.article);
+      e.dataTransfer.setData('product-article', normalizeScalarText(prod.article));
       e.dataTransfer.setData('warehouse-id', wid);
       card.classList.add('dragging');
     });
@@ -610,31 +638,31 @@ function buildCard(prod, wid, container) {
 
   card.insertAdjacentHTML('beforeend', `
     <div class="main-row">
-      <span class="main-article" title="${prod.article||''}">
-        ${prod.article||''}
+      <span class="main-article" title="${articleValue}">
+        ${articleValue}
       </span>
-      <span class="main-name" title="${prod.Name||''}">
-        ${prod.Name||''}
+      <span class="main-name" title="${nameValue}">
+        ${nameValue}
       </span>
-      <span class="main-brand" title="${prod.Brand||''}">
-        ${prod.Brand||''}
+      <span class="main-brand" title="${brandValue}">
+        ${brandValue}
       </span>
-      <span class="main-price" title="${prod.price||''}">
-        ${formatPrice(prod.price)}
+      <span class="main-price" title="${normalizeScalarText(normalizedProduct.price)}">
+        ${formatPrice(normalizedProduct.price)}
       </span>
     </div>`);
 
   const bottomRow = document.createElement('div');
   bottomRow.className = 'bottom-row';
   bottomRow.innerHTML = `
-    <span class="bottom-desc"  title="${prod.description||''}">
-      ${prod.description||''}
+    <span class="bottom-desc"  title="${normalizeScalarText(normalizedProduct.description)}">
+      ${normalizeScalarText(normalizedProduct.description)}
     </span>
-    <span class="bottom-color" title="${prod.color||''}">
-      ${prod.color||''}
+    <span class="bottom-color" title="${normalizeScalarText(normalizedProduct.color)}">
+      ${normalizeScalarText(normalizedProduct.color)}
     </span>
-    <span class="bottom-size"  title="${prod.size||''}">
-      ${prod.size||''}
+    <span class="bottom-size"  title="${normalizeScalarText(normalizedProduct.size)}">
+      ${normalizeScalarText(normalizedProduct.size)}
     </span>`;
 
   const editBtn = document.createElement('button');
@@ -659,15 +687,15 @@ function setupDragAndDrop() {
     zone.addEventListener('dragleave', ()=> zone.classList.remove('drag-over'));
     zone.addEventListener('drop', e=>{
       e.preventDefault(); zone.classList.remove('drag-over');
-      const article  = e.dataTransfer.getData('product-article');
+      const article = normalizeScalarText(e.dataTransfer.getData('product-article'));
       const from = +e.dataTransfer.getData('warehouse-id');
       const to   = wid;
       if (!article || from===to) return;
-      const prod = warehouses[from].find(p=>String(p.article)===article);
+      const prod = warehouses[from].find(p => String(normalizeScalarText(p.article)) === article);
       if (!prod) return;
       const max = getQty(prod,from);
       if (max<=0) return;
-      currentTransfer = {productArticle:article,from,to,max};
+      currentTransfer = {productArticle: article, from, to, max};
       document.getElementById('maxQuantity').textContent = max;
       const inp = document.getElementById('transferQuantity');
       inp.max = max; inp.value = 1;
@@ -681,12 +709,27 @@ function setupDragAndDrop() {
       return;
     }
     try {
+      // Находим товар на складе-источнике для расчета конечного остатка
+      const fromList = warehouses[currentTransfer.from];
+      const fromProdIdx = fromList.findIndex(p => String(p.article) === String(currentTransfer.productArticle));
+      const fromProd = fromProdIdx >= 0 ? fromList[fromProdIdx] : null;
+
+      // Находим товар на складе-получателе для расчета конечного остатка
+      const toList = warehouses[currentTransfer.to];
+      const toProd = toList.find(p => String(p.article) === String(currentTransfer.productArticle));
+
+      // Рассчитываем конечные остатки после перемещения
+      const finalQtyFromWarehouse = (Number(fromProd?.quantity) || 0) - qty;
+      const finalQtyToWarehouse = (Number(toProd?.quantity) || 0) + qty;
+
       const change = {
         productArticle: currentTransfer.productArticle,
         from: currentTransfer.from,
         to: currentTransfer.to,
         qty,
         timestamp: new Date().toISOString(),
+        finalQtyFromWarehouse,
+        finalQtyToWarehouse,
       };
       const payload = {
         query: buildSelectedStoreQuery({
@@ -934,11 +977,12 @@ function showSelectionModal(field, currentValue, callback) {
 async function showDetailsModal(prod = {}, wid, isNew) {
   const body  = document.getElementById('detailsBody');
   const label = document.getElementById('detailsModalLabel');
+  const normalizedProd = normalizeProductRecord(prod);
   body.innerHTML = '';
   body.dataset.wid   = wid;
   body.dataset.isNew = isNew ? '1' : '0';
-  body.dataset.article = prod.article || '';
-  body.dataset.row = prod.num || '';
+  body.dataset.article = normalizeScalarText(normalizedProd.article);
+  body.dataset.row = normalizeScalarText(normalizedProd.num);
   label.textContent  = isNew ? `Новый товар (${getWarehouseDisplayName(wid)})` : `Редактирование товара (${getWarehouseDisplayName(wid)})`;
 
 for (const f of ALL_FIELDS) {
@@ -962,14 +1006,20 @@ for (const f of ALL_FIELDS) {
   inp.id = inp.name = `fld_${f}`;
 
   // Значение с форматированием для числовых полей
-  if (FIELDS_WITH_LOCALIZED_NUMBERS.includes(f) && prod[f] != null && prod[f] !== '') {
-    const numVal = Number(prod[f]);
-    inp.value = Number.isFinite(numVal) ? numVal.toLocaleString('ru-RU') : prod[f];
+  const fieldKey = String(f).toLowerCase();
+  const rawFieldValue = normalizedProd?.[fieldKey] ?? normalizedProd?.[f] ?? '';
+  if (['quantity', 'price'].includes(fieldKey)) {
+    const numVal = Number(rawFieldValue);
+    inp.type = 'number';
+    inp.value = Number.isFinite(numVal) ? String(numVal) : '';
+  } else if (FIELDS_WITH_LOCALIZED_NUMBERS.includes(fieldKey) && rawFieldValue != null && rawFieldValue !== '') {
+    const numVal = Number(rawFieldValue);
+    inp.value = Number.isFinite(numVal) ? numVal.toLocaleString('ru-RU') : rawFieldValue;
   } else {
-    inp.value = prod[f] || '';
+    inp.value = normalizeScalarText(rawFieldValue);
   }
 
-  if (['quantity', 'price'].includes(f)) inp.type = 'number';
+  if (['quantity', 'price'].includes(fieldKey)) inp.type = 'number';
   if (f === 'article' || f === 'num') {
     inp.disabled = true;
     inp.readOnly = true;
@@ -1074,6 +1124,14 @@ for (const f of ALL_FIELDS) {
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'detailsForm') return;
   e.preventDefault();
+
+  const submitButton = e.submitter && e.submitter.tagName === 'BUTTON' ? e.submitter : e.target.querySelector('button[type="submit"]');
+  const originalButtonText = submitButton ? submitButton.textContent : '';
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = 'Сохраняю...';
+  }
+
   const body = document.getElementById('detailsBody');
   const wid = +body.dataset.wid;
   const isNew = body.dataset.isNew === '1';
@@ -1084,13 +1142,13 @@ document.addEventListener('submit', async e => {
     }
   });
 
-
   try {
     const action = isNew ? 'addItem' : 'editItem';
+    const query = buildSelectedStoreQuery({ action: action, visible: true, wid:wid, TESTING:CONFIG.GLOBAL_EXECUTION_TESTING });
+    const params = { query: query, data: data };
 
-      const query = buildSelectedStoreQuery({ action: action, visible: true, wid:wid, TESTING:CONFIG.GLOBAL_EXECUTION_TESTING });
-      const params = { query:query, data:  data  };
-    
+    console.info('[admin_sklad] save payload', { action, query, data });
+
     const resp = isNew
       ? await window.API.addSkladItem(params, { timeout: 8000, overlayId: "admin_sklad" })
       : await window.API.editSkladItem(params, { timeout: 8000, overlayId: "admin_sklad" });
@@ -1099,15 +1157,18 @@ document.addEventListener('submit', async e => {
     const prepared = ensureArticle(data);
     updateProductInWarehouse(wid, prepared);
 
-   // renderWarehouses();
-warehousesInitialized=false
-await bodyOnload()
+    warehousesInitialized = false;
+    await bodyOnload();
 
     showToast(isNew ? 'Товар добавлен!' : 'Изменения сохранены!', 'success');
     closeModal('detailsModal', true);
-
   } catch(err) {
     showToast(`Ошибка: ${err.message}`, 'error');
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = originalButtonText || 'Сохранить';
+    }
   }
 });
 

@@ -1,73 +1,113 @@
-<style>
-
-
-
-@media screen and (max-width: 1280px) {
- .dashboard {
-    display: none;
-  }
+:root {
+  --cash-page-gap: clamp(12px, 2vw, 28px);
+  --cash-page-padding: clamp(12px, 2.5vw, 36px);
+  --cash-form-width: clamp(260px, 26vw, 390px);
 }
 
+#content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, var(--cash-form-width));
+  gap: var(--cash-page-gap);
+  min-height: calc(100vh - var(--app-header-height));
+  padding: var(--cash-page-padding);
+  box-sizing: border-box;
+}
+
+.split {
+  position: relative;
+  z-index: auto;
+  top: auto;
+  right: auto;
+  left: auto;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  overflow: visible;
+  padding: 0;
+}
+
+.left {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cash-page-gap);
+}
+
+.right {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(12px, 2vw, 24px);
+  box-sizing: border-box;
+}
+
+.right .text-field,
+.right .text-field__group,
+.right .text-field__input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.right select.text-field__input {
+  width: 100% !important;
+}
 
 .container-table {
-    text-align: center;
-    /* overflow-y: scroll; */
-    margin-left: 300px;
-    height: 100%;
-    margin-right: 80px;
-
+  min-width: 0;
+  width: 100%;
+  overflow-x: auto;
+  text-align: center;
 }
 
-
-.responsive-table{
-
+.responsive-table {
+  min-width: 620px;
 }
 
-#cashRecords  {
-      position: absolute;
-    width: 71%;
-    display: flex;
-    right: 4%;
-
+#cashRecords {
+  width: 100%;
+  min-width: 0;
 }
 
+.dashboard_cash {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  position: relative;
+  left: auto;
+  align-items: flex-start;
+}
 
 .income {
-  background-color: #d4edda; 
-  color: #155724; 
+  background-color: #d4edda;
+  color: #155724;
 }
 
 .expense {
-  background-color: #f8d7da; 
-  color: #721c24; 
+  background-color: #f8d7da;
+  color: #721c24;
 }
 
-
-
-
-
-
-
-/* CSS */
 .button-24 {
-
-      width: 123px;
-    left: 12%;
-    position: relative;
-    height: 30px;
-  background: #FF4742;
-  border: 1px solid #FF4742;
+  width: min(100%, 180px);
+  min-height: 40px;
+  height: auto;
+  margin: 0 auto;
+  position: static;
+  background: #ff4742;
+  border: 1px solid #ff4742;
   border-radius: 6px;
   box-shadow: rgba(0, 0, 0, 0.1) 1px 2px 4px;
   box-sizing: border-box;
-  color: #FFFFFF;
+  color: #fff;
   cursor: pointer;
   display: inline-block;
-  font-family: nunito,roboto,proxima-nova,"proxima nova",sans-serif;
-  font-size: 16px;
+  font-family: nunito, roboto, proxima-nova, "proxima nova", sans-serif;
+  font-size: clamp(14px, 1.2vw, 16px);
   font-weight: 800;
   line-height: 16px;
-  min-height: 40px;
   outline: 0;
   padding: 12px 14px;
   text-align: center;
@@ -83,11 +123,11 @@
 .button-24:active {
   background-color: initial;
   background-position: 0 0;
-  color: #FF4742;
+  color: #ff4742;
 }
 
 .button-24:active {
-  opacity: .5;
+  opacity: 0.5;
 }
 
 .button-24:disabled {
@@ -116,94 +156,178 @@
   to { transform: rotate(360deg); }
 }
 
-.text-field__input{
-  
-    width: 80%;
-    height: auto;
-    padding: 10px;
-
-}
-#Comment{
-    height: 138px;
-    width: 80%;
-    margin-bottom: 20px;
-    font-size: 30px;
+.text-field__input,
+#Comment {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-
-.event a {
-
+.text-field__input {
+  height: auto;
+  padding: 10px;
 }
 
+#Comment {
+  min-height: 138px;
+  height: clamp(138px, 18vh, 220px);
+  margin-bottom: 20px;
+  font-size: clamp(16px, 1.5vw, 22px);
+  resize: vertical;
+}
 
 .styled-box {
-    display: inline-block; /* Для корректной работы размеров */
-    background-color: orange; /* Оранжевая заливка */
-    color: white; /* Белый текст */
-    font-weight: bold; /* Жирный текст */
-    padding: 5px 10px; /* Внутренние отступы для размера прямоугольника */
-    border-radius: 10px; /* Закругленные края */
-    text-align: center; /* Центрирование текста */
-    font-size: 1em; /* Размер текста (адаптивный) */
-    min-width: 40px; /* Минимальная ширина */
+  display: inline-block;
+  min-width: 40px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background-color: orange;
+  color: white;
+  font-size: 1em;
+  font-weight: bold;
+  text-align: center;
 }
 
-.red {
-    color: #ff4d4f; /* Красный цвет */
+.red { color: #ff4d4f; }
+.blue { color: blue; }
+.green { color: #28a745; }
+
+@media screen and (max-width: 900px) {
+  #content {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .right {
+    order: -1;
+  }
+
+  .responsive-table {
+    min-width: 560px;
+  }
 }
 
-.blue {
-    color: blue; /* Красный цвет */
+@media screen and (max-width: 480px) {
+  #content {
+    padding: 10px;
+    gap: 16px;
+  }
+
+  .right {
+    padding: 4px;
+  }
+
+  .responsive-table {
+    min-width: 500px;
+  }
+
+  .button-24 {
+    width: 100%;
+  }
 }
 
-.green {
-    color: #28a745; /* Зеленый цвет */
-}
-
-.split {
-  position: fixed;
-  z-index: 1;
-  top: var(--app-header-height);
-  overflow-x: hidden;
-  padding-top: 0;
-     width: 100%;
-     height: calc(100vh - var(--app-header-height));
-}
-
-/* Control the left side */
-.left {
-  left: 0;
-    width: 75%;
-
-}
-
-/* Control the right side */
-.right {
-  height: fit-content;
-  right: -25px;
-  width: 25%;
-  height: 90%;
-  display: grid;
-}
-
-
-
-
-
-
-.dashboard_cash {
+@media screen and (max-width: 600px) {
+  #content {
     display: flex;
-        width: 20%;
-    position: absolute;
-    justify-content: space-around;
-    align-items: flex-start;
-    margin: 20px;
-   // gap: 20px;
-    flex-wrap: wrap;
-    left: 10px;
-    position: absolute;
+    flex-direction: column;
+    min-height: auto;
+    padding: 10px;
+    gap: 14px;
+  }
 
+  .left,
+  .right {
+    width: 100%;
+    padding: 0;
+  }
+
+  .right {
+    order: -1;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .right p {
+    margin: 0 0 12px;
+  }
+
+  .right .text-field,
+  .right .text-field__group,
+  .right .text-field__input,
+  .right textarea,
+  .right button {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+
+  .right .text-field__input,
+  .right textarea,
+  .right select {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  #Comment {
+    min-height: 96px;
+    height: 120px;
+    margin-bottom: 12px;
+  }
+
+  .dashboard_cash {
+    display: block;
+  }
+
+  .dashboard_cash .card {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    min-height: 120px;
+    height: auto;
+    box-sizing: border-box;
+    margin: 0 0 12px;
+    padding: 16px;
+  }
+
+  .container-table {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+  }
+
+  .responsive-table {
+    min-width: 620px;
+    margin: 0;
+    padding: 0 8px;
+  }
+
+  .responsive-table .table-header,
+  .responsive-table .filters,
+  .responsive-table .table-row {
+    flex-direction: row;
+  }
+
+  .responsive-table .col-header,
+  .responsive-table .col-filter,
+  .responsive-table .table-row div {
+    flex: 0 0 146px;
+    text-align: left;
+    padding: 10px 8px;
+  }
+
+  .responsive-table .filter-select {
+    width: 100%;
+    min-height: 40px;
+    font-size: 16px;
+  }
+
+  #statistics-container,
+  #cashRecords {
+    width: 100%;
+    overflow-x: auto;
+  }
 }
-
-
-</style>

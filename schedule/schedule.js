@@ -1,7 +1,7 @@
 
 // Calendar month view: 7x6 grid, with per-day assignments and modal editing.
 // Data I/O via window.API (system/api.js); with fallback to getDataFromN8n/postDataToN8n.
-// FIX: use local-date ISO (YYYY-MM-DD) without UTC conversion to avoid off-by-one.
+// Dates use the server format DD.MM.YYYY without UTC conversion.
 (function(){
   const $ = (s,r=document)=>r.querySelector(s);
   const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -10,12 +10,14 @@
   let MODE = 'plan'; // 'plan' | 'actual'
   let CURRENT_STORE = ''; // empty means ALL stores by default
   let CACHED_ROWS = []; // last loaded schedule for month (array of rows)
+  let EMPLOYEE_COLOR_MAP = [];
 
   function resetState(){
     META = { stores: [], employees: [] };
     MODE = 'plan';
     CURRENT_STORE = '';
     CACHED_ROWS = [];
+    EMPLOYEE_COLOR_MAP = [];
     MODAL_DATE_ISO = '';
   }
 
@@ -25,8 +27,11 @@
   const MONTH_LABELS = (String(window.APP_LANG || window.CONFIG?.APP_LANG || "en").toLowerCase().startsWith("ru"))
     ? ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек']
     : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  function toLocalISO(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-  function parseISO(iso){ const [y,m,dd]=iso.split('-').map(Number); return new Date(y, m-1, dd); }
+  function toServerDate(d){ return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`; }
+  function parseServerDate(value){
+    const match = String(value || '').match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    return match ? new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1])) : new Date(NaN);
+  }
   function addMonths(ym, delta){
     const [y,m]=ym.split('-').map(Number);
     const dt=new Date(y, m-1+delta, 1);
@@ -39,6 +44,26 @@
   function buildScheduleQuery(ym){
     const { Year, Month } = monthRange(ym);
     return { action: 'getSchedule', visible: true, Ym: ym, Year, Month };
+  }
+  function normalizeScheduleDate(value){
+    if (value instanceof Date && !Number.isNaN(value.getTime())) return toServerDate(value);
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+
+    const dotMatch = raw.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (dotMatch) return raw;
+
+    const isoMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T|\s)/);
+    if (isoMatch) return `${isoMatch[3]}.${isoMatch[2]}.${isoMatch[1]}`;
+
+    return '';
+  }
+  function normalizeScheduleRows(rows){
+    return (Array.isArray(rows) ? rows : []).map((row) => ({
+      ...row,
+      Id: row?.Id ?? row?.id,
+      DateISO: normalizeScheduleDate(row?.DateISO || row?.Date || row?.date),
+    }));
   }
   function formatYmDisplay(ym){
     const [y, m] = ym.split('-').map(Number);
@@ -222,7 +247,7 @@
     for(let i=0;i<42;i++){
       const d = new Date(start); d.setDate(start.getDate()+i);
       days.push({
-        iso: toLocalISO(d),
+        iso: toServerDate(d),
         inMonth: d.getMonth()===(m-1),
         wd: (d.getDay()+6)%7 // Mon=0..Sun=6
       });
@@ -241,6 +266,12 @@
     if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
     const total = hh * 60 + mm;
     return total >= 0 ? total : null;
+  }
+  function normalizeTimeValue(value){
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const match = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+    return match ? `${String(Number(match[1])).padStart(2, '0')}:${match[2]}` : raw;
   }
   function durationHours(startValue, endValue){
     const startMin = parseTimeToMinutes(startValue);
@@ -550,25 +581,136 @@
     }
   }
 
-  const TOTAL_COLORS = 22; // --color0 … --color21
+  const TOTAL_COLORS = 16;
+  const DEFAULT_SCHEDULE_COLOR_PALETTE = [
+    '#004d40', '#00bcd4', '#0d47a1', '#2979ff',
+    '#4a148c', '#aa00ff', '#880e4f', '#ff4081',
+    '#813232', '#ff1745', '#e65100', '#136484',
+    '#ffea00', '#1b5e20', '#00e676', '#263238'
+  ];
+
+  function normalizeEmployeeColorMap(raw = []) {
+    const source = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : Array.isArray(raw?.items) ? raw.items : Array.isArray(raw?.employees) ? raw.employees : [];
+    return source
+      .map((entry) => {
+        const employee = normalizeEmployeeName(
+          entry?.employee ||
+          entry?.Employee ||
+          entry?.name ||
+          entry?.Name ||
+          entry?.user ||
+          entry?.username ||
+          entry?.login ||
+          entry?.email ||
+          entry?.[0]
+        );
+        if (!employee) return null;
+
+        const rawColor = String(
+          entry?.color ??
+          entry?.Color ??
+          entry?.hex ??
+          entry?.hexColor ??
+          entry?.schedulecolor ??
+          entry?.scheduleColor ??
+          entry?.schedule_color ??
+          entry?.value ??
+          entry?.[1] ??
+          ''
+        ).trim();
+
+        return {
+          employee,
+          color: rawColor ? rawColor : '#000000',
+          colorIndex: null,
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function buildDefaultEmployeeColorMap() {
+    return getMetaEmployees()
+      .map((e) => normalizeEmployeeName(e?.employee || e?.Employee || e?.name || e))
+      .filter(Boolean)
+      .map((employee, idx) => ({
+        employee,
+        colorIndex: idx % TOTAL_COLORS,
+        color: DEFAULT_SCHEDULE_COLOR_PALETTE[idx % TOTAL_COLORS],
+      }));
+  }
+
+  function resolveEmployeeColorEntry(employeeName){
+    const name = normalizeEmployeeName(employeeName);
+    if (!name) return null;
+    return (EMPLOYEE_COLOR_MAP || []).find((entry) => normalizeEmployeeName(entry?.employee || entry?.Employee || entry?.name || entry) === name) || null;
+  }
 
   function employeeColorIndex(employeeName){
     const name = normalizeEmployeeName(employeeName);
     if (!name) return null;
 
-    // Assign color by position in the employee list so no two employees share a color.
+    const entry = resolveEmployeeColorEntry(name);
+    if (entry) {
+      if (Number.isInteger(entry.colorIndex)) return entry.colorIndex % TOTAL_COLORS;
+      if (typeof entry.color === 'string') {
+        const rawHex = String(entry.color).trim().toLowerCase();
+        const hexIndex = DEFAULT_SCHEDULE_COLOR_PALETTE.findIndex((hex) => hex.toLowerCase() === rawHex);
+        if (hexIndex !== -1) return hexIndex;
+      }
+    }
+
     const employees = getMetaEmployees();
-    const idx = employees.findIndex(
-      (e) => normalizeEmployeeName(e?.employee || e?.Employee || e?.name || e) === name
-    );
+    const idx = employees.findIndex((e) => normalizeEmployeeName(e?.employee || e?.Employee || e?.name || e) === name);
     if (idx !== -1) return idx % TOTAL_COLORS;
 
-    // Fallback for employees not yet in META (deterministic, avoids obvious collisions).
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = (hash * 31 + name.charCodeAt(i)) | 0;
     }
     return Math.abs(hash) % TOTAL_COLORS;
+  }
+
+  async function loadEmployeeColorMap(){
+    const cached = Array.isArray(window.SCHEDULE_EMPLOYEE_COLOR_MAP) ? window.SCHEDULE_EMPLOYEE_COLOR_MAP : null;
+    if (cached && cached.length) {
+      EMPLOYEE_COLOR_MAP = normalizeEmployeeColorMap(cached);
+      return EMPLOYEE_COLOR_MAP;
+    }
+
+    if (window.__employeeColorMapLoading) {
+      return window.__employeeColorMapLoading;
+    }
+
+    const fallback = buildDefaultEmployeeColorMap();
+    if (!window.API || typeof window.API.getEmployeeColorMap !== 'function') {
+      EMPLOYEE_COLOR_MAP = fallback;
+      window.SCHEDULE_EMPLOYEE_COLOR_MAP = fallback;
+      return EMPLOYEE_COLOR_MAP;
+    }
+
+    window.__employeeColorMapLoading = (async () => {
+      try {
+        const raw = await window.API.getEmployeeColorMap({ action: 'getEmployeeColorMap', visible: true }, { overlayId: 'schedule' });
+        const normalized = normalizeEmployeeColorMap(raw);
+        if (normalized.length) {
+          EMPLOYEE_COLOR_MAP = normalized;
+          window.SCHEDULE_EMPLOYEE_COLOR_MAP = normalized;
+          return EMPLOYEE_COLOR_MAP;
+        }
+      } catch (error) {
+        console.warn('Failed to load employee colors from service', error);
+      }
+
+      EMPLOYEE_COLOR_MAP = fallback;
+      window.SCHEDULE_EMPLOYEE_COLOR_MAP = fallback;
+      return EMPLOYEE_COLOR_MAP;
+    })();
+
+    try {
+      return await window.__employeeColorMapLoading;
+    } finally {
+      delete window.__employeeColorMapLoading;
+    }
   }
 
   async function loadMeta(){
@@ -603,14 +745,14 @@
       throw new Error("API.getSchedule is not available");
     }
     const rows = await window.API.getSchedule(query, { overlayId: "schedule" });
-    CACHED_ROWS = Array.isArray(rows) ? rows : [];
+    CACHED_ROWS = normalizeScheduleRows(rows);
     mergeEmployeesFromRowsIntoMeta(CACHED_ROWS);
   }
   async function saveRows(rows){
     if (!window.API || typeof window.API.upsertShifts !== "function") {
       throw new Error("API.upsertShifts is not available");
     }
-    await window.API.upsertShifts(rows, { timeout: 8000, overlayId: "schedule", source: "n8n" });
+    return window.API.upsertShifts(rows, { timeout: 8000, overlayId: "schedule", source: "n8n" });
 
 
 
@@ -692,7 +834,7 @@
       cal.appendChild(h);
     });
     const days = buildCalendarDays(ym);
-    const todayISO = toLocalISO(new Date());
+    const todayISO = toServerDate(new Date());
 
     // group rows by date
     const byDate = new Map();
@@ -714,7 +856,7 @@
       // header
       const head = document.createElement('div'); head.className='day-head';
       const left = document.createElement('div');
-      left.innerHTML = `<span class="day-num">${Number(d.iso.slice(8))}</span>`;
+      left.innerHTML = `<span class="day-num">${Number(d.iso.slice(0, 2))}</span>`;
       const right = document.createElement('div'); right.className='day-dow'; 
       //right.textContent = weekDays[d.wd];
       head.appendChild(left); head.appendChild(right);
@@ -764,7 +906,7 @@
   async function openDayModal(dateISO){
     MODAL_DATE_ISO = dateISO;
     const modal = $('#day-modal');
-    const d = parseISO(dateISO); // parse locally to avoid UTC shift
+    const d = parseServerDate(dateISO);
     $('#modal_date_str').textContent = d.toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric', weekday:'long' });
     $('#modal_store_str').textContent = CURRENT_STORE ? `Магазин: ${CURRENT_STORE}` : '';
     const tbody = $('#day_rows'); tbody.innerHTML='';
@@ -856,8 +998,8 @@
     populateTimeSelect(startEl, TIME_START_OPTIONS);
     populateTimeSelect(endEl, TIME_END_OPTIONS);
 
-    const startValue = rec.ActualStart || '11:00';
-    let endValue = rec.ActualEnd || '21:00';
+    const startValue = normalizeTimeValue(rec.ActualStart) || '11:00';
+    let endValue = normalizeTimeValue(rec.ActualEnd) || '21:00';
     if (endValue === '00:00') endValue = '24:00';
     startEl.value = TIME_START_OPTIONS.includes(startValue) ? startValue : TIME_START_OPTIONS[0];
     endEl.value = TIME_END_OPTIONS.includes(endValue) ? endValue : TIME_END_OPTIONS[TIME_END_OPTIONS.length - 1];
@@ -870,7 +1012,7 @@
 
     tr.querySelector('.row-del').addEventListener('click', ()=> {
       tr.style.display="none";
-      tr.setAttribute("action",1);
+      tr.dataset.operation = "delete";
       updateLegendDraft();
     });
     tr.querySelectorAll('input,select').forEach((el) => {
@@ -886,7 +1028,7 @@
     const draft = [];
     $$('#day_rows tr').forEach(tr=>{
       if (tr.style.display === 'none') return;
-      if (String(tr.getAttribute('action')||'0') === '1') return;
+      if (tr.dataset.operation === 'delete') return;
       draft.push({
         DateISO: MODAL_DATE_ISO,
         Store: tr.querySelector('.cell-store')?.value,
@@ -902,7 +1044,7 @@
 
   async function modalSave(){
     const rows=[];
-    const date = new Date(MODAL_DATE_ISO);
+    const date = parseServerDate(MODAL_DATE_ISO);
     const Year = date.getFullYear();        // 2025
     const Month = date.getMonth() + 1;      // 9 (нумерация месяцев с 0, поэтому +1)
 
@@ -910,8 +1052,10 @@
 
     
 
+      const operation = tr.dataset.operation || (tr.querySelector('.cell-Id').value ? "update" : "add");
       rows.push({
-        ToDelete: tr.getAttribute("action","toDelete")||0,
+        Operation: operation,
+        ToDelete: operation === "delete" ? 1 : 0,
         DateISO: MODAL_DATE_ISO,
         Year:Year,
         Month:Month,
@@ -926,9 +1070,11 @@
         Note: tr.querySelector('.cell-note').value||''
       });
     });
-    await saveRows(rows);
+    const savedRows = await saveRows(rows);
+    CACHED_ROWS = normalizeScheduleRows(savedRows);
+    mergeEmployeesFromRowsIntoMeta(CACHED_ROWS);
     closeDayModal();
-    await reloadAll(); // refresh month view
+    renderCalendar(getSelectedYm());
   }
 
   // ---- Load/Reload ----
@@ -984,6 +1130,7 @@
 
     // load meta and month
     await loadMeta();
+    await loadEmployeeColorMap();
     populateStoreSelect();
     await reloadAll();
     if (getMetaEmployees().length === 0) {

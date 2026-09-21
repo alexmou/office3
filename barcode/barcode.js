@@ -1,5 +1,5 @@
 
-var printSRC = "../vendor/icons/print.png";
+var printSRC = "barcode/icons8-print-24.png";
 
 // Глобальная конфигурация типов ценников
 let LABEL_TYPES = {}
@@ -791,7 +791,9 @@ function resolveArticleMatrix(raw) {
  * Форматирует текст с переносами строк
  */
 function formatMultilineText(text) {
-  return text && text.includes(',') ? text.split(',').join('<br>') : text;
+  if (text === null || text === undefined) return text;
+  if (typeof text !== 'string') text = String(text);
+  return text.includes(',') ? text.split(',').join('<br>') : text;
 }
 
 

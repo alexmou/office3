@@ -140,35 +140,68 @@ function normalizeSalaryResponse(raw) {
 
 
 function createDataPicker(eventDates){
+  const calendar = document.getElementById("datepicker");
+  if (!calendar) return;
 
-    // Инициализация Datepicker
-    $('#datepicker').datepicker({
-        dateFormat: 'dd.mm.yy',
-        beforeShowDay: function(date) {
-            // Преобразуем дату в формат 'dd.mm.yy'
-            const formattedDate = $.datepicker.formatDate('dd.mm.yy', date);
-            if (eventDates[formattedDate]) {
-                return [true, 'ui-state-highlight', 'This is an event date']; // Добавляем класс и подсказку
-            } else {
-                return [true, '', '']; // Без изменений
-            }
-        }
+  let selectedDate = new Date();
+  let visibleMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+  const monthFormatter = new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric" });
+  const weekDays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
+  const formatDate = (date) => [
+    String(date.getDate()).padStart(2, "0"),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    date.getFullYear()
+  ].join(".");
+
+  const renderCalendar = () => {
+    const firstDay = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
+    const offset = (firstDay.getDay() + 6) % 7;
+    const daysInMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0).getDate();
+    const cells = [];
+
+    for (let index = 0; index < offset; index += 1) cells.push(null);
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      cells.push(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), day));
+    }
+    while (cells.length % 7) cells.push(null);
+
+    calendar.innerHTML = `
+      <div class="salary-calendar__header">
+      <button type="button" class="salary-calendar__nav" data-month="-1" aria-label="Предыдущий месяц">&#8249;</button>
+      <strong>${monthFormatter.format(visibleMonth)}</strong>
+      <button type="button" class="salary-calendar__nav" data-month="1" aria-label="Следующий месяц">&#8250;</button>
+      </div>
+      <div class="salary-calendar__weekdays">${weekDays.map((day) => `<span>${day}</span>`).join("")}</div>
+      <div class="salary-calendar__grid">
+      ${cells.map((date) => {
+        if (!date) return "<span class=\"salary-calendar__day is-empty\"></span>";
+        const key = formatDate(date);
+        const classes = ["salary-calendar__day"];
+        if (eventDates[key]) classes.push("has-event");
+        if (formatDate(selectedDate) === key) classes.push("is-selected");
+        return `<button type="button" class="${classes.join(" ")}" data-date="${key}">${date.getDate()}</button>`;
+      }).join("")}
+      </div>
+    `;
+
+    calendar.querySelectorAll("[data-month]").forEach((button) => {
+      button.addEventListener("click", () => {
+        visibleMonth.setMonth(visibleMonth.getMonth() + Number(button.dataset.month));
+        renderCalendar();
+      });
     });
-
-    // Обработка изменения даты
-    $('#datepicker').change(function() {
-        const startDate = $(this).datepicker('getDate'); // Получаем дату
-
-        if (startDate) {
-            const formattedDate = $.datepicker.formatDate('dd.mm.yy', startDate); // Форматируем дату
-            displayStatistics(formattedDate); // Вызов вашей функции
-        } else {
-            alert("Пожалуйста, выберите дату");
-        }
+    calendar.querySelectorAll("[data-date]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const [day, month, year] = button.dataset.date.split(".").map(Number);
+        selectedDate = new Date(year, month - 1, day);
+        displayStatistics(button.dataset.date);
+        renderCalendar();
+      });
     });
+  };
 
-
-
+  renderCalendar();
 }
 
 
