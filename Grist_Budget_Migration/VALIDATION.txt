@@ -1,6 +1,0 @@
-Budget rows extracted: 311
-Unique original categories: 56
-Paid rows: 222
-Unpaid rows: 89
-CountInBudget=true: 311
-Total amount: 5272799600
