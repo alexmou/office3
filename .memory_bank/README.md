@@ -1,8 +1,6 @@
-# Memory Bank
+# Memory Bank (historical routing)
 
-Purpose:
-- keep durable project context outside `AGENTS.md`
-- let the agent recover state across longer tasks without re-reading the entire repo
+Canonical current documentation now lives under `docs/`. Generated source inventories are under `docs/generated/`.
 
 Update rules:
 - `active-context.md`: update after substantial work or when current priorities shift
@@ -12,7 +10,4 @@ Update rules:
 - `integration-contracts.md`: update when frontend-to-backend contracts change
 - `decision-log.md`: append durable architectural decisions, not transient task notes
 
-Read order:
-1. `active-context.md`
-2. the domain note that matches the task
-3. `decision-log.md` if the task touches prior architecture decisions
+Use `AGENTS.md` for task routing, then load the matching document or repository skill. `decision-log.md` remains historical context; it is not a source of current paths, routes, or workflow ownership.
