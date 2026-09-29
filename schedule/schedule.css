@@ -70,10 +70,11 @@
 .toolbar .field{ display:flex; align-items:center; gap:8px; }
 .toolbar .mode-label{ color:white; }
 .toolbar .spacer{ flex:1; }
-.toolbar input.month-input, .toolbar select{
+.toolbar input.month-input, .toolbar select, .toolbar input[type="date"]{
   padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--button);
   font-size:20px; color:white;
 }
+.toolbar .field .sep{ color:white; }
 .toolbar input.month-input{
   min-width: 160px;
   text-align: center;
@@ -159,7 +160,6 @@
   display:flex; align-items:center; gap:10px;
   flex-wrap: wrap;
   min-height:var(--legend-h);
-  padding:8px 14px;
   border-bottom:1px dashed var(--border); background:var(--bg);
 }
 .badge{ font-size:12px; padding:3px 10px; border-radius:9999px; border:1px solid var(--border); }
@@ -209,6 +209,8 @@ padding: 8px 13px;
 .day-dow{ font-size:12px; color:#64748b; }
 .day.today{ outline:2px dashed #f59e0b; outline-offset:-4px; }
 /* .day.weekend{ background:#fbfbfc; }  */
+.day.out-of-period{ background:#e2e8f0; opacity:.55; }
+.day.out-of-period.today{ opacity:.75; }
 
 .day-body{ margin-top:6px; overflow:auto;  color: white;}
 .assignment{  display:flex; gap:6px; font-size:13px; align-items:center; padding:3px 0; border-bottom:1px dashed #f1f5f9;     margin-top: 10px;  padding-left: 6px; }

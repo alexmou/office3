@@ -9,15 +9,21 @@
   let META = { stores: [], employees: [] };
   let MODE = 'plan'; // 'plan' | 'actual'
   let CURRENT_STORE = ''; // empty means ALL stores by default
+  let CURRENT_EMPLOYEE = ''; // empty means ALL employees by default
   let CACHED_ROWS = []; // last loaded schedule for month (array of rows)
   let EMPLOYEE_COLOR_MAP = [];
+  let PERIOD_START = null; // selected date-range within current month (Date, inclusive)
+  let PERIOD_END = null;
 
   function resetState(){
     META = { stores: [], employees: [] };
     MODE = 'plan';
     CURRENT_STORE = '';
+    CURRENT_EMPLOYEE = '';
     CACHED_ROWS = [];
     EMPLOYEE_COLOR_MAP = [];
+    PERIOD_START = null;
+    PERIOD_END = null;
     MODAL_DATE_ISO = '';
   }
 
@@ -40,6 +46,51 @@
   function monthRange(ym){
     const [y,m]=ym.split('-').map(Number);
     return {Year: y, Month: m };
+  }
+  function monthBounds(ym){
+    const [y,m]=ym.split('-').map(Number);
+    return { start: new Date(y, m-1, 1), end: new Date(y, m, 0) };
+  }
+  function toDateInputValue(d){
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+  function setPeriodInputs(ym){
+    const { start, end } = monthBounds(ym);
+    const fromEl = $('#schedule_period_from');
+    const toEl = $('#schedule_period_to');
+    PERIOD_START = start;
+    PERIOD_END = end;
+    if (!fromEl || !toEl) return;
+    const minStr = toDateInputValue(start);
+    const maxStr = toDateInputValue(end);
+    fromEl.min = minStr; fromEl.max = maxStr; fromEl.value = minStr;
+    toEl.min = minStr; toEl.max = maxStr; toEl.value = maxStr;
+  }
+  function onPeriodInputChange(){
+    const ym = getSelectedYm();
+    const { start: monthStart, end: monthEnd } = monthBounds(ym);
+    const fromEl = $('#schedule_period_from');
+    const toEl = $('#schedule_period_to');
+    let from = fromEl.value ? new Date(`${fromEl.value}T00:00:00`) : monthStart;
+    let to = toEl.value ? new Date(`${toEl.value}T00:00:00`) : monthEnd;
+    if (from < monthStart) from = monthStart;
+    if (to > monthEnd) to = monthEnd;
+    if (from > to) { const tmp = from; from = to; to = tmp; }
+    PERIOD_START = from;
+    PERIOD_END = to;
+    fromEl.value = toDateInputValue(from);
+    toEl.value = toDateInputValue(to);
+    renderCalendar(ym);
+  }
+  function isDateInPeriod(date){
+    if (!PERIOD_START || !PERIOD_END) return true;
+    return date >= PERIOD_START && date <= PERIOD_END;
+  }
+  function isRowInPeriod(row){
+    if (!PERIOD_START || !PERIOD_END) return true;
+    const d = parseServerDate(row?.DateISO);
+    if (Number.isNaN(d.getTime())) return true;
+    return isDateInPeriod(d);
   }
   function buildScheduleQuery(ym){
     const { Year, Month } = monthRange(ym);
@@ -247,6 +298,7 @@
     for(let i=0;i<42;i++){
       const d = new Date(start); d.setDate(start.getDate()+i);
       days.push({
+        date: d,
         iso: toServerDate(d),
         inMonth: d.getMonth()===(m-1),
         wd: (d.getDay()+6)%7 // Mon=0..Sun=6
@@ -764,7 +816,12 @@
   // ---- Render ----
   function computeEmployeeHours(rows){
     const totalsByEmployee = new Map();
-    const filtered = (rows || []).filter((r) => !CURRENT_STORE || String(r.Store)===String(CURRENT_STORE));
+    const filtered = (rows || []).filter((r) => {
+      if (CURRENT_STORE && String(r.Store)!==String(CURRENT_STORE)) return false;
+      if (CURRENT_EMPLOYEE && normalizeEmployeeName(r.Employee)!==CURRENT_EMPLOYEE) return false;
+      if (!isRowInPeriod(r)) return false;
+      return true;
+    });
 
     filtered.forEach((r) => {
       const employee = normalizeEmployeeName(r.Employee);
@@ -851,7 +908,8 @@
         cal.appendChild(placeholder); return;
       }
       const cell = document.createElement('div');
-      cell.className='day' + (d.iso===todayISO?' today':'') + ((d.wd>=5)?' weekend':'');
+      const inPeriod = isDateInPeriod(d.date);
+      cell.className='day' + (d.iso===todayISO?' today':'') + ((d.wd>=5)?' weekend':'') + (inPeriod?'':' out-of-period');
 
       // header
       const head = document.createElement('div'); head.className='day-head';
@@ -866,7 +924,7 @@
       const body = document.createElement('div'); body.className='day-body';
       const rows = byDate.get(d.iso)||[];
       rows
-        .filter(r => !CURRENT_STORE || String(r.Store)===String(CURRENT_STORE))
+        .filter(r => (!CURRENT_STORE || String(r.Store)===String(CURRENT_STORE)) && (!CURRENT_EMPLOYEE || normalizeEmployeeName(r.Employee)===CURRENT_EMPLOYEE))
         .forEach(r=>{
           const colorIdx = employeeColorIndex(r.Employee);
           const line = document.createElement('div');
@@ -901,6 +959,18 @@
     sel.value = CURRENT_STORE;
   }
 
+  function populateEmployeeSelect(){
+    const sel = $('#schedule_employee');
+    if (!sel) return;
+    const names = (getMetaEmployees()||[])
+      .map(e=> normalizeEmployeeName(e?.employee || e?.Employee || e?.name || e))
+      .filter(Boolean);
+    const unique = Array.from(new Set(names)).sort((a,b)=>a.localeCompare(b,'ru'));
+    sel.innerHTML = `<option value="">Все сотрудники</option>` +
+      unique.map(name=>`<option value="${name}">${name}</option>`).join('');
+    sel.value = CURRENT_EMPLOYEE;
+  }
+
   // ---- Modal ----
   let MODAL_DATE_ISO = '';
   async function openDayModal(dateISO){
@@ -911,7 +981,7 @@
     $('#modal_store_str').textContent = CURRENT_STORE ? `Магазин: ${CURRENT_STORE}` : '';
     const tbody = $('#day_rows'); tbody.innerHTML='';
 
-    const rows = (CACHED_ROWS||[]).filter(r=> String(r.DateISO)===dateISO && (!CURRENT_STORE || String(r.Store)===String(CURRENT_STORE)));
+    const rows = (CACHED_ROWS||[]).filter(r=> String(r.DateISO)===dateISO && (!CURRENT_STORE || String(r.Store)===String(CURRENT_STORE)) && (!CURRENT_EMPLOYEE || normalizeEmployeeName(r.Employee)===CURRENT_EMPLOYEE));
     rows.forEach(r=> appendDayRow(r));
 
     if(rows.length===0){ appendDayRow({ DateISO: dateISO, Store: CURRENT_STORE }); }
@@ -1073,6 +1143,7 @@
     const savedRows = await saveRows(rows);
     CACHED_ROWS = normalizeScheduleRows(savedRows);
     mergeEmployeesFromRowsIntoMeta(CACHED_ROWS);
+    populateEmployeeSelect();
     closeDayModal();
     renderCalendar(getSelectedYm());
   }
@@ -1080,7 +1151,9 @@
   // ---- Load/Reload ----
   async function reloadAll(){
     const ym = getSelectedYm();
+    setPeriodInputs(ym);
     await loadMonthData(ym);
+    populateEmployeeSelect();
     renderCalendar(ym);
   }
 
@@ -1106,6 +1179,9 @@
     });
     document.querySelectorAll('input[name="schedule_mode"]').forEach(r=> r.addEventListener('change', ()=>{ MODE=r.value; renderCalendar(getSelectedYm()); }));
     $('#schedule_store').addEventListener('change', async (e)=>{ CURRENT_STORE = e.target.value; await reloadAll(); });
+    $('#schedule_employee')?.addEventListener('change', (e)=>{ CURRENT_EMPLOYEE = e.target.value; renderCalendar(getSelectedYm()); });
+    $('#schedule_period_from')?.addEventListener('change', onPeriodInputChange);
+    $('#schedule_period_to')?.addEventListener('change', onPeriodInputChange);
    
    /*
     $('#schedule_payroll').addEventListener('click', async ()=>{
@@ -1132,9 +1208,11 @@
     await loadMeta();
     await loadEmployeeColorMap();
     populateStoreSelect();
+    populateEmployeeSelect();
     await reloadAll();
     if (getMetaEmployees().length === 0) {
       await ensureEmployeesFromHistory(getSelectedYm());
+      populateEmployeeSelect();
     }
     watchSchedulePageRemoval();
   }
