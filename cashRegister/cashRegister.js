@@ -291,7 +291,7 @@ function renderCashRegisterForm({ operationTypes, activities }) {
   } catch (_) {}
 }
 
-async function returnVocabulary(data){
+async function returnVocabulary(data, requestContext){
   try {
     const parsed = parseMaybeJson(data);
 //console.log(parsed)
@@ -338,8 +338,10 @@ async function returnVocabulary(data){
 
     // 4) Fallback: ask budget endpoint
     const fallback = await fetchBudgetVocabularyFallback();
+    if (requestContext && !requestContext.isActive()) return;
     renderCashRegisterForm({ operationTypes: ["Расход", "Приход"], activities: fallback });
   } catch (e) {
+    if (requestContext && !requestContext.isActive()) return;
     console.error("returnVocabulary failed", e, data);
     if (typeof showErrorPopup === "function") {
       showErrorPopup("Не удалось загрузить словарь для кассы");

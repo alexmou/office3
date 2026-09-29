@@ -155,7 +155,7 @@
         "salary/salary.html",
         "salary/salary.js",
         "salary/salary.css",
-        "vendor/chartjs-4.4.1.umd.min.js"
+        "https://cdn.jsdelivr.net/npm/chart.js"
       ],
       "docs": [
         "docs/PAGES.md",

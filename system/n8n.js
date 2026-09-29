@@ -99,8 +99,9 @@ WEBHOOK=getWebHook(mode)
 
 
 
-async function getDataFromN8n(action, paramsObj = {}, mode){
-  hidePage(action)
+async function getDataFromN8n(action, paramsObj = {}, mode, opts = {}){
+  const overlayId = opts.overlayId || `n8n-${action}-${Date.now()}`;
+  hidePage(overlayId)
   const webhookMode = mode !== undefined ? mode : paramsObj?.data?.query?.mode;
   WEBHOOK=getWebHook(webhookMode)
 
@@ -110,19 +111,25 @@ async function getDataFromN8n(action, paramsObj = {}, mode){
         .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(JSON.stringify(value))}`)
         .join('&');
     const url = WEBHOOK + action + '?' + queryString;
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: opts.signal });
     const text = await response.text();
-      showPage(action)
+    if (opts.signal?.aborted) {
+      const error = new Error("Page request belongs to an inactive navigation");
+      error.name = "AbortError";
+      throw error;
+    }
+    showPage(overlayId)
     return JSON.parse(text);
     //return text
         } catch (error) {
+        if (error?.name === "AbortError") throw error;
         console.error('Ошибка при GET-запросе:', error);
         const msg =
           typeof window.localizeUiText === "function"
             ? window.localizeUiText("ERROR. НЕ УДАЛОСЬ ПОЛУЧИТЬ ДАННЫЕ С СЕРВЕРА", "ERROR. НЕ УДАЛОСЬ ПОЛУЧИТЬ ДАННЫЕ С СЕРВЕРА")
             : "ERROR. НЕ УДАЛОСЬ ПОЛУЧИТЬ ДАННЫЕ С СЕРВЕРА";
         showErrorPopup(msg)
-        showPage(action)
+        showPage(overlayId)
     }
 }
 /*

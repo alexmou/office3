@@ -489,6 +489,28 @@ function hidePage(funcName) {
   overlay.style.display = "block";
 }
 
+function isNavigationContextActive(context) {
+  if (!context || context.scope === "global") return true;
+  const navigation = window.__NAVIGATION;
+  return !!navigation &&
+    navigation.pageId === context.pageId &&
+    navigation.version === context.navVersion &&
+    !context.signal?.aborted;
+}
+
+function captureLegacyRequestContext(request) {
+  const navigation = window.__NAVIGATION;
+  const scope = request?.scope || (navigation?.pageId ? "page" : "global");
+  const context = {
+    scope,
+    pageId: navigation?.pageId ?? null,
+    navVersion: navigation?.version ?? 0,
+    signal: scope === "page" ? navigation?.controller?.signal : undefined,
+  };
+  context.isActive = () => isNavigationContextActive(context);
+  return context;
+}
+
 function getCurrentDate() {
   return new Date().toLocaleDateString();
 }
@@ -503,7 +525,7 @@ function getCurrentTime() {
 
 async function runGSfunctionPromise(request) {
   if (!request.callbackJSfunctionName) { request.callbackJSfunctionName = guidGenerator(); }
-  hidePage(request.callbackJSfunctionName);
+  const requestContext = captureLegacyRequestContext(request);
   const returnToJsFuncName = "globalJSCallbackFunction";
   try {
     const processedParams = processRequestParams(request.params);
@@ -511,17 +533,37 @@ async function runGSfunctionPromise(request) {
       ...processedParams,
       token: window.token
     };
-    const response = await requestViaN8nOrMock(request.googleFuncName, paramsWithToken);
+    const response = await requestViaN8nOrMock(request.googleFuncName, paramsWithToken, {
+      scope: requestContext.scope,
+      signal: requestContext.signal,
+    });
+    console.debug("[API RESPONSE]", {
+      action: request.googleFuncName,
+      requestPage: requestContext.pageId,
+      requestVersion: requestContext.navVersion,
+      currentPage: window.__NAVIGATION?.pageId,
+      currentVersion: window.__NAVIGATION?.version,
+    });
+    if (!isNavigationContextActive(requestContext)) {
+      console.debug("[STALE API RESPONSE BLOCKED]", {
+        action: request.googleFuncName,
+        requestPage: requestContext.pageId,
+        requestVersion: requestContext.navVersion,
+        currentPage: window.__NAVIGATION?.pageId,
+        currentVersion: window.__NAVIGATION?.version,
+      });
+      const error = new Error("Page request belongs to an inactive navigation");
+      error.name = "AbortError";
+      throw error;
+    }
     if (typeof window[returnToJsFuncName] === 'function') {
-      window[returnToJsFuncName](request.callbackJSfunctionName, response);
+      window[returnToJsFuncName](request.callbackJSfunctionName, response, requestContext, request.googleFuncName);
     }
     return response;
   } catch (error) {
+    if (error?.name === "AbortError") throw error;
     console.error("runGSfunctionPromise failed:", request?.googleFuncName, error);
     throw error;
-  } finally {
-    // Гарантированно снимаем блокировку UI (даже если overlay был перезаписан вложенным запросом)
-    forceHideOverlay();
   }
 }
 
@@ -532,7 +574,7 @@ async function getDataFromServer(request) {
 
 async function runGSfunction(request) {
   if (!request.callbackJSfunctionName) { request.callbackJSfunctionName = guidGenerator(); }
-  hidePage(request.callbackJSfunctionName);
+  const requestContext = captureLegacyRequestContext(request);
   const returnToJsFuncName = "globalJSCallbackFunction";
   try {
     const processedParams = processRequestParams(request.params);
@@ -540,16 +582,31 @@ async function runGSfunction(request) {
       ...processedParams,
       token: window.token
     };
-    const response = await requestViaN8nOrMock(request.googleFuncName, paramsWithToken);
+    const response = await requestViaN8nOrMock(request.googleFuncName, paramsWithToken, {
+      scope: requestContext.scope,
+      signal: requestContext.signal,
+    });
+    console.debug("[API RESPONSE]", {
+      action: request.googleFuncName,
+      requestPage: requestContext.pageId,
+      requestVersion: requestContext.navVersion,
+      currentPage: window.__NAVIGATION?.pageId,
+      currentVersion: window.__NAVIGATION?.version,
+    });
     if (typeof window[returnToJsFuncName] === 'function') {
-      window[returnToJsFuncName](request.callbackJSfunctionName, response);
+      console.debug("[API CALLBACK]", {
+        funcName: request.callbackJSfunctionName,
+        requestPage: requestContext.pageId,
+        requestVersion: requestContext.navVersion,
+        currentPage: window.__NAVIGATION?.pageId,
+        currentVersion: window.__NAVIGATION?.version,
+      });
+      window[returnToJsFuncName](request.callbackJSfunctionName, response, requestContext, request.googleFuncName);
     }
   } catch (error) {
+    if (error?.name === "AbortError" || !isNavigationContextActive(requestContext)) return;
     console.error("runGSfunction failed:", request?.googleFuncName, error);
     showErrorPopup(error?.message || String(error));
-  } finally {
-    // Гарантированно снимаем блокировку UI
-    forceHideOverlay();
   }
 }
 
@@ -574,17 +631,25 @@ function processRequestParams(params) {
   return params || {};
 }
 
-function globalJSCallbackFunction(funcName, response) {
+function globalJSCallbackFunction(funcName, response, requestContext, action) {
+  if (!isNavigationContextActive(requestContext)) {
+    console.debug("[STALE API CALLBACK BLOCKED]", {
+      functionName: funcName,
+      action,
+      requestPage: requestContext?.pageId,
+      requestVersion: requestContext?.navVersion,
+      currentPage: window.__NAVIGATION?.pageId,
+      currentVersion: window.__NAVIGATION?.version,
+    });
+    return;
+  }
   try {
     if (typeof window[funcName] === 'function') {
-      window[funcName](response);
+      window[funcName](response, requestContext);
     }
   } catch (error) {
     console.error(`globalJSCallbackFunction handler failed: ${funcName}`, error);
     showErrorPopup(error?.message || String(error));
-  } finally {
-    // На всякий случай: убираем overlay даже при ошибке обработчика
-    forceHideOverlay();
   }
 }
 

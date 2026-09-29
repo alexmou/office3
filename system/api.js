@@ -133,14 +133,16 @@
   // 1 = legacy (GET uses `data={"query":...}` wrapper; some POST routes may still rely on raw body/query-action)
   // 2 = universal (GET uses plain query params; POST uses `{ action, token, payload }` envelope; no rawBody)
   let API_CONTRACT_VERSION = 1;
+  let overlayRequestId = 0;
 
-  async function callN8n(action, paramsWithToken, timeout = DEFAULT_TIMEOUT, mode) {
+  async function callN8n(action, paramsWithToken, timeout = DEFAULT_TIMEOUT, mode, opts = {}) {
     const resp = await postDataToN8n(
       `${action}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(paramsWithToken),
+        signal: opts.signal,
       },
       timeout,
       mode
@@ -187,7 +189,7 @@
     const url = `${webhook}${action}${qs.toString() ? `?${qs.toString()}` : ""}`;
 
     const resp = await Promise.race([
-      fetch(url),
+      fetch(url, { signal: opts.signal }),
       new Promise((_, rej) =>
         setTimeout(() => rej(new Error("Превышено время ожидания")), timeout)
       )
@@ -364,6 +366,13 @@
   }
 
   async function requestViaN8nOrMock(action, paramsWithToken = {}, opts = {}) {
+    const navigation = window.__NAVIGATION;
+    const scope = opts.scope || (navigation?.pageId ? "page" : "global");
+    opts = {
+      ...opts,
+      scope,
+      signal: opts.signal || (scope === "page" ? navigation?.controller?.signal : undefined),
+    };
     const route = API_ROUTES[action] || {};
     const method = (opts.method || route.method || "POST").toUpperCase();
     const mode = normalizeWebhookMode(
@@ -465,8 +474,15 @@
     const endpointLabel = method === "GET" ? endpoint : (isV2 ? endpoint : targetAction);
    // console.info(`[API] ${method} ${endpointLabel} action=${actionName}`);
 
-    const overlayId = opts.overlayId || `n8n-${action}-${Date.now()}`;
+    const overlayId = opts.overlayId || `n8n-${action}-${++overlayRequestId}`;
     hidePage(overlayId);
+    const throwIfAborted = () => {
+      if (opts.signal?.aborted) {
+        const error = new Error("Page request belongs to an inactive navigation");
+        error.name = "AbortError";
+        throw error;
+      }
+    };
 
     try {
       if (method === "GET") {
@@ -478,6 +494,7 @@
           contractVersion,
           opts
         );
+        throwIfAborted();
         showPage(overlayId);
         return ensureServiceResponse(res, action);
       }
@@ -499,12 +516,14 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
+            signal: opts.signal,
           },
           opts.timeout || DEFAULT_TIMEOUT,
           mode
         );
         if (!resp.ok) throw new Error(await resp.text());
         const json = await parseResponseByMode(resp, opts);
+        throwIfAborted();
         showPage(overlayId);
         return ensureServiceResponse(json, action);
       }
@@ -523,20 +542,24 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(opts.rawBody),
+            signal: opts.signal,
           },
           opts.timeout || DEFAULT_TIMEOUT,
           mode
         );
         if (!resp.ok) throw new Error(await resp.text());
         const json = await parseResponseByMode(resp, opts);
+        throwIfAborted();
         showPage(overlayId);
         return ensureServiceResponse(json, action);
       }
 
-      const res = await callN8n(targetAction, payload, opts.timeout || DEFAULT_TIMEOUT, mode);
+      const res = await callN8n(targetAction, payload, opts.timeout || DEFAULT_TIMEOUT, mode, opts);
+      throwIfAborted();
       showPage(overlayId);
       return ensureServiceResponse(res, action);
     } catch (error) {
+      if (error?.name === "AbortError") throw error;
       console.error(`Ошибка при выполнении ${action} через n8n:`, error);
       showPage(overlayId);
       if (error?.code === "EMPTY_SERVICE_RESPONSE") throw error;

@@ -84,7 +84,7 @@ window.PAGE_CONFIG = {
     js: ["salary/salary.js"],
     css: ["salary/salary.css"],
     externalJs: [
-      "vendor/chartjs-4.4.1.umd.min.js"
+      "https://cdn.jsdelivr.net/npm/chart.js"
     ]
   },
   cashregister: {
