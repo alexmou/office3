@@ -18,3 +18,4 @@ Canonical page/runtime context lives in `local/README.md`.
 - admin_sklad -> `admin_sklad/admin_sklad.html`, `admin_sklad/admin_sklad.js`
 - settings -> `settings/settings.html`, `settings/settings.js`
 - supliers -> `supliers/supliers.html`
+ 
