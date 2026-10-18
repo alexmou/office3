@@ -63,8 +63,8 @@
 #schedule-root{ font-size:var(--font); color:#0f172a;  margin-top: 29px;}
 .toolbar{
 
-  display:flex; align-items:center; gap:var(--gap);
-  padding:10px 14px; height:var(--toolbar-h);
+  display:flex; align-items:center; gap:var(--gap); flex-wrap:wrap;
+  padding:10px 14px; min-height:var(--toolbar-h);
   background:var(--bg); border-bottom:1px solid var(--border);
 }
 .toolbar .field{ display:flex; align-items:center; gap:8px; }
@@ -159,7 +159,10 @@
 #schedule-legend{
   display:flex; align-items:center; gap:10px;
   flex-wrap: wrap;
+  flex:1 1 100%;
   min-height:var(--legend-h);
+  max-height:calc(var(--legend-h) * 2);
+  overflow-y:auto;
   border-bottom:1px dashed var(--border); background:var(--bg);
 }
 .badge{ font-size:12px; padding:3px 10px; border-radius:9999px; border:1px solid var(--border); }
@@ -220,13 +223,14 @@ padding: 8px 13px;
 .assignment .hrs{ margin-left:auto; font-family:var(--mono); font-size:15px; color:#001dff; padding:2px 6px; border:1px solid #e2e8f0; border-radius:6px; background:#f8fafc; }
 
 /* Modal */
-.modal{ position:fixed; inset:0; display:grid; place-items:center; background:rgba(15,23,42,.35); }
+#myDiv.animate-bottom, #content.animate-bottom{ will-change:auto; }
+.modal{ position:fixed; inset:0; display:grid; place-items:center; overflow:auto; padding:12px; box-sizing:border-box; background:rgba(15,23,42,.35); }
 .modal.hidden{ display:none; }
-.modal__dialog{ width:min(1100px, 96vw); max-height:90vh; background:#fff; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.2); display:flex; flex-direction:column; overflow:hidden; }
+.modal__dialog{ width:min(1100px, 96vw); max-height:min(90vh, calc(100dvh - 24px)); background:#fff; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.2); display:flex; flex-direction:column; overflow:hidden; }
 .modal__header{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid var(--border); background:#f8fafc; }
 .modal__title .date{ font-weight:800; }
 .modal__title .store{ font-size:13px; color:#64748b; }
-.modal__body{ padding:12px 14px; overflow:auto; }
+.modal__body{ padding:12px 14px; overflow:auto; min-height:0; }
 .modal__footer{ background:#fff; padding:12px 14px; border-top:1px solid var(--border); position: relative; justify-content:flex-end; gap:10px;  }
 
 .day-table{ width:100%; border-collapse:separate; border-spacing:0; }

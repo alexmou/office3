@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-29",
+  "generatedAt": "2026-10-03",
   "source": "system/pageConfig.js",
   "pages": [
     {
@@ -162,19 +162,22 @@
         "sales/sales.js"
       ],
       "css": [
-        "shared/table.css"
+        "shared/table.css",
+        "sales/sales.css"
       ],
       "externalAssets": [],
       "initializer": "initSalesPage",
       "apiServices": [
         "approveReturn",
+        "getEmployeeColorMap",
         "getSalesData",
         "requestReturn"
       ],
       "sourceFiles": [
         "sales/sales.html",
         "sales/sales.js",
-        "shared/table.css"
+        "shared/table.css",
+        "sales/sales.css"
       ]
     },
     {
@@ -214,8 +217,12 @@
         "settings/settings.css"
       ],
       "externalAssets": [],
-      "initializer": null,
-      "apiServices": [],
+      "initializer": "initSettingsPage",
+      "apiServices": [
+        "createUser",
+        "getUsers",
+        "updateUser"
+      ],
       "sourceFiles": [
         "settings/settings.html",
         "settings/settings.js",
@@ -347,6 +354,29 @@
         "schedule/schedule.html",
         "schedule/schedule.js",
         "schedule/schedule.css"
+      ]
+    },
+    {
+      "id": "salaryperiod",
+      "title": "Расчет зарплаты",
+      "kind": "page",
+      "html": "salaryPeriod/salaryPeriod.html",
+      "javascript": [
+        "salaryPeriod/salaryPeriod.js"
+      ],
+      "css": [
+        "salaryPeriod/salaryPeriod.css"
+      ],
+      "externalAssets": [],
+      "initializer": "initSalaryPeriod",
+      "apiServices": [
+        "getSalaryPeriod",
+        "getScheduleMeta"
+      ],
+      "sourceFiles": [
+        "salaryPeriod/salaryPeriod.html",
+        "salaryPeriod/salaryPeriod.js",
+        "salaryPeriod/salaryPeriod.css"
       ]
     },
     {

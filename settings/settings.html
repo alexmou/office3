@@ -1,48 +1,109 @@
 
 <body>
-<div id="global">
-    <div id="main">
-      <div id="inputForm"></div>
-      <div id="myDiv" class="animate-bottom">
-        <div id="content" class="animate-bottom">
-            <div class="tabs-container">
-                  <div class="tabs">
-                      <button class="tab-button active" data-tab="todo" data-i18n="Каталог">Каталог</button>
-                      <button class="tab-button" data-tab="relationships" data-i18n="Расчет зарплаты">Расчет зарплаты</button>
-                      <button class="tab-button" data-tab="loans" data-i18n="Пользователи и роли">Пользователи и роли</button>
-                      <button class="tab-button" data-tab="deposits">Deposits</button>
-
-
-
-                  </div>
-                  <div class="tab-content">
-                      <div id="todo" class="tab-pane active">
-<link href="http://bintels.com/biznes-analiz-roznichnoy-seti-magazinov-s-power-bi/">
-
-                        
-                          <p>This is the To-Do List content.</p>
-                      </div>
-                      <div id="relationships" class="tab-pane">
-                          <p>This is the Relationships content.</p>
-                      </div>
-                      <div id="loans" class="tab-pane">
-                          <p>This is the Loans content.</p>
-                      </div>
-                      <div id="deposits" class="tab-pane">
-                          <p>This is the Deposits content.</p>
-                      </div>
-                  </div>
-              </div>
-
-    <div class="container1">
- 
-    <div class="container" id="content-container">
-        <!-- Content will be dynamically generated here -->
-    </div>
-
-    </div>
+    <div id="global">
+        <div id="main">
+            <div id="myDiv" class="animate-bottom">
+                <div id="content" class="animate-bottom settings-page">
+                    <div class="tabs-container">
+                        <div class="tabs" role="tablist" aria-label="Администрирование">
+                            <button class="tab-button active" id="tab-users" type="button" role="tab" aria-selected="true" aria-controls="pane-users" data-tab="pane-users">Пользователи</button>
+                            <button class="tab-button" id="tab-access" type="button" role="tab" aria-selected="false" aria-controls="pane-access" data-tab="pane-access">Роли и доступ</button>
+                        </div>
+                        <section class="tab-pane active" id="pane-users" role="tabpanel" aria-labelledby="tab-users">
+                            <div class="users-toolbar">
+                                <label class="users-search-label" for="users-search">Поиск
+                                    <input id="users-search" type="search" autocomplete="off" placeholder="Имя / логин, роль или ставка">
+                                </label>
+                                <button id="user-add" class="button-primary" type="button">Добавить пользователя</button>
+                            </div>
+                            <div id="users-status" class="users-status" role="status" aria-live="polite"></div>
+                            <div class="users-table-wrap">
+                                <table class="users-table">
+                                    <thead>
+                                            <tr><th>Пользователь</th><th>Роль</th><th>Оклад / час</th><th>Доступ</th><th>Изменён</th><th><span class="sr-only">Действия</span></th></tr>
+                                    </thead>
+                                    <tbody id="users-table-body"></tbody>
+                                </table>
+                                <div id="users-empty" class="users-empty" hidden>Пользователи не найдены</div>
+                            </div>
+                        </section>
+                        <section class="tab-pane" id="pane-access" role="tabpanel" aria-labelledby="tab-access" hidden>
+                            <div class="access-placeholder">Управление ролями и правами доступно через назначение роли пользователю.</div>
+                        </section>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-</div>
+
+    <dialog id="user-dialog" class="user-dialog">
+        <form id="user-form" method="dialog">
+            <div class="dialog-header">
+                <h2 id="user-dialog-title">Новый пользователь</h2>
+                <button id="user-dialog-close" class="icon-button" type="button" aria-label="Закрыть">&times;</button>
+            </div>
+            <input id="user-id" type="hidden">
+                        <label for="user-name">Имя / логин</label>
+                        <input id="user-name" name="Name" type="text" autocomplete="username" required>
+            <label for="user-role">Роль</label>
+                        <input id="user-role" name="role" type="number" step="1" required>
+                        <label for="user-salary">Оклад за час</label>
+                        <input id="user-salary" name="salaryFixHour" type="number" step="any" required>
+                        <label for="user-available">Доступ</label>
+                        <select id="user-available" name="Available">
+                            <option value="1">Активен</option>
+                            <option value="">Отключён</option>
+                        </select>
+                        <div class="color-field">
+                            <div class="color-field-heading"><label for="user-schedulecolor">Цвет фона</label><output id="user-schedulecolor-value">Пусто</output></div>
+                            <div class="color-control-row">
+                                <input id="user-schedulecolor" type="color" value="#000000" aria-label="Цвет фона">
+                                <button id="user-schedulecolor-clear" class="button-secondary color-clear" type="button">Очистить</button>
+                            </div>
+                            <div id="user-schedulecolor-palette" class="color-palette" aria-label="Палитра фона"></div>
+                        </div>
+                        <div class="color-field">
+                            <div class="color-field-heading"><label for="user-fontcolor">Цвет текста</label><output id="user-fontcolor-value">Пусто</output></div>
+                            <div class="color-control-row">
+                                <input id="user-fontcolor" type="color" value="#ffffff" aria-label="Цвет текста">
+                                <button id="user-fontcolor-clear" class="button-secondary color-clear" type="button">Очистить</button>
+                            </div>
+                            <div id="user-fontcolor-palette" class="color-palette" aria-label="Палитра текста"></div>
+                        </div>
+                        <div class="color-preview-wrap"><span class="color-preview-label">Пример</span><span id="user-name-preview" class="user-name-preview">Имя пользователя</span></div>
+            <div id="user-form-error" class="form-error" role="alert"></div>
+            <div id="created-password" class="created-password" hidden>
+                <label for="generated-password">Временный пароль</label>
+                <div class="password-copy-row">
+                    <input id="generated-password" type="text" readonly autocomplete="off" spellcheck="false">
+                    <button id="copy-password" class="button-secondary" type="button" title="Скопировать пароль">Копировать</button>
+                </div>
+                <p>Пароль доступен только сейчас. Передайте его пользователю и закройте окно.</p>
+            </div>
+            <div class="dialog-actions">
+                <button id="user-cancel" class="button-secondary" type="button">Отмена</button>
+                <button id="user-save" class="button-primary" type="submit">Создать</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="salary-percent-dialog" class="user-dialog salary-percent-dialog">
+        <form id="salary-percent-form">
+            <div class="dialog-header">
+                <h2 id="salary-percent-dialog-title">Проценты пользователя</h2>
+                <button id="salary-percent-dialog-close" class="icon-button" type="button" aria-label="Закрыть">&times;</button>
+            </div>
+            <div class="users-table-wrap salary-percent-table-wrap">
+                <table class="users-table">
+                    <thead><tr><th>Бренд</th><th>Cash, %</th><th>Transfer, %</th><th>Terminal, %</th><th>RUB_QR, %</th></tr></thead>
+                    <tbody id="salary-percent-rows"></tbody>
+                </table>
+            </div>
+            <div id="salary-percent-error" class="form-error" role="alert"></div>
+            <div class="dialog-actions">
+                <button id="salary-percent-cancel" class="button-secondary" type="button">Отмена</button>
+                <button id="salary-percent-save" class="button-primary" type="submit" disabled>Сохранить</button>
+            </div>
+        </form>
+    </dialog>
 </body>

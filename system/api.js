@@ -58,6 +58,12 @@
     sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "prod", webhookAction: "newSale" },
 
     getMenu: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "Menu" },
+    // User administration services (n8n webhook: /users)
+    getUsers: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "users" },
+    updateUser: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "users" },
+    createUser: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "users" },
+    getSalaryPercent: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "users" },
+    updateSalaryPercent: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "users" },
     // Localization services (n8n workflow: localization, id: fJVdhXr3rGXg0TsB, webhook: /localization)
     getLocalizationDictionary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "localization" },
     getMySalary:{ source: "n8n", method: "GET", webhook: "prod", webhookAction: "Salary" },
@@ -93,6 +99,7 @@
     getBudgetData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "budget" },
     getMonthsSummary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "budget" },
     saveBudgetChanges: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "budget", rawBody: true },
+    saveBudgetVocabulary: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "budget", rawBody: true },
 
     // Tags services (n8n webhook: /tags)
     // NOTE: backend action can be overridden via params.action.
@@ -113,6 +120,7 @@
     getScheduleMeta: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
     getSchedule: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
     getEmployeeColorMap: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
+    getSalaryPeriod: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
     upsertShifts: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "schedule"},
 
     // Sapo CRM integration services (n8n webhook: /sapo)
@@ -141,7 +149,7 @@
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(paramsWithToken),
+        body: JSON.stringify({ ...(window.token ? { token: window.token } : {}), ...paramsWithToken }),
         signal: opts.signal,
       },
       timeout,
@@ -170,7 +178,8 @@
     const dataOnly = !!opts.dataOnly;
     const webhook = getWebHook(mode);
     const qs = new URLSearchParams();
-    const payload = paramsWithToken || {};
+    const payload = { ...(paramsWithToken || {}) };
+    if (!payload.token && window.token) payload.token = window.token;
     if (!dataOnly) {
       Object.entries(payload).forEach(([key, value]) => {
         if (value === undefined) return;
@@ -471,6 +480,9 @@
       ? { ...basePayload, action: basePayload?.action || action }
       : basePayload;
     const actionName = payload?.action || basePayload?.action || action;
+    // Токен добавляется централизованно для всех сервисных вызовов (кроме выдачи токена).
+    const authToken = payload.token || window.token;
+    if (authToken && action !== "setToken" && action !== "getToken") payload.token = authToken;
     const endpointLabel = method === "GET" ? endpoint : (isV2 ? endpoint : targetAction);
    // console.info(`[API] ${method} ${endpointLabel} action=${actionName}`);
 
@@ -532,7 +544,7 @@
       if (opts.rawBody !== undefined) {
         const hasActionQuery = String(targetAction).includes("action=");
         const rawAction = payload?.action;
-        const actionSuffix =
+        let actionSuffix =
           !hasActionQuery && rawAction
             ? `${targetAction}${String(targetAction).includes("?") ? "&" : "?"}action=${encodeURIComponent(rawAction)}`
             : targetAction;
@@ -540,7 +552,11 @@
           `${actionSuffix}`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            // Тело raw-запроса фиксировано, поэтому токен уходит заголовком.
+            headers: {
+              "Content-Type": "application/json",
+              ...(payload.token ? { "X-Auth-Token": payload.token } : {}),
+            },
             body: JSON.stringify(opts.rawBody),
             signal: opts.signal,
           },

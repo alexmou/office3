@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-29",
+  "generatedAt": "2026-10-03",
   "source": "system/api.js",
   "routes": [
     {
@@ -223,6 +223,86 @@
       ]
     },
     {
+      "service": "getUsers",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "users",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "settings/settings.js",
+          "forms": [
+            "API.getUsers"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "updateUser",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "users",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "settings/settings.js",
+          "forms": [
+            "API.updateUser"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "createUser",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "users",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "settings/settings.js",
+          "forms": [
+            "API.createUser"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getSalaryPercent",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "users",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "settings/settings.js",
+          "forms": [
+            "API.getSalaryPercent"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "updateSalaryPercent",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "users",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "settings/settings.js",
+          "forms": [
+            "API.updateSalaryPercent"
+          ]
+        }
+      ]
+    },
+    {
       "service": "getLocalizationDictionary",
       "method": "GET",
       "source": "n8n",
@@ -373,6 +453,18 @@
       "rawBody": false,
       "callers": [
         {
+          "file": "sales_test/sales_test.js",
+          "forms": [
+            "API.getSalesData"
+          ]
+        },
+        {
+          "file": "sales/legacy/sales.js",
+          "forms": [
+            "API.getSalesData"
+          ]
+        },
+        {
           "file": "sales/sales.js",
           "forms": [
             "API.getSalesData"
@@ -389,6 +481,18 @@
       "rawBody": false,
       "callers": [
         {
+          "file": "sales_test/sales_test.js",
+          "forms": [
+            "API.requestReturn"
+          ]
+        },
+        {
+          "file": "sales/legacy/sales.js",
+          "forms": [
+            "API.requestReturn"
+          ]
+        },
+        {
           "file": "sales/sales.js",
           "forms": [
             "API.requestReturn"
@@ -404,6 +508,18 @@
       "webhookAction": "return",
       "rawBody": false,
       "callers": [
+        {
+          "file": "sales_test/sales_test.js",
+          "forms": [
+            "API.approveReturn"
+          ]
+        },
+        {
+          "file": "sales/legacy/sales.js",
+          "forms": [
+            "API.approveReturn"
+          ]
+        },
         {
           "file": "sales/sales.js",
           "forms": [
@@ -635,6 +751,12 @@
       "rawBody": false,
       "callers": [
         {
+          "file": "salaryPeriod/salaryPeriod.js",
+          "forms": [
+            "API.getScheduleMeta"
+          ]
+        },
+        {
           "file": "schedule/schedule.js",
           "forms": [
             "API.getScheduleMeta"
@@ -667,9 +789,37 @@
       "rawBody": false,
       "callers": [
         {
+          "file": "sales_test/sales_test.js",
+          "forms": [
+            "API.getEmployeeColorMap"
+          ]
+        },
+        {
+          "file": "sales/sales.js",
+          "forms": [
+            "API.getEmployeeColorMap"
+          ]
+        },
+        {
           "file": "schedule/schedule.js",
           "forms": [
             "API.getEmployeeColorMap"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getSalaryPeriod",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "schedule",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "salaryPeriod/salaryPeriod.js",
+          "forms": [
+            "API.getSalaryPeriod"
           ]
         }
       ]

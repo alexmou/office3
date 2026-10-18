@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-29",
+  "generatedAt": "2026-10-03",
   "domains": {
     "runtime": {
       "sourceFiles": [
@@ -109,7 +109,8 @@
       "sourceFiles": [
         "sales/sales.html",
         "sales/sales.js",
-        "shared/table.css"
+        "shared/table.css",
+        "sales/sales.css"
       ],
       "docs": [
         "docs/PAGES.md",
@@ -225,7 +226,7 @@
     }
   },
   "counts": {
-    "pages": 15,
-    "routes": 53
+    "pages": 16,
+    "routes": 57
   }
 }

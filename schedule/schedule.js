@@ -586,14 +586,27 @@
     };
 
     consume(raw);
-    if (!result.employees.length) {
-      const fallbackEmployees = collectEmployeesFromAny(raw);
-      if (fallbackEmployees.length) result.employees = fallbackEmployees;
-    }
-    if (!result.stores.length) {
-      const fallbackStores = collectStoresFromAny(raw);
-      if (fallbackStores.length) result.stores = fallbackStores;
-    }
+
+    const discoveredEmployees = collectEmployeesFromAny(raw);
+    const employeeKeys = new Set();
+    result.employees = result.employees.concat(discoveredEmployees).filter((entry) => {
+      const employee = normalizeEmployeeName(entry?.employee || entry?.Employee || entry?.name || entry);
+      const store = normalizeStoreName(entry?.store || entry?.Store || entry?.storeName || entry?.StoreName);
+      if (!employee) return false;
+      const key = `${employee}__${store}`;
+      if (employeeKeys.has(key)) return false;
+      employeeKeys.add(key);
+      return true;
+    });
+
+    const discoveredStores = collectStoresFromAny(raw);
+    const storeKeys = new Set();
+    result.stores = result.stores.concat(discoveredStores).filter((entry) => {
+      const store = normalizeStoreName(entry?.store || entry?.Store || entry?.name || entry);
+      if (!store || storeKeys.has(store)) return false;
+      storeKeys.add(store);
+      return true;
+    });
     return result;
   }
 
@@ -606,6 +619,20 @@
     if (!derived.length) return;
 
     const existing = getMetaEmployees().map((e) => normalizeEmployeeName(e?.employee || e?.Employee || e?.name || e)).filter(Boolean);
+    const merged = Array.from(new Set(existing.concat(derived)));
+    merged.sort((a, b) => a.localeCompare(b, 'ru'));
+    META.employees = merged.map((name) => ({ employee: name }));
+  }
+
+  function mergeEmployeesFromColorMapIntoMeta(colorMap){
+    const derived = (Array.isArray(colorMap) ? colorMap : [])
+      .map((entry) => normalizeEmployeeName(entry?.employee || entry?.Employee || entry?.name || entry?.Name))
+      .filter(Boolean);
+    if (!derived.length) return;
+
+    const existing = getMetaEmployees()
+      .map((entry) => normalizeEmployeeName(entry?.employee || entry?.Employee || entry?.name || entry))
+      .filter(Boolean);
     const merged = Array.from(new Set(existing.concat(derived)));
     merged.sort((a, b) => a.localeCompare(b, 'ru'));
     META.employees = merged.map((name) => ({ employee: name }));
@@ -671,9 +698,19 @@
           ''
         ).trim();
 
+        const rawFontColor = String(
+          entry?.fontcolor ??
+          entry?.fontColor ??
+          entry?.FontColor ??
+          entry?.textColor ??
+          entry?.text_color ??
+          ''
+        ).trim();
+
         return {
           employee,
           color: rawColor ? rawColor : '#000000',
+          fontColor: rawFontColor || null,
           colorIndex: null,
         };
       })
@@ -722,13 +759,12 @@
     return Math.abs(hash) % TOTAL_COLORS;
   }
 
-  async function loadEmployeeColorMap(){
-    const cached = Array.isArray(window.SCHEDULE_EMPLOYEE_COLOR_MAP) ? window.SCHEDULE_EMPLOYEE_COLOR_MAP : null;
-    if (cached && cached.length) {
-      EMPLOYEE_COLOR_MAP = normalizeEmployeeColorMap(cached);
-      return EMPLOYEE_COLOR_MAP;
-    }
+  function employeeFontColor(employeeName){
+    const entry = resolveEmployeeColorEntry(employeeName);
+    return entry && entry.fontColor ? entry.fontColor : null;
+  }
 
+  async function loadEmployeeColorMap(){
     if (window.__employeeColorMapLoading) {
       return window.__employeeColorMapLoading;
     }
@@ -736,7 +772,6 @@
     const fallback = buildDefaultEmployeeColorMap();
     if (!window.API || typeof window.API.getEmployeeColorMap !== 'function') {
       EMPLOYEE_COLOR_MAP = fallback;
-      window.SCHEDULE_EMPLOYEE_COLOR_MAP = fallback;
       return EMPLOYEE_COLOR_MAP;
     }
 
@@ -746,7 +781,6 @@
         const normalized = normalizeEmployeeColorMap(raw);
         if (normalized.length) {
           EMPLOYEE_COLOR_MAP = normalized;
-          window.SCHEDULE_EMPLOYEE_COLOR_MAP = normalized;
           return EMPLOYEE_COLOR_MAP;
         }
       } catch (error) {
@@ -754,7 +788,6 @@
       }
 
       EMPLOYEE_COLOR_MAP = fallback;
-      window.SCHEDULE_EMPLOYEE_COLOR_MAP = fallback;
       return EMPLOYEE_COLOR_MAP;
     })();
 
@@ -835,6 +868,7 @@
       employee,
       hours,
       colorIndex: employeeColorIndex(employee),
+      fontColor: employeeFontColor(employee),
     }));
 
     items.sort((a, b) => {
@@ -859,7 +893,9 @@
       const badge = document.createElement('span');
       badge.className = 'badge employee';
       const colorIndex = it.colorIndex;
-      badge.style.setProperty('--badge-bg', colorIndex != null && colorIndex >= 0 ? `var(--color${colorIndex})` : '#64748b');
+      const entry = resolveEmployeeColorEntry(it.employee);
+      badge.style.setProperty('--badge-bg', entry && entry.color ? entry.color : '#000000');
+      if (it.fontColor) badge.style.color = it.fontColor;
       badge.textContent = `${it.employee}: ${formatHours(it.hours)}ч`;
       legend.appendChild(badge);
     });
@@ -926,9 +962,12 @@
       rows
         .filter(r => (!CURRENT_STORE || String(r.Store)===String(CURRENT_STORE)) && (!CURRENT_EMPLOYEE || normalizeEmployeeName(r.Employee)===CURRENT_EMPLOYEE))
         .forEach(r=>{
-          const colorIdx = employeeColorIndex(r.Employee);
+          const entry = resolveEmployeeColorEntry(r.Employee);
           const line = document.createElement('div');
-          line.className = colorIdx == null ? "assignment" : ("assignment color" + colorIdx);
+          line.className = "assignment";
+          line.style.backgroundColor = entry && entry.color ? entry.color : '#000000';
+          const fontColor = employeeFontColor(r.Employee);
+          if (fontColor) line.style.color = fontColor;
           const hrs = formatHours(hoursOf(r));
           line.innerHTML = `<span class="store">${r.Store||''}</span> — <span class="emp">${r.Employee||''}</span> <span class="hrs">${hrs}ч</span>`;
           body.appendChild(line);
@@ -1207,6 +1246,7 @@
     // load meta and month
     await loadMeta();
     await loadEmployeeColorMap();
+    mergeEmployeesFromColorMapIntoMeta(EMPLOYEE_COLOR_MAP);
     populateStoreSelect();
     populateEmployeeSelect();
     await reloadAll();

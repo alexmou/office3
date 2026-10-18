@@ -1,9 +1,11 @@
+
 const DEFAULT_NAV_ITEMS = [
   { id: "newsale", label: "New sale", type: "page", level: 0 },
   { id: "barcode", label: "Tag print", type: "page", level: 0 },
   { id: "catalog", label: "Catalog", type: "page", level: 0 },
   { id: "sales", label: "Sales", type: "page", level: 0 },
   { id: "salary", label: "Salary", type: "page", level: 0 },
+  { id: "salaryperiod", label: "Расчет зарплаты", type: "page", level: 0 },
   { id: "cashregister", label: "Cash Register", type: "page", level: 0 },
   { id: "budget", label: "Budget", type: "page", level: 0 },
   { id: "statistic", label: "Statistic", type: "page", level: 0 },
@@ -341,7 +343,10 @@ function ensureExtraNavItems(navItems) {
   if (!items.some((it) => it?.id === "sapo")) {
     items.push({ id: "sapo", label: "Sapo CRM", type: "page", level: 0 });
   }
-  return items;
+  if (!items.some((it) => it?.id === "salaryperiod")) {
+    items.push({ id: "salaryperiod", label: "Расчет зарплаты", type: "page", level: 0 });
+  }
+return items;
 }
 
 async function refreshMenu() {
@@ -359,7 +364,9 @@ async function refreshMenu() {
     const raw = await API.getMenu({ username }, { scope: "global" });
     const items = normalizeMenuItems(unwrapMenuResponse(raw));
     const filtered = items.filter((it) => it.type !== "page" || !!it.id);
-    currentNavItems = ensureExtraNavItems(filtered.length > 0 ? filtered : DEFAULT_NAV_ITEMS.slice());
+    // Only fall back to the hardcoded defaults (with forced extra items) when the backend
+    // returns nothing; otherwise respect its role-filtered list as-is.
+    currentNavItems = filtered.length > 0 ? filtered : ensureExtraNavItems(DEFAULT_NAV_ITEMS.slice());
     applyNavToHeader(currentNavItems);
     if (typeof window.setMenuEnabled === "function") {
       window.setMenuEnabled(true);

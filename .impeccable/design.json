@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-18T00:00:00.000Z",
+  "title": "Design System: Button Rouge",
+  "extensions": {
+    "colorMeta": {
+      "brand-primary": {
+        "role": "primary",
+        "displayName": "Button Rouge Magenta",
+        "canonical": "#db3455",
+        "tonalRamp": ["#260910", "#48101d", "#6a172b", "#8c1f39", "#ae2646", "#c93657", "#e46a83", "#f4b4c0"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Canvas White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#171717", "#303030", "#494949", "#626262", "#7b7b7b", "#949494", "#bdbdbd", "#ffffff"]
+      },
+      "surface-muted": {
+        "role": "neutral",
+        "displayName": "Soft Gray Canvas",
+        "canonical": "#f9f9f9",
+        "tonalRamp": ["#191919", "#323232", "#4b4b4b", "#646464", "#7d7d7d", "#969696", "#bfbfbf", "#f9f9f9"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Charcoal Ink",
+        "canonical": "#212529",
+        "tonalRamp": ["#121416", "#282c30", "#3e444a", "#555d65", "#6d7780", "#87919a", "#aeb7bf", "#d2d8dd"]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Cool Border",
+        "canonical": "#e5e7eb",
+        "tonalRamp": ["#202124", "#393a3d", "#535457", "#6d6e71", "#87888b", "#a1a2a5", "#c5c6c9", "#e5e7eb"]
+      },
+      "settings-teal": {
+        "role": "secondary",
+        "displayName": "Settings Teal",
+        "canonical": "#176c63",
+        "tonalRamp": ["#071c19", "#0b332e", "#104a43", "#176c63", "#31877d", "#60a49b", "#9bc9c3", "#d5ece9"]
+      }
+    },
+    "typographyMeta": {
+      "body": {"displayName": "System Body", "purpose": "Default operational content and controls."},
+      "page-title": {"displayName": "Page Title", "purpose": "Shared application title strip."},
+      "label": {"displayName": "Control Label", "purpose": "Form and action labels."}
+    },
+    "shadows": [
+      {"name": "app-header", "value": "0 1px 0 rgba(17, 24, 39, 0.08), 0 12px 30px rgba(17, 24, 39, 0.12)", "purpose": "Separate the fixed application shell from page content."},
+      {"name": "dialog", "value": "0 20px 60px rgba(15, 23, 42, 0.22)", "purpose": "Lift modal forms above the dimmed page."}
+    ],
+    "motion": [
+      {"name": "standard", "value": "0.2s ease", "purpose": "Existing navigation and control-state transitions."},
+      {"name": "drawer", "value": "0.25s ease", "purpose": "Existing sidebar width transition."}
+    ],
+    "breakpoints": [
+      {"name": "compact-header", "value": "520px"},
+      {"name": "compact-dialog", "value": "540px"},
+      {"name": "settings-mobile", "value": "720px"},
+      {"name": "table-mobile", "value": "768px"},
+      {"name": "tablet", "value": "1024px"}
+    ]
+  },
+  "components": [
+    {
+      "name": "Application Top Bar",
+      "kind": "nav",
+      "refersTo": "app-topbar",
+      "description": "Fixed brand strip with store and user context.",
+      "html": "<header class=\"ds-topbar\"><strong>BUTTON ROUGE</strong><span>STORE</span></header>",
+      "css": ".ds-topbar { display:flex; align-items:center; justify-content:space-between; min-height:52px; padding:0 16px; background:#db3455; color:#fff; font:600 14px system-ui,sans-serif; } .ds-topbar strong { letter-spacing:.06em; } .ds-topbar:focus-visible { outline:3px solid #212529; outline-offset:2px; }"
+    },
+    {
+      "name": "Page Title Strip",
+      "kind": "custom",
+      "description": "Light title band beneath the fixed app bar.",
+      "html": "<div class=\"ds-titlebar\"><h1>Schedule</h1></div>",
+      "css": ".ds-titlebar { background:rgba(255,255,255,.96); border-bottom:1px solid rgba(229,231,235,.9); padding:10px 16px; } .ds-titlebar h1 { margin:0; color:#111827; font:800 clamp(1.15rem,2.2vw,1.5rem)/1.15 system-ui,sans-serif; }"
+    },
+    {
+      "name": "Settings Primary Button",
+      "kind": "button",
+      "refersTo": "settings-primary-button",
+      "description": "Teal primary action in the settings module.",
+      "html": "<button class=\"ds-settings-primary\" type=\"button\">Save changes</button>",
+      "css": ".ds-settings-primary { min-height:40px; padding:8px 14px; border:1px solid transparent; border-radius:6px; background:#176c63; color:#fff; font:600 14px system-ui,sans-serif; cursor:pointer; } .ds-settings-primary:hover { background:#10584f; } .ds-settings-primary:focus-visible { outline:3px solid #212529; outline-offset:2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "description": "Compact white field with a neutral stroke.",
+      "html": "<label class=\"ds-field\">Employee<input type=\"text\" value=\"Alex\"></label>",
+      "css": ".ds-field { display:grid; gap:6px; color:#586474; font:600 13px system-ui,sans-serif; } .ds-field input { min-height:40px; padding:8px 10px; border:1px solid #cbd3dc; border-radius:6px; background:#fff; color:#212529; font:400 15px system-ui,sans-serif; } .ds-field input:focus-visible { outline:3px solid rgba(29,119,110,.25); border-color:#1d776e; }"
+    },
+    {
+      "name": "Dense Data Table",
+      "kind": "custom",
+      "description": "Operational rows with clear column labels and separators.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>Employee</th><th>Hours</th></tr></thead><tbody><tr><td>Alex</td><td>08:00</td></tr></tbody></table>",
+      "css": ".ds-table { width:100%; border-collapse:collapse; background:#fff; color:#273444; font:400 14px system-ui,sans-serif; } .ds-table th { padding:8px 11px; background:#edf1f4; color:#465362; text-align:left; font-size:12px; font-weight:700; } .ds-table td { padding:8px 11px; border-bottom:1px solid #edf0f3; } .ds-table tbody tr:hover { background:#f8fafb; }"
+    },
+    {
+      "name": "Modal Form",
+      "kind": "custom",
+      "description": "Focused edit surface over a dimmed page.",
+      "html": "<section class=\"ds-dialog\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"ds-dialog-title\"><h2 id=\"ds-dialog-title\">Edit user</h2><button type=\"button\">Save</button></section>",
+      "css": ".ds-dialog { width:min(480px,calc(100vw - 32px)); max-height:calc(100vh - 32px); overflow:auto; padding:22px; border:1px solid #d8dee6; border-radius:10px; background:#fff; color:#1f2937; box-shadow:0 20px 60px rgba(15,23,42,.22); font:400 14px/1.5 system-ui,sans-serif; } .ds-dialog h2 { margin:0 0 16px; font-size:20px; } .ds-dialog button { min-height:40px; padding:8px 14px; border:0; border-radius:6px; background:#176c63; color:#fff; font:600 14px system-ui,sans-serif; } .ds-dialog button:focus-visible { outline:3px solid #212529; outline-offset:2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Старый кастомный дизайн",
+    "overview": "Preserve Button Rouge's existing custom operations UI: a shared magenta shell, light working surfaces, dense data views, and page-scoped accents. Avoid importing an unrelated marketing identity or claiming a unified token system that the code does not yet have.",
+    "keyCharacteristics": [
+      "Magenta fixed app shell",
+      "Dense forms, filters, and tables",
+      "Page-scoped data and action colors",
+      "Mostly flat surfaces with overlay shadows"
+    ],
+    "rules": [
+      {"name": "The Scoped Accent Rule", "body": "Keep page-local action and chart colors within their modules unless intentionally promoted to shared tokens.", "section": "colors"},
+      {"name": "The Focus Visibility Rule", "body": "Never remove a native focus outline without an equally visible replacement.", "section": "components"}
+    ],
+    "dos": [
+      "Do preserve the magenta shared shell and task-first, information-dense page structure.",
+      "Do maintain at least 4.5:1 contrast for normal text and visible keyboard focus."
+    ],
+    "donts": [
+      "Don't carry over the previous Notion marketing palette or page patterns.",
+      "Don't claim a unified component or token system where the implementation is page-scoped."
+    ]
+  }
+}

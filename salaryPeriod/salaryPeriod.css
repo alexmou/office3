@@ -1,0 +1,183 @@
+.salary-period {
+  --salary-border: #d9e0e5;
+  --salary-muted: #66737c;
+  --salary-ink: #202b33;
+  --salary-bg: #f3f6f7;
+  --salary-accent: #b03a48;
+  box-sizing: border-box;
+  color: var(--salary-ink);
+  margin: 20px auto 32px;
+  max-width: 1440px;
+  padding: 0 20px;
+}
+
+.salary-period *,
+.salary-period *::before,
+.salary-period *::after {
+  box-sizing: inherit;
+}
+
+.salary-period__toolbar {
+  align-items: end;
+  background: var(--salary-bg);
+  border-bottom: 1px solid var(--salary-border);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 14px;
+}
+
+.salary-period__filters {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.salary-period__range {
+  border: 1px solid var(--salary-border);
+  border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 6px 10px 10px;
+}
+
+.salary-period__range legend {
+  color: var(--salary-muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.salary-period__filters label {
+  color: var(--salary-muted);
+  display: grid;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 5px;
+}
+
+.salary-period__filters input {: #fff;
+  border: 1px solid var(--salary-border);
+  border-radius: 4px;
+  color: var(--salary-ink);
+  font: inherit;
+  font-size: 15px;
+  min-height: 38px;
+  min-width: 150px;
+  padding: 7px 9px;
+}
+
+.salary-period__reload {
+  align-items: center;
+  background: #263b44;
+  border: 0;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 40px;
+  font-size: 24px;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.salary-period__reload:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+
+.salary-period__status {
+  color: var(--salary-muted);
+  min-height: 22px;
+  margin: 10px 0 4px;
+  display: none;
+}
+
+.salary-period__status[data-state="error"] {
+  color: #a22230;
+}
+
+.salary-period__section-title {
+  font-size: 17px;
+  margin: 18px 0 9px;
+}
+
+.salary-period__table-wrap {
+  border: 1px solid var(--salary-border);
+  border-radius: 4px;
+  max-width: 100%;
+  overflow: auto;
+}
+
+.salary-period__table {
+  border-collapse: collapse;
+  min-width: 700px;
+  width: 100%;
+}
+
+.salary-period__table th,
+.salary-period__table td {
+  border-bottom: 1px solid #e9edef;
+  padding: 10px 12px;
+  text-align: end;
+  vertical-align: middle;
+}
+
+.salary-period__table th {
+  background: #edf1f3;
+  color: #45545c;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.salary-period__table td:not(:first-child) {
+  font-variant-numeric: tabular-nums;
+}
+
+.salary-period__table td:nth-child(2),
+.salary-period__table td:nth-child(n+3) {
+  text-align: right;
+}
+
+.salary-period__table tfoot td {
+  background: #f3f6f7;
+  border-bottom: 0;
+  font-weight: 700;
+}
+
+.salary-period__empty {
+  color: var(--salary-muted);
+  padding: 20px !important;
+  text-align: center !important;
+}
+
+@media (max-width: 720px) {
+  .salary-period {
+    margin-top: 12px;
+    padding: 0 10px;
+  }
+
+  .salary-period__toolbar {
+    align-items: start;
+  }
+
+  .salary-period__filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .salary-period__filters input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .salary-period__reload {
+    flex-basis: 40px;
+  }
+}

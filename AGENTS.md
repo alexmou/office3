@@ -16,3 +16,52 @@ Repository rules:
 - Do not make live mutating webhook requests without explicit approval.
 - This repository contains no `workflows/`, `test/`, `index/`, `budget2/`, `charts/`, `n8nac-config.json`, or `system/n8n-service-workflow-map.json`; do not document or edit them as local sources.
 - No n8n workflow-editing skill is defined here because no workflow source is present.
+
+Для фронт-разработки используй следующий skill:
+The Skill: impeccable
+The skill installs as one command:
+
+/impeccable <command> <target>
+Start every new project with:
+
+/impeccable init
+init inspects the project, asks only for material gaps in durable product truth, and writes PRODUCT.md. Visitor mode and visual direction are chosen later for each surface; incumbent or newly built visual systems are recorded separately in DESIGN.md.
+
+24 Commands
+All commands are accessed through /impeccable:
+
+Command	What it does
+/impeccable craft	Full shape-then-build flow with visual iteration
+/impeccable init	One-time setup: gather durable product context, write PRODUCT.md, configure live mode when applicable, recommend next steps
+/impeccable document	Generate root DESIGN.md from existing project code
+/impeccable extract	Pull reusable components and tokens into the design system
+/impeccable shape	Plan UX/UI before writing code
+/impeccable critique	UX design review: hierarchy, clarity, emotional resonance
+/impeccable audit	Run technical quality checks (a11y, performance, responsive)
+/impeccable polish	Final pass, design system alignment, and shipping readiness
+/impeccable bolder	Amplify boring designs
+/impeccable quieter	Tone down overly bold designs
+/impeccable distill	Strip to essence
+/impeccable harden	Error handling, i18n, text overflow, edge cases
+/impeccable onboard	First-run flows, empty states, activation paths
+/impeccable animate	Add purposeful motion
+/impeccable colorize	Introduce strategic color
+/impeccable typeset	Fix font choices, hierarchy, sizing
+/impeccable layout	Fix layout, spacing, visual rhythm
+/impeccable delight	Add moments of joy
+/impeccable overdrive	Add technically extraordinary effects
+/impeccable clarify	Improve unclear UX copy
+/impeccable adapt	Adapt for different devices
+/impeccable optimize	Performance improvements
+/impeccable live	Visual variant mode: iterate on elements in the browser
+/impeccable generate	Generate variants of a named element in the live browser, no manual picking
+Use /impeccable pin <command> to create standalone shortcuts (e.g., pin audit creates /audit).
+
+Usage Examples
+/impeccable audit blog           # Audit blog hub + post pages
+/impeccable critique landing     # UX design review
+/impeccable polish settings      # Final pass before shipping
+/impeccable harden checkout      # Add error handling + edge cases
+Or use /impeccable directly with a description:
+
+/impeccable redo this hero section

@@ -1,0 +1,11 @@
+
+#flowTable {
+  width: 100%;
+  table-layout: fixed; /* фиксированная раскладка */
+}
+
+#flowTable th, #flowTable td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

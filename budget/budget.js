@@ -1,1031 +1,882 @@
+(function () {
+  const PAGE_ID = "budget";
+  const API_OVERLAY = "budget";
+  // ?budgetEndpoint=<webhook> перенаправляет запросы страницы на другой webhook (для тестов).
+  const ENDPOINT = new URLSearchParams(window.location.search).get("budgetEndpoint") || "";
+  const apiOpts = (extra = {}) => ({ overlayId: API_OVERLAY, ...(ENDPOINT ? { webhookAction: ENDPOINT } : {}), ...extra });
+  const DEVIATION_PCT = 20;   // порог отклонения расхода статьи, %
+  const BASELINE_MONTHS = 3;  // сколько прошлых месяцев берём как "норму"
+  const MATRIX_MONTHS = 6;    // ширина таблицы сравнения
+  const LOCALE = window.APP_LANG === "en" ? "en-US" : "ru-RU";
 
-const OPERATION_TYPE_FIELD_ID="OperationType"
-const OPERATION_VID_FIELD_ID="Vid_Prognoz-Fact"
-const ACTIVITY_FIELD_ID="activity"
-const SUMM_FIELD_ID="CashSum"
-const COMMENT_FIELD_ID="Comment"
-const BUDGET_NAME="BUTTON ROUGE"
-var BUDGET_TYPE
-var ID_COLUMN_INDEX
-var VID_COLUMN_INDEX 
-var DATE_COLUMN_INDEX
-var TIP_COLUMN_INDEX
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+  const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
 
-var VOCABULARY
-const BUDGET_UI_LOCALE = window.APP_LANG === "en" ? "en-US" : "ru-RU";
-const tr = (text, fallback = text) =>
-  typeof window.localizeUiText === "function" ? window.localizeUiText(text, fallback) : fallback;
+  // ---------- состояние ----------
+  let vocabulary = []; // статьи: [{ id, title, group }]
+  let vocabGroupRows = []; // записи-категории без статьи (title пустой): [{ id, name }]
+  let budgetData = {};
+  let monthsSummary = {};
+  let months = [];
+  let selectedMonth = null;
+  let selectedKey = null;
+  let filterTitle = "";
+  let compareTitle = "";
+  let changed = new Map();
+  let vocabGroups = [];
+  let charts = { pnl: null, compare: null };
+  let ctx = null;
 
-  (async function() {
-
-  const ARTICLE_DICTIONARY = await window.API.getBudgetVocabulary(
-    { action: "getVocabulary", visible: true, mode: "notest" },
-    { overlayId: "budget" }
-  );
-
-  //console.log("ARTICLE_DICTIONARY",ARTICLE_DICTIONARY)
-/* 
-     
-      [
-    "Company management","Store maintenance","Fixed salaries","Miscellaneous","Refund","Tailoring",
-    "Accountant salary","Store service","Taxes","Rent","Fabric purchase",
-    "Goods purchase","Visual merchandising","Marketing","Logistics","IT support"
-  ];
-
-*/
-  function formatMonth(dateStr) {
-    const d = parseBudgetDate(dateStr);
-    return d.toLocaleString(BUDGET_UI_LOCALE, { year: 'numeric', month: 'long' });
+  // ---------- форматирование и разбор ----------
+  function parseDate(value) {
+    const v = String(value || "").trim();
+    let m = v.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3] || 1));
+    m = v.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+    return new Date(v);
   }
 
-  function getMonthKey(dateStr) {
-    const value = String(dateStr || '').trim();
-    const match = value.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/);
-    if (match) return `${match[1]}-${match[2]}`;
-
-    const legacyMatch = value.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-    return legacyMatch ? `${legacyMatch[3]}-${legacyMatch[2]}` : value;
+  function monthKey(value) {
+    const d = parseDate(value);
+    return Number.isNaN(d.getTime()) ? String(value) : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   }
 
-  function parseBudgetDate(dateStr) {
-    const value = String(dateStr || '').trim();
-    const isoMatch = value.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);
-    if (isoMatch) return new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3] || 1));
-
-    const legacyMatch = value.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-    if (legacyMatch) return new Date(Number(legacyMatch[3]), Number(legacyMatch[2]) - 1, Number(legacyMatch[1]));
-
-    return new Date(value);
+  function isPastMonth(value) {
+    const d = parseDate(value);
+    const now = new Date();
+    return d.getFullYear() < now.getFullYear() || (d.getFullYear() === now.getFullYear() && d.getMonth() < now.getMonth());
   }
 
-  function getBudgetRecordId(item) {
-    return item?.id ?? item?.Id ?? item?.ID ?? item?.recordId ?? null;
+  function monthLabel(value, opts = { year: "numeric", month: "long" }) {
+    return parseDate(value).toLocaleString(LOCALE, opts);
   }
 
-  function getBudgetRecordTitle(item, fallback = '') {
-    return item?.title || item?.article || item?.Article || fallback;
-  }
-
-  function getDisplayArticleTitle(item, fallback = '') {
-    const id = getBudgetRecordId(item);
-    const title = getBudgetRecordTitle(item, fallback);
-    if (id == null) return title;
-
-    const titleWithoutId = String(title).endsWith(`__${id}`)
-      ? String(title).slice(0, -(`__${id}`).length)
-      : String(title);
-    return titleWithoutId.replace(/ #\d+$/, '');
-  }
-
-  function getBudgetRecordKey(item, fallback, usedKeys) {
-    const id = getBudgetRecordId(item);
-    const baseKey = id == null ? String(fallback) : `${getBudgetRecordTitle(item, fallback)}__${id}`;
-    let key = baseKey;
-    let suffix = 2;
-    while (Object.prototype.hasOwnProperty.call(usedKeys, key)) {
-      key = `${baseKey} #${suffix}`;
-      suffix += 1;
+  function parseAmount(value) {
+    if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+    let s = String(value ?? "").replace(/[\s\u00a0]/g, "");
+    const comma = s.lastIndexOf(",");
+    const dot = s.lastIndexOf(".");
+    if (comma !== -1 && dot !== -1) {
+      s = comma > dot ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
+    } else if (comma !== -1) {
+      s = LOCALE === "en-US" ? s.replace(/,/g, "") : s.replace(",", ".");
     }
+    const n = Number(s);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  const fmt = (n) => Number(n || 0).toLocaleString(LOCALE, { maximumFractionDigits: 0 });
+  const signClass = (n) => (!Number(n) ? "zero" : Number(n) < 0 ? "neg" : "pos");
+  const pctText = (p) => (p == null ? "—" : `${p > 0 ? "+" : ""}${p.toFixed(0)}%`);
+
+  function commentToText(html) {
+    const box = document.createElement("div");
+    box.innerHTML = String(html || "");
+    box.querySelectorAll("br").forEach((br) => br.replaceWith("\n"));
+    box.querySelectorAll("div,p,li").forEach((el) => el.append("\n"));
+    return box.textContent.replace(/\n{2,}/g, "\n").trim();
+  }
+
+  function notify(message, type = "info") {
+    if (typeof window.showToast === "function") window.showToast(message, type);
+    else console.info(`[budget] ${message}`);
+  }
+
+  // ---------- модель данных ----------
+  const UNGROUPED = "Без группы";
+
+  // Сервис может вернуть строки, объекты { title, group } или объект { группа: [статьи] }.
+  // Запись справочника: { Id, title, category }; пустой title означает категорию без статей.
+  function normalizeVocabulary(raw) {
+    const toEntry = (value, group = "") => {
+      if (value && typeof value === "object") {
+        const title = value.title ?? value.article ?? value.Article ?? value.name ?? "";
+        const own = value.category ?? value.Category ?? value.group ?? value.Group ?? group;
+        const id = value.Id ?? value.id ?? value.ID ?? null;
+        return title || own ? { id, title: String(title), group: String(own || "") } : null;
+      }
+      return value ? { id: null, title: String(value), group: String(group || "") } : null;
+    };
+    let entries = [];
+    if (Array.isArray(raw)) entries = raw.map((v) => toEntry(v));
+    else if (raw && typeof raw === "object") {
+      Object.entries(raw).forEach(([group, list]) => {
+        if (Array.isArray(list)) entries.push(...list.map((v) => toEntry(v, group)));
+      });
+    }
+    return entries.filter(Boolean);
+  }
+
+  function setVocabulary(raw) {
+    const entries = normalizeVocabulary(raw);
+    vocabulary = entries.filter((e) => e.title);
+    vocabGroupRows = entries.filter((e) => !e.title).map((e) => ({ id: e.id, name: e.group }));
+  }
+
+  function groupOf(item, title) {
+    const own = item?.group ?? item?.category ?? item?.Category ?? item?.Group;
+    if (own) return String(own);
+    return vocabulary.find((v) => v.title === title)?.group || UNGROUPED;
+  }
+
+  function groupTotals(month) {
+    const totals = new Map();
+    Object.entries(monthData(month)).forEach(([key, item]) => {
+      const group = groupOf(item, displayTitle(item, key));
+      totals.set(group, (totals.get(group) || 0) + effective(item, month));
+    });
+    return totals;
+  }
+
+  const recordId = (item) => item?.id ?? item?.Id ?? item?.ID ?? item?.recordId ?? null;
+  const recordTitle = (item, fallback = "") => item?.title || item?.article || item?.Article || fallback;
+
+  function displayTitle(item, fallback = "") {
+    const id = recordId(item);
+    let title = String(recordTitle(item, fallback));
+    if (id != null && title.endsWith(`__${id}`)) title = title.slice(0, -`__${id}`.length);
+    return title.replace(/ #\d+$/, "");
+  }
+
+  function uniqueKey(item, fallback, used) {
+    const id = recordId(item);
+    const base = id == null ? String(fallback) : `${recordTitle(item, fallback)}__${id}`;
+    let key = base;
+    let n = 2;
+    while (Object.prototype.hasOwnProperty.call(used, key)) key = `${base} #${n++}`;
     return key;
   }
 
-  function normalizeBudgetData(rawData) {
-    const normalized = {};
-    Object.entries(rawData || {}).forEach(([month, monthData]) => {
-      if (Array.isArray(monthData)) {
-        const records = {};
-        monthData.forEach((item, index) => {
-          const key = getBudgetRecordKey(item, getBudgetRecordTitle(item, `record-${index + 1}`), records);
-          records[key] = item;
-        });
-        normalized[month] = records;
-        return;
-      }
-
+  function normalizeBudget(raw) {
+    const out = {};
+    Object.entries(raw || {}).forEach(([month, monthData]) => {
       const records = {};
-      Object.entries(monthData || {}).forEach(([fallback, item]) => {
-        const key = getBudgetRecordKey(item, fallback, records);
-        records[key] = item;
-      });
-      normalized[month] = records;
+      const entries = Array.isArray(monthData)
+        ? monthData.map((item, i) => [recordTitle(item, `record-${i + 1}`), item])
+        : Object.entries(monthData || {});
+      entries.forEach(([fallback, item]) => { records[uniqueKey(item, fallback, records)] = item; });
+      out[month] = records;
     });
-    return normalized;
+    return out;
   }
 
-  function getBudgetMonthData(month) {
-    const monthKey = getMonthKey(month);
-    const matchingKey = Object.keys(budgetData).find(key => getMonthKey(key) === monthKey);
-    return matchingKey ? budgetData[matchingKey] : {};
+  function monthData(month) {
+    const k = monthKey(month);
+    const found = Object.keys(budgetData).find((m) => monthKey(m) === k);
+    return found ? budgetData[found] : {};
   }
 
-  function ensureBudgetMonthData(month) {
-    const monthKey = Object.keys(budgetData).find(key => getMonthKey(key) === getMonthKey(month));
-    if (monthKey) return budgetData[monthKey];
+  function ensureMonthData(month) {
+    const k = monthKey(month);
+    const found = Object.keys(budgetData).find((m) => monthKey(m) === k);
+    if (found) return budgetData[found];
     budgetData[month] = {};
     return budgetData[month];
   }
 
-  function formatNumber(amount) {
-    const num = Number(amount);
-    if (isNaN(num)) return amount;
-    return num.toLocaleString(BUDGET_UI_LOCALE, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  // В прошлых месяцах считаем только оплаченное, в текущем и будущих — всё.
+  function effective(item, month) {
+    const amount = parseAmount(item?.outcome);
+    return isPastMonth(month) && !item?.paid ? 0 : amount;
   }
 
-  function parseBudgetAmount(value) {
-    if (typeof value === 'number') return value;
-    let normalized = String(value ?? '').replace(/[\s\u00a0]/g, '');
-    const commaIndex = normalized.lastIndexOf(',');
-    const dotIndex = normalized.lastIndexOf('.');
-
-    if (commaIndex !== -1 && dotIndex !== -1) {
-      normalized = commaIndex > dotIndex
-        ? normalized.replace(/\./g, '').replace(',', '.')
-        : normalized.replace(/,/g, '');
-    } else if (commaIndex !== -1) {
-      normalized = BUDGET_UI_LOCALE === 'en-US'
-        ? normalized.replace(/,/g, '')
-        : normalized.replace(',', '.');
-    }
-
-    const amount = Number(normalized);
-    return Number.isFinite(amount) ? amount : 0;
-  }
-
-  function formatBudgetInput(input) {
-    const start = input.selectionStart ?? input.value.length;
-    const digitsBeforeCaret = input.value.slice(0, start).replace(/\D/g, '').length;
-    const rawValue = input.value.trim();
-    if (!rawValue) return;
-
-    const amount = parseBudgetAmount(rawValue);
-    if (!Number.isFinite(amount)) return;
-
-    const formatted = formatNumber(amount);
-    input.value = formatted;
-    let caret = 0;
-    let digitsSeen = 0;
-    while (caret < formatted.length && digitsSeen < digitsBeforeCaret) {
-      if (/\d/.test(formatted[caret])) digitsSeen += 1;
-      caret += 1;
-    }
-    input.setSelectionRange(caret, caret);
-  }
-
-  function commentToPlainText(comment) {
-    const container = document.createElement('div');
-    container.innerHTML = String(comment || '');
-
-    function readNode(node, isFirstNode = false) {
-      if (node.nodeType === Node.TEXT_NODE) return node.nodeValue || '';
-      if (node.nodeType !== Node.ELEMENT_NODE) return '';
-
-      const content = Array.from(node.childNodes)
-        .map((child, index) => readNode(child, index === 0))
-        .join('');
-      if (node.tagName === 'BR') return '\n';
-      if (node.tagName === 'DIV' || node.tagName === 'P' || node.tagName === 'LI') {
-        return `${isFirstNode ? '' : '\n'}${content}`;
-      }
-      return content;
-    }
-
-    return Array.from(container.childNodes)
-      .map((node, index) => readNode(node, index === 0))
-      .join('')
-      .trim();
-  }
-function getNumberClass(num) {
-  const n = Number(num);
-  if (!n) return 'zero';
-  return n < 0 ? 'neg' : 'pos';
-}
-
-  let budgetData = {};  
-  let monthsSummary = {};
-  let selectedMonth = null;
-  let selectedArticle = null;
-  let selectedArticleFilter = "";
-  let changedItems = new Map();
-  let months = [];
-
-  // ===== Новое: карусель =====
-  let carouselInited = false;
-  function ensureCarouselShell() {
-    const summary = document.getElementById('summary');
-    if (!summary) return null;
-
-    // оборачиваем один раз
-    if (!carouselInited) {
-      const wrap = document.createElement('div');
-      wrap.id = 'summary-wrap';
-      summary.parentNode.insertBefore(wrap, summary);
-      wrap.appendChild(summary);
-
-      // стрелки
-      const btnLeft = document.createElement('button');
-      btnLeft.className = 'carousel-arrow left';
-      btnLeft.setAttribute('aria-label', 'Прокрутить к прошлым');
-      btnLeft.textContent = '◀';
-
-      const btnRight = document.createElement('button');
-      btnRight.className = 'carousel-arrow right';
-      btnRight.setAttribute('aria-label', 'Прокрутить к будущим');
-      btnRight.textContent = '▶';
-
-      wrap.append(btnLeft, btnRight);
-
-      // скролл по кнопкам на ширину одной карточки
-      const stepByOneCard = (dir) => {
-        const first = summary.querySelector('.month-summary');
-        if (!first) return;
-        const styles = getComputedStyle(summary);
-        const gap = parseFloat(styles.gap) || 0;
-        const step = first.getBoundingClientRect().width + gap;
-        summary.scrollBy({ left: dir * step, behavior: 'smooth' });
-      };
-      btnLeft.addEventListener('click', () => stepByOneCard(-1));
-      btnRight.addEventListener('click', () => stepByOneCard(1));
-
-      // колесо мыши -> горизонтальный скролл
-      /*
-      summary.addEventListener('wheel', (e) => {
-        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-          e.preventDefault();
-          summary.scrollLeft += e.deltaY;
-        }
-      }, { passive: false });
-*/
-      // обновление доступности стрелок
-      const updateArrows = () => {
-        const maxLeft = summary.scrollWidth - summary.clientWidth - 1;
-        btnLeft.disabled  = summary.scrollLeft <= 0;
-        btnRight.disabled = summary.scrollLeft >= maxLeft;
-      };
-      summary.addEventListener('scroll', updateArrows, { passive: true });
-      window.addEventListener('resize', updateArrows);
-      setTimeout(updateArrows, 0);
-
-      carouselInited = true;
-    }
-
-    // 6 карточек в вьюпорте: текущий + 5 справа
-    summary.style.setProperty('--per-view', 5);
-    return summary;
-  }
-
-  function scrollSelectedMonthToLeftEdge() {
-    const summary = document.getElementById('summary');
-    if (!summary || !selectedMonth) return;
-    const el = summary.querySelector(`.month-summary[data-month="${CSS.escape(selectedMonth)}"]`);
-    if (!el) return;
-    requestAnimationFrame(() => { summary.scrollLeft = el.offsetLeft; });
-  }
-  // ===== /карусель =====
-
-  async function init() {
-        let query
-    let params
-
-     query = { action: "getBudgetData", visible: true, mode:"no test" };
-    budgetData = normalizeBudgetData(await window.API.getBudgetData(query, { overlayId: "budget" }));
-
-     query = { action: "getMonthsSummary", visible: true};
-     monthsSummary = await window.API.getMonthsSummary(query, { overlayId: "budget" });
-
-
-
-    months = Object.keys(monthsSummary).sort((a, b) => parseBudgetDate(a) - parseBudgetDate(b));
-
-    const today = new Date();
-    let foundCurrent = months.find(m => {
-      const md = parseBudgetDate(m);
-      return md.getFullYear() === today.getFullYear() && md.getMonth() === today.getMonth();
+  // title -> { sum, count, paid }
+  function articleTotals(month) {
+    const totals = new Map();
+    Object.entries(monthData(month)).forEach(([key, item]) => {
+      const title = displayTitle(item, key);
+      const t = totals.get(title) || { sum: 0, count: 0, paid: 0 };
+      t.sum += effective(item, month);
+      t.count += 1;
+      t.paid += item.paid ? 1 : 0;
+      totals.set(title, t);
     });
-    selectedMonth = foundCurrent || months[0];
+    return totals;
+  }
 
-    populateArticleSelect();
-    renderSummary();     // построит карточки
+  // Как на старой странице: доход из getMonthsSummary, расход — сумма записей (расход сервиса только если записей с суммой нет).
+  function monthTotals(month) {
+    const data = monthData(month);
+    const detailed = Object.values(data).some((i) => i && Object.prototype.hasOwnProperty.call(i, "outcome"));
+    let outcome = detailed ? 0 : parseAmount(monthsSummary[month]?.outcome);
+    Object.values(data).forEach((item) => { outcome += effective(item, month); });
+    const income = parseAmount(monthsSummary[month]?.income);
+    return { income, outcome, profit: income - outcome };
+  }
+
+  function buildSummary() {
+    const result = {};
+    let cumulative = 0;
+    months.forEach((m) => {
+      const t = monthTotals(m);
+      cumulative += t.profit;
+      result[m] = { ...t, cumulative };
+    });
+    return result;
+  }
+
+  // ---------- аналитика ----------
+  function analyze(month) {
+    const idx = months.indexOf(month);
+    const history = months.slice(Math.max(0, idx - BASELINE_MONTHS), Math.max(0, idx));
+    const current = articleTotals(month);
+    const historyTotals = history.map(articleTotals);
+    const result = { deviations: [], missing: [], groups: [], total: null, history };
+
+    // Отклонение расхода статьи от среднего за прошлые месяцы (учитываем только месяцы, где статья была).
+    current.forEach((cur, title) => {
+      const past = historyTotals.map((m) => m.get(title)?.sum).filter((v) => v != null);
+      if (!past.length) return;
+      const baseline = past.reduce((a, b) => a + b, 0) / past.length;
+      if (baseline <= 0) return;
+      const pct = ((cur.sum - baseline) / baseline) * 100;
+      if (Math.abs(pct) > DEVIATION_PCT) result.deviations.push({ title, current: cur.sum, baseline, pct });
+    });
+    result.deviations.sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct));
+
+    // Забытые статьи: были в большинстве прошлых месяцев, но в этом отсутствуют.
+    const need = history.length >= 2 ? 2 : 1;
+    const titles = new Set(historyTotals.flatMap((m) => Array.from(m.keys())));
+    titles.forEach((title) => {
+      if (current.has(title)) return;
+      const seen = historyTotals.filter((m) => m.has(title));
+      if (seen.length < need) return;
+      const last = [...historyTotals].reverse().find((m) => m.has(title)).get(title).sum;
+      const avg = seen.reduce((s, m) => s + m.get(title).sum, 0) / seen.length;
+      result.missing.push({ title, group: groupOf(null, title), last, avg, months: seen.length, of: history.length });
+    });
+    result.missing.sort((a, b) => b.avg - a.avg);
+
+    // Итоги по группам статей против среднего за прошлые месяцы.
+    const groupHistory = history.map(groupTotals);
+    groupTotals(month).forEach((sum, group) => {
+      const past = groupHistory.map((m) => m.get(group)).filter((v) => v != null);
+      const baseline = past.length ? past.reduce((a, b) => a + b, 0) / past.length : null;
+      result.groups.push({ group, current: sum, baseline, pct: baseline > 0 ? ((sum - baseline) / baseline) * 100 : null });
+    });
+    result.groups.sort((a, b) => b.current - a.current);
+
+    // Итоговые расходы месяца против среднего.
+    const histSums = history.map((m) => monthTotals(m).outcome).filter((v) => v > 0);
+    if (histSums.length) {
+      const baseline = histSums.reduce((a, b) => a + b, 0) / histSums.length;
+      const cur = monthTotals(month).outcome;
+      result.total = { current: cur, baseline, pct: baseline ? ((cur - baseline) / baseline) * 100 : null };
+    }
+    return result;
+  }
+
+  // ---------- добавление статей ----------
+  function makeKey(month, title) {
+    const data = monthData(month);
+    let key = title;
+    let n = 1;
+    while (Object.prototype.hasOwnProperty.call(data, key)) key = `${title} #${++n}`;
+    return key;
+  }
+
+  function addArticle(title, amount = 0, comment = "") {
+    const key = makeKey(selectedMonth, title);
+    ensureMonthData(selectedMonth)[key] = { title, income: 0, outcome: amount, editable: true, paid: false, newArticle: true, comment };
+    changed.set(`${selectedMonth}|${key}`, { month: selectedMonth, article: title, outcome: amount, paid: false, newArticle: true, comment });
+  }
+
+  function trackChange(key) {
+    const item = monthData(selectedMonth)[key];
+    const id = recordId(item);
+    changed.set(`${selectedMonth}|${key}`, {
+      ...(id == null ? {} : { id }),
+      month: selectedMonth,
+      article: displayTitle(item, key),
+      outcome: parseAmount(item.outcome),
+      paid: !!item.paid,
+      newArticle: !!item.newArticle,
+      comment: item.comment || "",
+    });
+  }
+
+  // ---------- отрисовка ----------
+  function renderAll() {
+    renderMonths();
     renderArticles();
-    selectMonth(selectedMonth); // и выставит выбранный с проскроллом
-    scrollSelectedMonthToLeftEdge();
-    enableSaveButton();
-
-  const raw = transformToRaw(monthsSummary);
-  const prepared = prepareDatasets(raw);
-  renderPnLChart(prepared);
-
+    renderSuggestions();
+    renderAnalytics();
+    renderMatrix();
+    renderPnlChart();
+    $("#bv2-save-btn").disabled = changed.size === 0;
   }
 
-  function calculateMonthlySummary(month) {
-    const data = getBudgetMonthData(month);
-    let sumIncome = 0, sumOutcome = 0;
-   //   console.log("month",month)
-    const hasDetailedExpenses = Object.values(data).some(item =>
-      item && Object.prototype.hasOwnProperty.call(item, 'outcome')
-    );
-    if (!hasDetailedExpenses) {
-      sumOutcome = parseBudgetAmount(monthsSummary[month]?.outcome);
-    }
-
-    for (const key in data) {
-    const item = data[key];
-    const outcome = parseBudgetAmount(item.outcome);
-
-    if (isPastMonth(month)) {
-      // прошедшие месяцы → только оплаченные
-      if (item.paid) {
-        sumOutcome += outcome;
-      }
-    } else {
-      // текущий и будущие месяцы → все
-      sumOutcome += outcome;
-    }
-    }
-
-          sumIncome = parseBudgetAmount(monthsSummary[month].income);
-        //  console.log("sumIncome",sumIncome)
-    const revenueFact = sumIncome - sumOutcome ;
-    const revenueForecast = sumOutcome;
-    return { income: sumIncome, outcome: sumOutcome, revenueFact, revenueForecast };
-  }
-
-
-// Хелпер: сортировка ключей-месяцев по возрастанию (YYYY-MM-DD)
-function sortMonthsAsc(arr) {
-  return [...arr].sort((a, b) => parseBudgetDate(a) - parseBudgetDate(b));
-}
-
-/**
- * 1) Пересчитать monthsSummary на основе calculateMonthlySummary:
- *    - outcome (факт/прогноз расходов по твоей логике paid/isPastMonth)
- *    - revenueFact (доход - расход)
- *    - profit (накопительная прибыль с начала периода)
- * 2) Отрисовать карточки месяцев в прежнем порядке (с prepend)
- */
-function renderSummary() {
-  const summaryDiv = document.getElementById('summary');
-  summaryDiv.innerHTML = '';
-
-  // 1) считаем в хронологическом порядке
-  const monthsAsc = months;
-  let cumulativeProfit = 0;
-
-  for (const m of monthsAsc) {
-    const sums = calculateMonthlySummary(m);         // { income, outcome, revenueFact }
-    if (!monthsSummary[m]) monthsSummary[m] = {};
-
-    const income  = Number(sums.income)       || 0;
-    const outcome = Number(sums.outcome)      || 0;
-    const profitMonth = Number(sums.revenueFact) || 0; // прибыль месяца = доход - расход
-
-    // обновляем сводку
-    monthsSummary[m].income      = income;
-    monthsSummary[m].outcome     = outcome;
-    monthsSummary[m].revenueFact = profitMonth;  // можно оставить для совместимости
-    monthsSummary[m].profitMonth = profitMonth;  // ЯВНО: прибыль месяца
-
-    cumulativeProfit += profitMonth;
-    monthsSummary[m].profit = cumulativeProfit;  // ЯВНО: накопительная прибыль
-  }
-
-  // 2) рендерим карточки в твоём порядке (prepend)
-  months.forEach(m => {
-    const div = document.createElement('div');
-    const s = monthsSummary[m] || { income: 0, outcome: 0, revenueFact: 0, profit: 0, profitMonth: 0 };
-
-    const total = Math.abs(s.income) + Math.abs(s.outcome) || 1;
-    const factPct = Math.round((Math.abs(s.income) / total) * 100);
-    const forecastPct = 100 - factPct;
-
-    div.className = 'month-summary' + (m === selectedMonth ? ' selected' : '');
-    div.dataset.month = m;
-    div.tabIndex = 0;
-
-    div.innerHTML = `
-      <div class="ms-head">
-        <b>${formatMonth(m)}</b>
-      </div>
-      <div class="ms-grid">
-        <div>Доход:</div>
-        <div class="num ${getNumberClass(s.income)}">${formatNumber(s.income)}</div>
-
-        <div>Расход:</div>
-        <div class="num ${getNumberClass(s.outcome)}">${formatNumber(s.outcome)}</div>
-
-        <div>Выручка месяца:</div>
-        <div class="num ${getNumberClass(s.profitMonth)}">${formatNumber(s.profitMonth)}</div>
-
-        <div>Выручка накоп:</div>
-        <div class="num ${getNumberClass(s.profit)}">${formatNumber(s.profit)}</div>
-      </div>
-
-      <div class="ms-bar" id="ms-bar"
-           aria-label="Соотношение факт/прогноз"
-           title="Факт/Прогноз"
-           style="--fact-pct:${factPct}%; --forecast-pct:${forecastPct}%"></div>
-    `;
-
-    div.onclick = () => selectMonth(m);
-    summaryDiv.appendChild(div);
-  });
-
-  ensureCarouselShell();
-  return monthsSummary;
-}
-
-
-function renderArticles() {
-  const tbody = document.getElementById('articles-tbody');
-  tbody.innerHTML = '';
-  if (!selectedMonth) return;
-  ensureArticleFilterControl();
-  const data = getBudgetMonthData(selectedMonth);
-  const activeFilter = String(selectedArticleFilter || "").trim();
-  let hasSelectedVisible = false;
-
-  for (const articleKey in data) {
-    const item = data[articleKey];
-    const titleToShow = getDisplayArticleTitle(item, articleKey);
-    if (activeFilter && titleToShow !== activeFilter) continue;
-
-    const factVal = parseBudgetAmount(item.outcome);
-    const paid = !!item.paid;
-    const comment = item.comment;
-
-    const row = document.createElement('tr');
-    row.dataset.article = articleKey;
-
-    const artCell = document.createElement('td');
-    artCell.style.textAlign = 'left';
-
-    const titleSpan = document.createElement('span');
-    titleSpan.textContent = titleToShow;         // <= вот это
-    titleSpan.className = 'article-title';
-
-    const badge = document.createElement('span');
-    badge.className = 'payment-status ' + (paid ? 'paid' : 'not-paid');
-    badge.textContent = paid ? tr('Оплачено') : tr('Не оплачено', 'Не оплачено');
-
-    artCell.appendChild(titleSpan);
-    artCell.appendChild(badge);
-
-
-    const factCell = document.createElement('td');
-    factCell.textContent = formatNumber(factVal);
-    factCell.className = getNumberClass(factVal);
-
-    const commentCell = document.createElement('td');
-    commentCell.className = 'comment-cell';
-    commentCell.textContent = commentToPlainText(comment);
-
-
-    row.appendChild(artCell);
-    row.appendChild(factCell);
-
-    row.appendChild(commentCell);
-
-    if (articleKey === selectedArticle) {
-      row.classList.add('selected');
-      hasSelectedVisible = true;
-    }
-
-    row.onclick = () => {
-      selectArticle(articleKey);
-      highlightSelectedRow(articleKey);
-    };
-
-    tbody.appendChild(row);
-  }
-
-  if (selectedArticle && !hasSelectedVisible) {
-    hideArticleDetail();
-  }
-}
-
-  function ensureArticleFilterControl() {
-    const articlesBlock = document.getElementById('articles');
-    if (!articlesBlock) return;
-    const data = getBudgetMonthData(selectedMonth);
-
-    let filterWrap = document.getElementById('articles-filter-wrap');
-    if (!filterWrap) {
-      filterWrap = document.createElement('div');
-      filterWrap.id = 'articles-filter-wrap';
-      filterWrap.style.margin = '8px 0 10px';
-
-      const filterSelect = document.createElement('select');
-      filterSelect.id = 'articles-filter-select';
-      filterSelect.setAttribute('aria-label', tr('Фильтр по статье расходов', 'Фильтр по статье расходов'));
-      filterSelect.style.width = '100%';
-
-      filterSelect.addEventListener('change', (event) => {
-        selectedArticleFilter = String(event.target?.value || "");
-        renderArticles();
-      });
-
-      filterWrap.appendChild(filterSelect);
-
-      const table = articlesBlock.querySelector('table');
-      if (table) {
-        articlesBlock.insertBefore(filterWrap, table);
-      } else {
-        articlesBlock.appendChild(filterWrap);
-      }
-    }
-
-    const filterSelect = document.getElementById('articles-filter-select');
-    if (!filterSelect) return;
-
-    const prevValue = String(selectedArticleFilter || "");
-    filterSelect.innerHTML = "";
-
-    const allOption = document.createElement('option');
-    allOption.value = "";
-    allOption.textContent = tr('Все статьи', 'Все статьи');
-    filterSelect.appendChild(allOption);
-
-    const articleTitles = new Set();
-    Object.keys(data).forEach((articleKey) => {
-      const title = getDisplayArticleTitle(data[articleKey], articleKey);
-      if (articleTitles.has(title)) return;
-      articleTitles.add(title);
-
-      const option = document.createElement('option');
-      option.value = title;
-      option.textContent = title;
-      filterSelect.appendChild(option);
+  function renderMonths() {
+    const track = $("#bv2-months");
+    const summary = buildSummary();
+    track.replaceChildren();
+    months.forEach((m) => {
+      const s = summary[m];
+      const total = Math.abs(s.income) + Math.abs(s.outcome) || 1;
+      const incomePct = Math.round((Math.abs(s.income) / total) * 100);
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "bv2-month" + (m === selectedMonth ? " is-selected" : "");
+      card.dataset.month = m;
+      card.innerHTML = `
+        <b>${esc(monthLabel(m))}</b>
+        <span>Доход</span><span class="num ${signClass(s.income)}">${fmt(s.income)}</span>
+        <span>Расход</span><span class="num ${signClass(s.outcome)}">${fmt(s.outcome)}</span>
+        <span>Выручка</span><span class="num ${signClass(s.profit)}">${fmt(s.profit)}</span>
+        <span>Накоп.</span><span class="num ${signClass(s.cumulative)}">${fmt(s.cumulative)}</span>
+        <i class="bv2-bar" style="--a:${incomePct}%"></i>`;
+      card.addEventListener("click", () => selectMonth(m));
+      track.appendChild(card);
     });
-
-    selectedArticleFilter = Array.from(articleTitles).includes(prevValue) ? prevValue : "";
-    filterSelect.value = selectedArticleFilter;
-
-    if (selectedArticleFilter && selectedArticle &&
-        getDisplayArticleTitle(data[selectedArticle], selectedArticle) !== selectedArticleFilter) {
-      hideArticleDetail();
-    }
   }
 
-
-  function highlightSelectedRow(article) {
-    const rows = document.querySelectorAll('#articles tbody tr');
-    rows.forEach(row => {
-      if (row.dataset.article === article) row.classList.add('selected');
-      else row.classList.remove('selected');
-    });
+  function scrollToSelectedMonth() {
+    const el = $(`.bv2-month[data-month="${CSS.escape(selectedMonth || "")}"]`);
+    if (el) $("#bv2-months").scrollLeft = el.offsetLeft - $("#bv2-months").offsetLeft;
   }
 
   function selectMonth(month) {
     selectedMonth = month;
-    selectedArticle = null;
-    renderSummary();
-    renderArticles();
-    populateArticleSelect();
-    hideArticleDetail();
-    // после перерисовки снова выставляем выбранный месяц левым краем
-    //scrollSelectedMonthToLeftEdge();
+    selectedKey = null;
+    $("#bv2-detail").hidden = true;
+    renderAll();
   }
 
-  function populateArticleSelect() {
-    const select = document.getElementById('modal-article-select');
-    select.innerHTML = '';
+  function renderArticles() {
+    const tbody = $("#bv2-articles");
+    const data = monthData(selectedMonth);
+    tbody.replaceChildren();
+
+    const filter = $("#bv2-filter");
+    const titles = Array.from(new Set(Object.entries(data).map(([k, i]) => displayTitle(i, k))));
+    if (!titles.includes(filterTitle)) filterTitle = "";
+    filter.innerHTML = `<option value="">Все статьи</option>` + titles.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join("");
+    filter.value = filterTitle;
+
+    Object.entries(data).forEach(([key, item]) => {
+      const title = displayTitle(item, key);
+      if (filterTitle && title !== filterTitle) return;
+      const amount = parseAmount(item.outcome);
+      const tr = document.createElement("tr");
+      tr.dataset.key = key;
+      if (key === selectedKey) tr.classList.add("is-selected");
+      tr.innerHTML = `
+        <td><span class="bv2-title">${esc(title)}</span>
+          <span class="bv2-status ${item.paid ? "is-paid" : "is-unpaid"}">${item.paid ? "Оплачено" : "Не оплачено"}</span></td>
+        <td class="num ${signClass(amount)}">${fmt(amount)}</td>
+        <td class="bv2-comment">${esc(commentToText(item.comment))}</td>`;
+      tr.addEventListener("click", () => selectArticle(key));
+      tbody.appendChild(tr);
+    });
+  }
+
+  function selectArticle(key) {
+    selectedKey = key;
+    const item = monthData(selectedMonth)[key];
+    if (!item) return;
+    $("#bv2-detail-title").textContent = displayTitle(item, key);
+    $("#bv2-amount").value = fmt(parseAmount(item.outcome));
+    $("#bv2-paid").checked = !!item.paid;
+    $("#bv2-comment").value = commentToText(item.comment);
+    ["#bv2-amount", "#bv2-paid", "#bv2-comment"].forEach((s) => { $(s).disabled = !item.editable; });
+    $("#bv2-detail").hidden = false;
+    $$("#bv2-articles tr").forEach((tr) => tr.classList.toggle("is-selected", tr.dataset.key === key));
+  }
+
+  function onDetailChange(event) {
+    const item = monthData(selectedMonth)[selectedKey];
+    if (!item || !item.editable) return;
+    if (event.target.id === "bv2-amount") item.outcome = parseAmount(event.target.value);
+    if (event.target.id === "bv2-paid") item.paid = event.target.checked;
+    if (event.target.id === "bv2-comment") item.comment = event.target.value;
+    trackChange(selectedKey);
+    renderAll();
+  }
+
+  let suggestions = [];
+
+  function renderSuggestions() {
+    const box = $("#bv2-suggest");
+    suggestions = selectedMonth && !isPastMonth(selectedMonth) ? analyze(selectedMonth).missing : [];
+    box.hidden = !suggestions.length;
+    if (!suggestions.length) return;
+    box.innerHTML = `
+      <span>В этом месяце не хватает статей из прошлых месяцев: <b>${suggestions.length}</b></span>
+      <button type="button" class="bv2-btn" id="bv2-suggest-open">Показать</button>`;
+    $("#bv2-suggest-open").addEventListener("click", openSuggestModal);
+  }
+
+  function openSuggestModal() {
+    const list = $("#bv2-suggest-list");
+    const byGroup = new Map();
+    suggestions.forEach((m, i) => {
+      if (!byGroup.has(m.group)) byGroup.set(m.group, []);
+      byGroup.get(m.group).push(i);
+    });
+    list.innerHTML = Array.from(byGroup, ([group, indexes]) => `
+      <details class="bv2-tree__group" open>
+        <summary>${esc(group)}</summary>
+        <ul class="bv2-suggest__list">${indexes.map((i) => `
+          <li>
+            <label><input type="checkbox" data-i="${i}" checked> ${esc(suggestions[i].title)}</label>
+            <span class="bv2-muted">было ${suggestions[i].months} из ${suggestions[i].of} мес.</span>
+            <input type="text" class="bv2-suggest__amount" data-i="${i}" value="${fmt(suggestions[i].last)}" inputmode="decimal" aria-label="Сумма: ${esc(suggestions[i].title)}">
+          </li>`).join("")}
+        </ul>
+      </details>`).join("");
+    $("#bv2-modal-suggest").hidden = false;
+  }
+
+  async function applySuggestions() {
+    const list = $("#bv2-suggest-list");
+    let added = 0;
+    $$("input[type=checkbox][data-i]", list).forEach((cb) => {
+      if (!cb.checked) return;
+      const i = cb.dataset.i;
+      addArticle(suggestions[i].title, parseAmount($(`.bv2-suggest__amount[data-i="${i}"]`, list).value));
+      added += 1;
+    });
+    $("#bv2-modal-suggest").hidden = true;
+    if (!added) return;
+    renderAll();
+    await saveChanges();
+  }
+
+  function renderAnalytics() {
+    const box = $("#bv2-analytics");
+    const badge = $("#bv2-alert-count");
     if (!selectedMonth) return;
+    const a = analyze(selectedMonth);
+    const count = a.deviations.length;
+    badge.hidden = !count;
+    badge.textContent = count;
 
+    const section = (title, hint, body) => `<div class="bv2-card"><div class="bv2-card__head"><h3>${title}</h3><span class="bv2-muted">${hint}</span></div>${body}</div>`;
+    const empty = `<p class="bv2-muted">Замечаний нет</p>`;
 
+    const totalHtml = a.total
+      ? `<p>Расходы месяца: <b>${fmt(a.total.current)}</b> при среднем <b>${fmt(a.total.baseline)}</b>
+         <span class="bv2-flag ${Math.abs(a.total.pct ?? 0) > DEVIATION_PCT ? "is-warn" : ""}">${pctText(a.total.pct)}</span></p>`
+      : `<p class="bv2-muted">Недостаточно истории для сравнения</p>`;
 
-    const existingArticles = new Set(Object.keys(getBudgetMonthData(selectedMonth)));
-    ARTICLE_DICTIONARY.forEach(article => {
-    //  if (existingArticles.has(article)) return;
-      const option = document.createElement('option');
-      option.value = article;
-      option.textContent = article;
-      select.appendChild(option);
+    const deviations = a.deviations.length
+      ? `<table class="bv2-table"><thead><tr><th>Статья</th><th class="num">Сейчас</th><th class="num">Норма</th><th class="num">Откл.</th></tr></thead><tbody>
+          ${a.deviations.map((d) => `<tr data-compare="${esc(d.title)}"><td>${esc(d.title)}</td><td class="num">${fmt(d.current)}</td><td class="num">${fmt(d.baseline)}</td>
+            <td class="num"><span class="bv2-flag is-warn">${pctText(d.pct)}</span></td></tr>`).join("")}
+        </tbody></table>` : empty;
+
+    const hasGroups = a.groups.some((g) => g.group !== UNGROUPED);
+    const groups = hasGroups
+      ? `<table class="bv2-table"><thead><tr><th>Группа</th><th class="num">Сейчас</th><th class="num">Норма</th><th class="num">Откл.</th></tr></thead><tbody>
+          ${a.groups.map((g) => `<tr><td>${esc(g.group)}</td><td class="num">${fmt(g.current)}</td><td class="num">${g.baseline == null ? "—" : fmt(g.baseline)}</td>
+            <td class="num"><span class="bv2-flag ${g.pct != null && Math.abs(g.pct) > DEVIATION_PCT ? "is-warn" : ""}">${pctText(g.pct)}</span></td></tr>`).join("")}
+        </tbody></table>`
+      : `<p class="bv2-muted">Группы появятся, когда сервис вернёт категорию статей</p>`;
+
+    box.innerHTML =
+      section(`Итого за ${esc(monthLabel(selectedMonth))}`, `порог отклонения ${DEVIATION_PCT}%`, totalHtml) +
+      section("Итоги по группам статей", "против среднего за прошлые мес.", groups) +
+      section("Отклонение статей от нормы", `среднее за ${a.history.length || 0} прошлых мес.`, deviations);
+
+    $$("[data-compare]", box).forEach((tr) => tr.addEventListener("click", () => {
+      compareTitle = tr.dataset.compare;
+      switchTab("compare");
+    }));
+  }
+
+  function renderMatrix() {
+    const table = $("#bv2-matrix");
+    if (!selectedMonth) return;
+    const idx = months.indexOf(selectedMonth);
+    const window_ = months.slice(Math.max(0, idx - MATRIX_MONTHS + 1), idx + 1);
+    const totals = window_.map(articleTotals);
+    const titles = Array.from(new Set(totals.flatMap((t) => Array.from(t.keys()))));
+    const last = totals[totals.length - 1];
+    titles.sort((a, b) => (last.get(b)?.sum || 0) - (last.get(a)?.sum || 0) || a.localeCompare(b, LOCALE));
+
+    let html = `<thead><tr><th>Статья</th>${window_.map((m) => `<th class="num">${esc(monthLabel(m, { month: "short", year: "2-digit" }))}</th>`).join("")}</tr></thead><tbody>`;
+    titles.forEach((title) => {
+      html += `<tr data-title="${esc(title)}" class="${title === compareTitle ? "is-selected" : ""}"><td>${esc(title)}</td>`;
+      totals.forEach((t, i) => {
+        const cur = t.get(title)?.sum;
+        const prev = i > 0 ? totals[i - 1].get(title)?.sum : null;
+        let cls = "";
+        let hint = "";
+        if (cur != null && prev) {
+          const pct = ((cur - prev) / prev) * 100;
+          if (Math.abs(pct) > DEVIATION_PCT) { cls = pct > 0 ? "is-up" : "is-down"; hint = ` title="${pctText(pct)} к прошлому месяцу"`; }
+        }
+        html += `<td class="num ${cls}"${hint}>${cur == null ? "—" : fmt(cur)}</td>`;
+      });
+      html += "</tr>";
     });
-
-    updateModalAddButtonState();
+    table.innerHTML = html + "</tbody>";
+    $$("tbody tr", table).forEach((tr) => tr.addEventListener("click", () => {
+      compareTitle = tr.dataset.title;
+      renderMatrix();
+      renderCompareChart();
+    }));
+    renderCompareChart();
   }
 
-  function updateModalAddButtonState() {
-    const select = document.getElementById('modal-article-select');
-    const addBtn = document.getElementById('modal-add-btn');
-    addBtn.disabled = (select.options.length === 0 || !select.value);
+  function chartDefaults() {
+    return { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false } };
   }
 
-  const modalBackground = document.getElementById('modal-background');
-  const modalAddBtn = document.getElementById('modal-add-btn');
-  const modalCancelBtn = document.getElementById('modal-cancel-btn');
-  const modalArticleSelect = document.getElementById('modal-article-select');
-  const addArticleBtn = document.getElementById('add-article-btn');
-
-  addArticleBtn.addEventListener('click', () => {
-    populateArticleSelect();
-    modalBackground.style.display = 'flex';
-    modalArticleSelect.focus();
-  });
-  modalCancelBtn.addEventListener('click', () => { modalBackground.style.display = 'none'; });
-  modalArticleSelect.addEventListener('change', updateModalAddButtonState);
-
- modalAddBtn.addEventListener('click', () => {
-  const newArticleTitle = modalArticleSelect.value;
-  if (!newArticleTitle) return;
-
-  const uniqueKey = makeUniqueKey(selectedMonth, newArticleTitle);
-
-  ensureBudgetMonthData(selectedMonth)[uniqueKey] = {
-    title: newArticleTitle,          // <- человекочитаемое имя
-    income: 0,
-    outcome: 0,
-    editable: true,
-    paid: false,
-    newArticle: true,
-    comment: ""
-  };
-
-    changedItems.set(selectedMonth + '|' + uniqueKey, {
-    month: selectedMonth,
-    article: uniqueKey,              // <- ключ (идентификатор)
-    displayTitle: newArticleTitle,   // <- полезно отправлять на бэк
-    outcome: 0,
-    paid: false,
-    newArticle: true,
-    comment: ""
-  });
-
-  modalBackground.style.display = 'none';
-  renderArticles();
-  renderSummary();
-  populateArticleSelect();
-  enableSaveButton();
-});
-
-
-  modalBackground.addEventListener('click', e => {
-    if (e.target === modalBackground) modalBackground.style.display = 'none';
-  });
-
-  function selectArticle(article) {
-    selectedArticle = article;
-    highlightSelectedRow(article);
-
-    const detailDiv = document.getElementById('article-detail');
-    const data = getBudgetMonthData(selectedMonth)[article];
-
-    document.getElementById('detail-article-name').textContent = getDisplayArticleTitle(data, article);
-    const factInput = document.getElementById('outcome-value');
-    const commentField = document.getElementById('commentField');
-    
-   // const forecastInput = document.getElementById('forecast-value');
-    const paidCheckbox = document.getElementById('paid-checkbox');
-
-    factInput.value = formatNumber(data.outcome);
-    commentField.innerHTML = data.comment || '';
-
-    //forecastInput.value = data.forecast;
-
-    factInput.disabled = !data.editable;
-    //forecastInput.disabled = !data.editable;
-
-    paidCheckbox.checked = !!data.paid;
-    paidCheckbox.disabled = !data.editable;
-
-    detailDiv.style.display = 'flex';
+  function renderCompareChart() {
+    const title = $("#bv2-compare-title");
+    if (typeof Chart === "undefined") return;
+    if (!compareTitle) { title.textContent = "Выберите статью в таблице"; return; }
+    title.textContent = `Статья: ${compareTitle}`;
+    const values = months.map((m) => articleTotals(m).get(compareTitle)?.sum ?? null);
+    const data = {
+      labels: months.map((m) => monthLabel(m, { month: "short", year: "2-digit" })),
+      datasets: [{ type: "bar", label: compareTitle, data: values, backgroundColor: "rgba(26,115,232,.55)" }],
+    };
+    if (charts.compare) { charts.compare.data = data; charts.compare.update(); return; }
+    charts.compare = new Chart($("#bv2-compare-chart").getContext("2d"), { data, options: chartDefaults() });
   }
 
-  function hideArticleDetail() {
-    selectedArticle = null;
-    highlightSelectedRow(null);
-    const detailDiv = document.getElementById('article-detail');
-    detailDiv.style.display = 'none';
+  function renderPnlChart() {
+    if (typeof Chart === "undefined") return;
+    const summary = buildSummary();
+    const data = {
+      labels: months.map((m) => monthLabel(m, { month: "short", year: "numeric" })),
+      datasets: [
+        { type: "bar", label: "Накопительно", data: months.map((m) => summary[m].cumulative), backgroundColor: "rgba(124,77,255,.35)" },
+        { type: "bar", label: "Доход", data: months.map((m) => summary[m].income), backgroundColor: "rgba(33,150,243,.6)" },
+        { type: "bar", label: "Расход", data: months.map((m) => summary[m].outcome), backgroundColor: "rgba(239,83,80,.6)" },
+        { type: "line", label: "Прибыль", data: months.map((m) => summary[m].profit), borderColor: "rgb(0,150,136)", tension: 0.25, fill: false },
+      ],
+    };
+    if (charts.pnl) { charts.pnl.data = data; charts.pnl.update(); return; }
+    charts.pnl = new Chart($("#bv2-pnl-chart").getContext("2d"), { data, options: chartDefaults() });
   }
 
-  function onArticleValueChange(event) {
-    if (!selectedMonth || !selectedArticle) return;
-
-    const factInput = document.getElementById('outcome-value');
-    //const forecastInput = document.getElementById('forecast-value');
-    const paidCheckbox = document.getElementById('paid-checkbox');
-    const commentField = document.getElementById('commentField');
-
-    const articleData = getBudgetMonthData(selectedMonth)[selectedArticle];
-    if (!articleData.editable) return;
-
-    const outcome = event?.target === factInput
-      ? parseBudgetAmount(factInput.value)
-      : parseBudgetAmount(articleData.outcome);
-    if (event?.target === factInput) formatBudgetInput(factInput);
-    //const forecast = parseFloat(forecastInput.value) || 0;
-    const paid = paidCheckbox.checked;
-
-    articleData.outcome = outcome;
-   // articleData.forecast = forecast;
-    articleData.paid = paid;
-    
-
-    let newArticle 
-    if(articleData.newArticle==true) {newArticle= true} else {newArticle= false}
-
-    const comment = commentField.innerHTML;
-    articleData.comment = comment;
-    const recordId = getBudgetRecordId(articleData);
-
-    changedItems.set(selectedMonth + '|' + selectedArticle, {
-      ...(recordId == null ? {} : { id: recordId }),
-      month: selectedMonth,
-      article: getDisplayArticleTitle(articleData, selectedArticle),
-      outcome,
-      paid,
-      newArticle,
-      comment
+  function switchTab(tab) {
+    $$(".bv2-tab").forEach((b) => {
+      const active = b.dataset.tab === tab;
+      b.classList.toggle("is-active", active);
+      b.setAttribute("aria-selected", String(active));
     });
-
-    renderArticles();
-    monthsSummary= renderSummary();
-    enableSaveButton();
-
-  const raw = transformToRaw(monthsSummary);
-  const prepared = prepareDatasets(raw);
-  renderPnLChart(prepared);
-
+    $$(".bv2-panel").forEach((p) => { p.hidden = p.dataset.panel !== tab; });
+    if (tab === "compare") renderMatrix();
+    if (tab === "analytics") charts.pnl?.resize();
   }
 
+  // ---------- справочник статей (группа -> статьи) ----------
+  function openVocab() {
+    const byGroup = new Map([["", { rowId: null, isNew: false, items: [] }]]);
+    const ensureGroup = (name, rowId = null) => {
+      if (!byGroup.has(name)) byGroup.set(name, { rowId, isNew: false, items: [] });
+      else if (rowId != null && byGroup.get(name).rowId == null) byGroup.get(name).rowId = rowId;
+      return byGroup.get(name);
+    };
+    vocabGroupRows.forEach((r) => ensureGroup(r.name, r.id));
+    vocabulary.forEach((v) => ensureGroup(v.group).items.push({ id: v.id, title: v.title }));
+    vocabGroups = Array.from(byGroup, ([name, g]) => ({ ...g, name }));
+    collapsedGroups.clear();
+    vocabGroups.forEach((g) => collapsedGroups.add(g));
+    $("#bv2-vocab-search").value = "";
+    $("#bv2-vocab-status").textContent = "";
+    renderVocab();
+    $("#bv2-modal-vocab").hidden = false;
+  }
 
- document.getElementById('commentField').addEventListener('input', onArticleValueChange);
-  document.getElementById('outcome-value').addEventListener('input', onArticleValueChange);
- document.getElementById('outcome-value').addEventListener('blur', () => {
-   formatBudgetInput(document.getElementById('outcome-value'));
- });
- // document.getElementById('forecast-value').addEventListener('input', onArticleValueChange);
-  document.getElementById('paid-checkbox').addEventListener('change', onArticleValueChange);
-  document.getElementById('close-detail').addEventListener('click', () => { hideArticleDetail(); });
+  function vocabInput(value, onInput, placeholder = "", className = "bv2-ghost") {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = className;
+    input.value = value;
+    input.placeholder = placeholder;
+    input.addEventListener("input", () => onInput(input.value));
+    return input;
+  }
 
-  document.getElementById('save-btn').addEventListener('click', async function() {
-    const changedArray = Array.from(changedItems.values());
-    if (changedArray.length === 0) return;
+  function vocabIconButton(text, label, onClick) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "bv2-icon";
+    btn.textContent = text;
+    btn.title = label;
+    btn.setAttribute("aria-label", label);
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  const collapsedGroups = new Set();
+  let vocabFocusGroup = null;
+
+  function renderVocab() {
+    const list = $("#bv2-vocab-list");
+    const query = $("#bv2-vocab-search").value.trim().toLowerCase();
+    list.replaceChildren();
+
+    vocabGroups.forEach((group, gi) => {
+      const isUngrouped = gi === 0;
+      const matches = group.items.filter((item) => !query || item.title.toLowerCase().includes(query));
+      const groupMatches = !query || group.name.toLowerCase().includes(query);
+      if (query && !groupMatches && !matches.length) return;
+      if (isUngrouped && !group.items.length) return;
+
+      const visibleItems = groupMatches ? group.items : matches;
+      const collapsed = !query && collapsedGroups.has(group);
+      const li = document.createElement("li");
+      li.className = "bv2-vocab__group";
+
+      const head = document.createElement("div");
+      head.className = "bv2-vocab__head";
+      const toggleGroup = () => {
+        if (collapsed) collapsedGroups.delete(group); else collapsedGroups.add(group);
+        renderVocab();
+      };
+      const toggle = vocabIconButton(collapsed ? "\u25b8" : "\u25be", collapsed ? "Развернуть" : "Свернуть", toggleGroup);
+      toggle.setAttribute("aria-expanded", String(!collapsed));
+      head.appendChild(toggle);
+
+      const label = document.createElement("button");
+      label.type = "button";
+      label.className = "bv2-vocab__label";
+      label.textContent = isUngrouped ? UNGROUPED : group.name;
+      label.addEventListener("click", toggleGroup);
+      head.appendChild(label);
+      if (!isUngrouped) {
+        head.appendChild(vocabIconButton("\u00d7", "Удалить группу вместе со статьями", () => {
+          if (group.items.length && !window.confirm(`Удалить группу «${group.name}» и все её статьи (${group.items.length})?`)) return;
+          vocabGroups.splice(gi, 1);
+          renderVocab();
+        }));
+      }
+      li.appendChild(head);
+      if (collapsed) { list.appendChild(li); return; }
+
+      const ul = document.createElement("ul");
+      ul.className = "bv2-vocab__items";
+      visibleItems.forEach((item) => {
+        const row = document.createElement("li");
+        const name = document.createElement("span");
+        name.className = "bv2-vocab__item";
+        name.textContent = item.title;
+        row.append(
+          name,
+          vocabIconButton("\u00d7", "Удалить статью", () => { group.items.splice(group.items.indexOf(item), 1); renderVocab(); })
+        );
+        ul.appendChild(row);
+      });
+
+      let lastDraftInput = null;
+      (group.drafts || []).forEach((_, di) => {
+        const row = document.createElement("li");
+        lastDraftInput = vocabInput(group.drafts[di], (v) => { group.drafts[di] = v; }, "Название статьи");
+        row.append(lastDraftInput, vocabIconButton("\u00d7", "Убрать поле", () => { group.drafts.splice(di, 1); renderVocab(); }));
+        ul.appendChild(row);
+      });
+
+      const addRow = document.createElement("li");
+      const addBtn = document.createElement("button");
+      addBtn.type = "button";
+      addBtn.className = "bv2-vocab__addbtn";
+      addBtn.textContent = "+ Новая статья";
+      addBtn.addEventListener("click", () => {
+        (group.drafts ||= []).push("");
+        vocabFocusGroup = group;
+        renderVocab();
+      });
+      addRow.appendChild(addBtn);
+      ul.appendChild(addRow);
+      li.appendChild(ul);
+      list.appendChild(li);
+      if (vocabFocusGroup === group) { vocabFocusGroup = null; lastDraftInput?.focus(); }
+    });
+  }
+
+  function vocabError(message) {
+    $("#bv2-vocab-status").textContent = message;
+  }
+
+  async function saveVocab() {
+    vocabError("");
+    // Неподтверждённые черновики (текст без Enter) тоже считаем добавленными.
+    vocabGroups.forEach((g) => {
+      (g.drafts || []).forEach((draft) => {
+        const title = draft.trim();
+        if (title) g.items.push({ id: null, title });
+      });
+      g.drafts = [];
+    });
+    const newGroupInput = $("#bv2-vocab-new");
+    if (newGroupInput.value.trim()) {
+      vocabGroups.push({ rowId: null, isNew: true, name: newGroupInput.value.trim(), items: [] });
+      newGroupInput.value = "";
+    }
+    renderVocab();
+
+    const groups = vocabGroups.map((g) => ({ ...g, name: g.name.trim() }));
+    const names = groups.map((g) => g.name).filter(Boolean);
+    if (new Set(names.map((n) => n.toLowerCase())).size !== names.length) { vocabError("В справочнике есть повторяющиеся группы"); return; }
+
+    // Разница с загруженным справочником: удаление по id, добавление по title + category.
+    const keptIds = new Set(groups.flatMap((g) => g.items.map((i) => i.id)).filter((id) => id != null));
+    const keptRowIds = new Set(groups.map((g) => g.rowId).filter((id) => id != null));
+    const add = [];
+    const del = [];
+    vocabulary.forEach((v) => { if (v.id != null && !keptIds.has(v.id)) del.push({ id: v.id }); });
+    vocabGroupRows.forEach((r) => { if (r.id != null && !keptRowIds.has(r.id)) del.push({ id: r.id }); });
+    groups.forEach((g) => {
+      if (g.isNew && g.name) add.push({ title: "", category: g.name });
+      g.items.forEach((i) => {
+        const title = i.title.trim();
+        if (i.id == null && title) add.push({ title, category: g.name });
+      });
+    });
+    if (!add.length && !del.length) { $("#bv2-modal-vocab").hidden = true; return; }
+
+    const resp = await window.API.saveBudgetVocabulary({ add, delete: del }, apiOpts({ timeout: 8000 }));
+    if (resp == null) { vocabError("Сервер не ответил на сохранение справочника"); return; }
+    // Перечитываем справочник, чтобы получить id новых записей.
+    setVocabulary(await window.API.getBudgetVocabulary({ action: "getVocabulary", visible: true, mode: "notest" }, apiOpts()));
+    $("#bv2-modal-vocab").hidden = true;
+    notify("Справочник сохранён", "success");
+    renderAll();
+  }
+
+  // ---------- сохранение и загрузка ----------
+  async function saveChanges() {
+    const payload = Array.from(changed.values());
+    if (!payload.length) return;
+    const resp = await window.API.saveBudgetChanges({ changes: payload }, apiOpts({ timeout: 8000 }));
+    if (resp == null) { notify("Не удалось сохранить изменения бюджета", "error"); return; }
+    notify("Изменения успешно сохранены!", "success");
+    changed.clear();
+    await load();
+  }
+
+  // Общий overlay снимается первым завершившимся запросом, поэтому возвращаем его, пока есть незавершённые.
+  const LOAD_OVERLAY = `${PAGE_ID}-load`;
+
+  async function load() {
+    hidePage(LOAD_OVERLAY);
+    let pending = 3;
+    const tracked = (promise) => promise.finally(() => {
+      pending -= 1;
+      if (pending > 0) hidePage(LOAD_OVERLAY);
+    });
     try {
-      //console.log("Сохраняем", changedArray)
-      await new Promise(r => setTimeout(r, 1000));
-
-      const resp = await window.API.saveBudgetChanges(changedArray, { timeout: 8000, overlayId: "budget" });
-      if (resp == null) throw new Error("Не удалось сохранить изменения бюджета");
-      showToast('Изменения успешно сохранены!','success');
-      changedItems.clear();
-      enableSaveButton();
-      await init();
-    } catch (e) {
-      alert('Ошибка при сохранении: ' + e.message);
+      const [vocab, data, summary] = await Promise.all([
+        tracked(window.API.getBudgetVocabulary({ action: "getVocabulary", visible: true, mode: "notest" }, apiOpts())),
+        tracked(window.API.getBudgetData({ action: "getBudgetData", visible: true, mode: "no test" }, apiOpts())),
+        tracked(window.API.getMonthsSummary({ action: "getMonthsSummary", visible: true }, apiOpts())),
+      ]);
+      if (ctx && ctx.isActive && !ctx.isActive()) return;
+      setVocabulary(vocab);
+      budgetData = normalizeBudget(data);
+      monthsSummary = summary || {};
+      months = Object.keys(monthsSummary).sort((a, b) => parseDate(a) - parseDate(b));
+      const now = new Date();
+      const current = months.find((m) => {
+        const d = parseDate(m);
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+      });
+      if (!months.includes(selectedMonth)) selectedMonth = current || months[months.length - 1] || months[0];
+      renderAll();
+      scrollToSelectedMonth();
+    } finally {
+      showPage(LOAD_OVERLAY);
     }
-  });
-
-  function enableSaveButton() {
-    const saveBtn = document.getElementById('save-btn');
-    if (!saveBtn) return;
-    saveBtn.disabled = changedItems.size === 0;
-    //saveBtn.style.display = changedItems.size > 0 ? 'inline-block' : 'none';
   }
 
+  // ---------- инициализация ----------
+  let addChoice = "";
 
-
-
-
-//-----------------------------------------------PNL Chart-----------------------------------------------------------
-
-
-
-// Форматтеры для подсказок и подписей осей
-const currencyFmt = (value, currency = "VND", locale = "ru-RU") =>
-  new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
-
-const percentFmt = (value, locale = "ru-RU") =>
-  new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 1 }).format(value / 100);
-
-/**
- * Подготовка данных для графика
- */
-function prepareDatasets({ months, income, expense, profitMonth, cumulativeProfit, currency }) {
-  // Рентабельность, %
-  const profitabilityPct = income.map((inc, i) => {
-    const exp = expense[i] ?? 0;
-    if (!inc) return null;
-    return ((inc - exp) / inc) * 100;
-  });
-
-  // labels у тебя уже человекочитаемые (из transformToRaw)
-  const labels = months;
-
-  return { labels, income, expense, profitMonth, cumulativeProfit, currency };
-}
-
-
-/**
- * Создание/обновление графика
- */
-let pnlChart; // ссылка на экземпляр Chart.js
-
-function renderPnLChart(prepared) {
-  const { labels, income, expense, profitMonth, cumulativeProfit, profitabilityPct, currency } = prepared;
-
-  const data = {
-    labels,
-    datasets: [
-      {
-        type: "bar",
-        label: "Накопительно",
-        data: cumulativeProfit,
-        yAxisID: "yMoney",
-        borderWidth: 0,
-        backgroundColor: "rgba(124, 77, 255, 0.35)"
-      },
-      {
-        type: "bar",
-        label: "Доход",
-        data: income,
-        yAxisID: "yMoney",
-        borderWidth: 0,
-        backgroundColor: "rgba(33, 150, 243, 0.6)"
-      },
-      {
-        type: "bar",
-        label: "Расход",
-        data: expense,
-        yAxisID: "yMoney",
-        borderWidth: 0,
-        backgroundColor: "rgba(239, 83, 80, 0.6)"
-      },
-      {
-        type: "line",
-        label: "Прибыль (абс.)",
-        data: profitMonth,              // <-- помесячная прибыль
-        yAxisID: "yMoney",
-        tension: 0.25,
-        borderWidth: 2,
-        pointRadius: 3,
-        borderColor: "rgba(0, 150, 136, 1)",
-        fill: false
-      },
-      {
-        type: "line",
-        label: "Рентабельность, %",
-        data: profitabilityPct,
-        yAxisID: "yPct",
-        tension: 0.25,
-        borderWidth: 2,
-        pointRadius: 3,
-        borderColor: "rgba(255, 193, 7, 1)",
-        fill: false
-      }
-    ]
-  };
-
-  const ctx = document.getElementById("pnlChart1").getContext("2d");
-  if (pnlChart) {
-    pnlChart.data = data;
-    pnlChart.options = buildOptions(currency);
-    pnlChart.update();
-    return pnlChart;
-  }
-  pnlChart = new Chart(ctx, { data, options: buildOptions(currency) });
-  return pnlChart;
-}
-
-
-/**
- * Опции графика (2 оси Y + форматтеры)
- */
-function buildOptions(currency) {
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: "index", intersect: false },
-    plugins: {
-      legend: { position: "top" },
-      tooltip: {
-        callbacks: {
-          label: (ctx) => {
-            const dsLabel = ctx.dataset.label || "";
-            const raw = ctx.raw;
-            if (ctx.dataset.yAxisID === "yPct") {
-              return ` ${dsLabel}: ${percentFmt(raw)}`;
-            } else {
-              return ` ${dsLabel}: ${currencyFmt(raw, currency)}`;
-            }
-          },
-          footer: (items) => {
-            // В футере подсказки показываем «Профит» и «Маржа %» суммарно по точке,
-            // если вам нужно — можно оставить только стандартные лейблы.
-            let inc = 0, exp = 0;
-            for (const it of items) {
-              if (it.dataset.label === "Доход") inc = it.raw || 0;
-              if (it.dataset.label === "Расход") exp = it.raw || 0;
-            }
-            const p = inc - exp;
-            const pct = inc ? (p / inc) * 100 : null;
-            const lines = [];
-            lines.push(` Профит: ${currencyFmt(p, items[0].chart.options.scales.yMoney.currencyCode)}`);
-            lines.push(` Маржа накопительно: ${pct == null ? "—" : percentFmt(pct)}`);
-            return lines.join("\n");
-          }
-        }
-      }
-    },
-    scales: {
-      x: {
-        grid: { display: false }
-      },
-      yMoney: {
-        type: "linear",
-        position: "left",
-        title: { display: true, text: "Деньги" },
-        ticks: {
-          callback: (v) => currencyFmt(v, currency)
-        },
-        currencyCode: currency
-      },
-      yPct: {
-        type: "linear",
-        position: "right",
-        title: { display: true, text: "Рентабельность, %" },
-        min: 0,
-        max: 100,
-        grid: { drawOnChartArea: false },
-        ticks: {
-          callback: (v) => percentFmt(v)
-        }
-      }
-    }
-  };
-}
-
-
-/**
- * Преобразует monthsSummary в объект raw для графика
- * @param {Object} monthsSummary
- * @param {String} currency
- * @returns {Object} raw
- */
-
-function transformToRaw(monthsSummary, currency = "VND") {
-  const entries = Object.entries(monthsSummary)
-    .sort(([a],[b]) => parseBudgetDate(a) - parseBudgetDate(b)); // по возрастанию
-
-  const months = [];
-  const income = [];
-  const expense = [];
-  const profitMonth = [];      // линия «Прибыль (абс.)»
-  const cumulativeProfit = []; // столбец/линия «Накопительно»
-
-  for (const [date, v] of entries) {
-    const inc  = Number(v?.income)      || 0;
-    const out  = Number(v?.outcome)     || 0;
-    const pMon = Number(v?.profitMonth) || Number(v?.revenueFact) || (inc - out);
-    const pCum = Number(v?.profit)      || 0;
-
-    const d = parseBudgetDate(date);
-    const label = d.toLocaleDateString("ru-RU", { year: "numeric", month: "short" });
-
-    months.push(label);
-    income.push(inc);
-    expense.push(out);
-    profitMonth.push(pMon);
-    cumulativeProfit.push(pCum);
+  function openAddModal() {
+    const tree = $("#bv2-add-tree");
+    const confirm = $("#bv2-add-confirm");
+    const groups = new Map();
+    vocabulary.forEach((v) => {
+      const name = v.group || UNGROUPED;
+      if (!groups.has(name)) groups.set(name, []);
+      groups.get(name).push(v.title);
+    });
+    addChoice = "";
+    confirm.disabled = true;
+    tree.replaceChildren();
+    groups.forEach((titles, name) => {
+      const details = document.createElement("details");
+      details.className = "bv2-tree__group";
+      details.open = groups.size === 1;
+      const summary = document.createElement("summary");
+      summary.textContent = name;
+      const ul = document.createElement("ul");
+      ul.className = "bv2-tree__items";
+      titles.forEach((title) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "bv2-tree__item";
+        btn.textContent = title;
+        btn.addEventListener("click", () => {
+          addChoice = title;
+          $$(".bv2-tree__item", tree).forEach((b) => b.classList.toggle("is-selected", b === btn));
+          confirm.disabled = false;
+        });
+        li.appendChild(btn);
+        ul.appendChild(li);
+      });
+      details.append(summary, ul);
+      tree.appendChild(details);
+    });
+    $("#bv2-modal-add").hidden = false;
   }
 
-  return { months, income, expense, profitMonth, cumulativeProfit, currency };
-}
+  function initBudgetV2(context) {
+    ctx = context;
+    context?.onCleanup?.(() => {
+      Object.values(charts).forEach((c) => c?.destroy());
+      charts = { pnl: null, compare: null };
+    });
 
-function makeUniqueKey(month, baseTitle) {
-  const data = getBudgetMonthData(month);
-  // вариант 1: нумерация "Название #2"
-  let idx = 1;
-  let key = baseTitle;
-  while (Object.prototype.hasOwnProperty.call(data, key)) {
-    idx += 1;
-    key = `${baseTitle} #${idx}`;
+    $$(".bv2-tab").forEach((b) => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+    $("#bv2-prev").addEventListener("click", () => $("#bv2-months").scrollBy({ left: -240, behavior: "smooth" }));
+    $("#bv2-next").addEventListener("click", () => $("#bv2-months").scrollBy({ left: 240, behavior: "smooth" }));
+    $("#bv2-filter").addEventListener("change", (e) => { filterTitle = e.target.value; renderArticles(); });
+    $("#bv2-add-btn").addEventListener("click", openAddModal);
+    $("#bv2-add-cancel").addEventListener("click", () => { $("#bv2-modal-add").hidden = true; });
+    $("#bv2-add-confirm").addEventListener("click", () => {
+      if (!addChoice) return;
+      addArticle(addChoice);
+      $("#bv2-modal-add").hidden = true;
+      renderAll();
+    });
+    ["#bv2-amount", "#bv2-paid", "#bv2-comment"].forEach((s) => $(s).addEventListener(s === "#bv2-paid" ? "change" : "input", onDetailChange));
+    $("#bv2-amount").addEventListener("blur", (e) => { e.target.value = fmt(parseAmount(e.target.value)); });
+    $("#bv2-detail-close").addEventListener("click", () => { selectedKey = null; $("#bv2-detail").hidden = true; renderArticles(); });
+    $("#bv2-save-btn").addEventListener("click", () => saveChanges().catch((e) => notify(`Ошибка при сохранении: ${e.message}`, "error")));
+
+    $("#bv2-vocab-btn").addEventListener("click", openVocab);
+    $("#bv2-vocab-cancel").addEventListener("click", () => { $("#bv2-modal-vocab").hidden = true; });
+    $("#bv2-vocab-search").addEventListener("input", renderVocab);
+    $("#bv2-vocab-add").addEventListener("click", () => {
+      const input = $("#bv2-vocab-new");
+      const name = input.value.trim();
+      if (!name) return;
+      vocabGroups.push({ rowId: null, isNew: true, name, items: [] });
+      input.value = "";
+      renderVocab();
+    });
+    $("#bv2-suggest-cancel").addEventListener("click", () => { $("#bv2-modal-suggest").hidden = true; });
+    $("#bv2-suggest-apply").addEventListener("click", () => applySuggestions().catch((e) => notify(`Ошибка при сохранении: ${e.message}`, "error")));
+    $("#bv2-vocab-save").addEventListener("click", () => saveVocab().catch((e) => vocabError(`Ошибка: ${e.message}`)));
+
+    load().catch((error) => {
+      if (error?.name === "AbortError") return;
+      console.error("Failed to load budget", error);
+      notify("Не удалось загрузить бюджет", "error");
+    });
   }
-  return key;
 
-  // альтернатива — короткий UID:
-  // return `${baseTitle}__${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
-}
-
-
-
-
-function isPastMonth(dateStr) {
-  // создаём дату из строки (например, "2025-08-01" или "2025-08")
-  const d = parseBudgetDate(dateStr);
-
-  // берём только год и месяц
-  const year = d.getFullYear();
-  const month = d.getMonth(); // 0 = январь
-
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-
-  // сравнение
-  return year < currentYear || (year === currentYear && month < currentMonth);
-}
-
-
-
-  await init();
+  if (typeof registerPageInit === "function") registerPageInit(PAGE_ID, initBudgetV2);
 })();
