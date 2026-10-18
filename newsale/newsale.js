@@ -13,6 +13,16 @@
   let amelieStatusInterval = null;
   let amelieTimerInterval = null;
   let amelieQrTimeout = null;
+  let amelieRateMethod = null;
+
+  const AMELIE_QR_METHODS = {
+    RUB_QR: { label: "RUB", qrCurrency: "RUBQR", rateConfigKey: "currencyRUB" },
+    BYN_QR: { label: "BYN", qrCurrency: "BYNQR", rateConfigKey: "currencyBYN" }
+  };
+
+  function getAmelieQrInfo(method) {
+    return AMELIE_QR_METHODS[method] || null;
+  }
 
 
 //print bill begin//
@@ -256,13 +266,27 @@ window.showReceipt = function (receiptHtml) {
 
     hidePage("amelie-rate-fetch");
 
+    const requestMethod = amelieRateMethod;
+    const qrInfo = getAmelieQrInfo(requestMethod);
+
+    let url = endpoint;
+    if (qrInfo) {
+      // Endpoint config may already carry ?currency=RUBQR; replace it, don't append.
+      const u = new URL(endpoint, window.location.href);
+      u.searchParams.set("currency", qrInfo.qrCurrency);
+      url = u.toString();
+    }
+
     try {
-      const res = await fetch(endpoint, {
+      const res = await fetch(url, {
         method: "GET",
         headers: getAmelieAuthHeaders()
       });
 
       const data = await res.json();
+
+      // Drop stale response if the method was switched meanwhile.
+      if (requestMethod !== amelieRateMethod) return;
 
       if (typeof data.rate === "number") {
         amelieRate = data.rate;
@@ -279,7 +303,15 @@ window.showReceipt = function (receiptHtml) {
   }
 
   function startAmelieRatePolling() {
-    if (amelieRateInterval) return;
+    const method = cartUI?.paymentmethod;
+
+    if (amelieRateInterval && amelieRateMethod === method) return;
+
+    if (amelieRateInterval) {
+      stopAmelieRatePolling();
+    }
+
+    amelieRateMethod = method;
 
     const inFlow = !!(
       document.getElementById("amelie-qr-overlay") ||
@@ -303,6 +335,7 @@ window.showReceipt = function (receiptHtml) {
 
     amelieRateInterval = null;
     amelieRate = null;
+    amelieRateMethod = null;
   }
 
   function getAmelieAuthHeaders() {
@@ -360,7 +393,9 @@ window.showReceipt = function (receiptHtml) {
 
     const title = document.createElement("h3");
     title.id = "amelie-qr-title";
-    title.textContent = "Awaiting RUB QR Payment";
+    const qrLabel = getAmelieQrInfo(cartUI?.paymentmethod)?.label || "RUB";
+
+    title.textContent = `Awaiting ${qrLabel} QR Payment`;
 
     const amountEl = document.createElement("div");
 
@@ -373,7 +408,7 @@ window.showReceipt = function (receiptHtml) {
 
     amountEl.textContent =
       qrData.amount
-        ? `${qrData.amount} RUB`
+        ? `${qrData.amount} ${qrLabel}`
         : "";
 
     const statusEl = document.createElement("div");
@@ -406,7 +441,7 @@ window.showReceipt = function (receiptHtml) {
 
     if (amelieRate) {
       rateInfoEl.textContent =
-        `Rate: 1 RUB = ${(amelieRate / 10000).toFixed(2)} VND`;
+        `Rate: 1 ${qrLabel} = ${(amelieRate / 10000).toFixed(2)} VND`;
     }
 
     const payLinkEl = document.createElement("a");
@@ -493,7 +528,9 @@ window.showReceipt = function (receiptHtml) {
 
       const body = JSON.stringify({
         amount: amountRub,
-        currency: "RUBQR",
+        currency:
+          getAmelieQrInfo(cartUI?.paymentmethod)?.qrCurrency ||
+          "RUBQR",
         out_amount: amountVnd,
         source: "POS",
         ...(store
@@ -854,7 +891,8 @@ window.showReceipt = function (receiptHtml) {
         label: "Сумма",
         value:
           (statusData.amount || "") +
-          " RUB"
+          " " +
+          (getAmelieQrInfo(cartUI?.paymentmethod)?.label || "RUB")
       },
       {
         label: "Получено",
@@ -1894,7 +1932,10 @@ window.showReceipt = function (receiptHtml) {
     const rate =
       amelieRate ??
       parseNumber(
-        CONFIG.currencyRUB
+        CONFIG[
+          getAmelieQrInfo(cartUI.paymentmethod)?.rateConfigKey ||
+          "currencyRUB"
+        ]
       ) ??
       1;
 
@@ -1993,7 +2034,7 @@ window.showReceipt = function (receiptHtml) {
 
     const currentPaymentMethod =
       cartUI?.paymentmethod &&
-      cartUI.paymentmethod !== "RUB_QR"
+      !getAmelieQrInfo(cartUI.paymentmethod)
         ? cartUI.paymentmethod
         : cartUI?.lastNonRubQrPaymentMethod ||
           cartUI?.DEFAULT_PAYMENT_METHOD ||
@@ -2044,6 +2085,8 @@ window.showReceipt = function (receiptHtml) {
       }
     }
 
+    const qrPaymentMethod = cartUI.paymentmethod;
+
     function submitConfirmedAmelieSale() {
       updateSale();
 
@@ -2064,7 +2107,7 @@ window.showReceipt = function (receiptHtml) {
       finalManager.values.forEach(
         (item) => {
           item.paymentmethod =
-            "RUB_QR";
+            qrPaymentMethod;
 
           item.currency =
             "VND";
@@ -2125,8 +2168,9 @@ window.showReceipt = function (receiptHtml) {
 
   function makeOrder() {
     if (
-      cartUI.paymentmethod ===
-      "RUB_QR"
+      getAmelieQrInfo(
+        cartUI.paymentmethod
+      )
     ) {
       makeOrderRubQr();
       return;
@@ -2322,8 +2366,9 @@ window.showReceipt = function (receiptHtml) {
     }
 
     const isRubQr =
-      cartUI.paymentmethod ===
-      "RUB_QR";
+      !!getAmelieQrInfo(
+        cartUI.paymentmethod
+      );
 
     const currencyMap = {
       VND: "",
@@ -2354,7 +2399,9 @@ window.showReceipt = function (receiptHtml) {
 
     if (isRubQr) {
       cartUI.setCurrency(
-        "RUB"
+        getAmelieQrInfo(
+          cartUI.paymentmethod
+        ).label
       );
 
       cartUI.setTooltipCurrency(
@@ -2502,10 +2549,17 @@ window.showReceipt = function (receiptHtml) {
     }
   }
 
-  async function initNewsalePage() {
+  async function initNewsalePage(context) {
     stopAmelieRatePolling();
     stopAmelieFlow();
     salesManager = null;
+
+    // Page scripts stay loaded after navigation; stop Amelie timers on leave.
+    context?.onCleanup?.(() => {
+      stopAmelieRatePolling();
+      stopAmelieFlow();
+      document.getElementById("amelie-qr-overlay")?.remove();
+    });
 
     productTable =
       new SalesTableUI();

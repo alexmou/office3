@@ -1,0 +1,53 @@
+<main id="salary-period-root" class="salary-period">
+  <header class="salary-period__toolbar">
+    <div class="salary-period__filters">
+      <fieldset class="salary-period__range">
+        <legend>Фиксированная часть</legend>
+        <label>
+          <span>С</span>
+          <input id="salary-period-fix-from" type="date">
+        </label>
+        <label>
+          <span>По</span>
+          <input id="salary-period-fix-to" type="date">
+        </label>
+      </fieldset>
+      <fieldset class="salary-period__range">
+        <legend>Процентная часть</legend>
+        <label>
+          <span>С</span>
+          <input id="salary-period-percent-from" type="date">
+        </label>
+        <label>
+          <span>По</span>
+          <input id="salary-period-percent-to" type="date">
+        </label>
+      </fieldset>
+    </div>
+    <button id="salary-period-reload" class="salary-period__reload" type="button" title="Обновить" aria-label="Обновить">
+      <span aria-hidden="true">↻</span>
+    </button>
+  </header>
+
+  <p id="salary-period-status" class="salary-period__status" role="status" aria-live="polite"></p>
+
+  <section aria-labelledby="salary-period-summary-title">
+    <h2 id="salary-period-summary-title" class="salary-period__section-title">Начисления</h2>
+    <div class="salary-period__table-wrap">
+      <table class="salary-period__table">
+        <thead>
+          <tr>
+            <th scope="col">Сотрудник</th>
+            <th scope="col">Часы</th>
+            <th scope="col">Фиксированная часть</th>
+            <th scope="col">Процентная часть</th>
+            <th scope="col">Итого</th>
+          </tr>
+        </thead>
+        <tbody id="salary-period-summary"></tbody>
+        <tfoot id="salary-period-totals"></tfoot>
+      </table>
+    </div>
+  </section>
+
+</main>

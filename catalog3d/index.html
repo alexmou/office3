@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BUTTON ROUGE — каталог</title>
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<style>
+:root{--bg:#f2f0eb;--paper:#fffefa;--ink:#292824;--muted:#706e67;--line:#dfdcd4;--red:#bd304d;--soft:#e8e4dc}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #2864ad;outline-offset:2px}header{height:68px;background:var(--paper);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(14px,4vw,52px);position:sticky;top:0;z-index:5}.brand{font-weight:800;letter-spacing:.16em;font-size:14px}.nav{display:flex;gap:8px}main{max-width:1440px;margin:auto;padding:26px clamp(14px,3vw,40px) 48px}.btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:10px;padding:10px 13px;font-size:13px}.btn.primary{background:var(--ink);color:white}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--red);font-weight:750}.title{font-size:clamp(28px,4vw,44px);letter-spacing:-.04em;line-height:1.05;margin:8px 0 12px}.muted{color:var(--muted);font-size:14px;line-height:1.6}.toolbar{display:grid;grid-template-columns:minmax(220px,2fr) repeat(4,minmax(120px,1fr));gap:10px;margin:22px 0 16px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:11px;color:var(--muted);font-weight:700}.field input,.field select{height:43px;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:0 10px;min-width:0;color:var(--ink)}.results{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px;margin:16px 0}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.product{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--paper);display:flex;flex-direction:column;min-width:0}.product:hover{border-color:#aaa59b;transform:translateY(-2px)}.art{height:225px;background:linear-gradient(145deg,#f5f3ef,#e3dfd7);display:grid;place-items:center;color:#8a867e;font-size:12px;letter-spacing:.08em;position:relative}.art model-viewer{width:100%;height:100%}.info{padding:13px;display:flex;flex-direction:column;gap:8px;flex:1}.sku{font-size:11px;color:var(--muted)}.pname{font-size:15px;font-weight:700;line-height:1.35;cursor:pointer;color:var(--ink)}.pname:hover{color:var(--red)}.tags{display:flex;gap:5px;flex-wrap:wrap}.tag{font-size:11px;padding:4px 7px;background:var(--soft);border-radius:5px}.stock-badge{font-size:11px;font-weight:600;padding:3px 6px;border-radius:4px;display:inline-block;width:fit-content}.stock-badge.available{background:#e6f4ea;color:#137333}.stock-badge.out{background:#fce8e6;color:#c5221f}.bottom{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:8px}.price{font-weight:800}.actions-group{display:flex;gap:6px;align-items:center}.link{font-size:12px;color:var(--red);cursor:pointer}.btn-details{font-size:11px;padding:6px 10px;background:var(--soft);border:none;border-radius:6px;font-weight:600}.btn-details:hover{background:var(--line)}.view{display:none}.view.active{display:block}.back{margin-bottom:18px}.store-layout,.detail-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}.panel{border:1px solid var(--line);background:var(--paper);border-radius:15px;padding:22px;min-width:0}.panel h2{margin:8px 0 12px}.contacts{display:grid;gap:13px;margin-top:20px;font-size:14px;overflow-wrap:anywhere}.contacts b{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;margin-bottom:3px}.map{border:1px solid var(--line);border-radius:15px;overflow:hidden;background:white}.map iframe{display:block;width:100%;height:100%;min-height:350px;border:0}.store-products{margin-top:28px}.viewer{height:min(72vh,760px);min-height:420px;position:relative;border:1px solid var(--line);border-radius:15px;overflow:hidden;background:radial-gradient(ellipse at 50% 35%,#fffefa,#e3dfd7)}.viewer model-viewer{width:100%;height:100%}.empty{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:8px;padding:20px;color:var(--muted);pointer-events:none}.empty strong{color:var(--ink)}.detail-panel h1{font-size:clamp(28px,4vw,42px);line-height:1.08;letter-spacing:-.04em}.detail-price{font-size:24px;font-weight:800;margin:18px 0}.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.meta div{border-top:1px solid var(--line);padding-top:9px;overflow-wrap:anywhere}.meta span{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}.controls{display:flex;gap:8px;flex-wrap:wrap}.empty-result{padding:35px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px;grid-column:1/-1}footer{padding:16px clamp(14px,4vw,52px);border-top:1px solid var(--line);font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:10px}
+@media(max-width:1000px){.toolbar{grid-template-columns:repeat(3,minmax(0,1fr))}.search{grid-column:1/-1}.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:700px){header{height:60px}.brand{font-size:12px}.nav .btn{padding:8px}.toolbar{grid-template-columns:1fr 1fr}.search{grid-column:1/-1}.grid{grid-template-columns:1fr 1fr;gap:9px}.art{height:170px}.info{padding:10px}.store-layout,.detail-layout{grid-template-columns:1fr}.map iframe{min-height:290px}.viewer{height:58svh;min-height:350px}.panel{padding:17px}.results{align-items:flex-start;gap:8px}.title{font-size:32px}}@media(max-width:390px){.art{height:145px}.grid{gap:7px}}
+</style></head><body>
+<header><div class="brand">BUTTON ROUGE</div><nav class="nav"><button class="btn" id="navCatalog">Каталог</button><button class="btn" id="navStore">Магазин Boho</button></nav></header>
+<main>
+<section id="catalogView" class="view active">
+<div class="eyebrow">BUTTON ROUGE · COLLECTION</div><h1 class="title">Каталог</h1>
+<div class="toolbar">
+<div class="field search">
+
+    <input id="search" type="search" placeholder="Поиск.."></div>
+<div class="field">
+
+    <select id="storeFilter"><option value="">Все магазины</option></select></div>
+<div class="field">
+
+    <select id="sizeFilter"><option value="">Все размеры</option></select></div>
+<div class="field">
+
+    <select id="typeFilter"><option value="">Все типы</option></select></div>
+<div class="field">
+   
+    <select id="subtypeFilter"><option value="">Все подтипы</option></select></div>
+</div>
+<div class="results"><span id="resultCount">Найдено товаров: 0</span><button class="btn" id="clearFilters">Сбросить фильтры</button></div><div class="grid" id="productGrid"></div>
+</section>
+<section id="storeView" class="view"><button class="btn back" id="backFromStore">← Назад в каталог</button><div class="eyebrow">BUTTON ROUGE · STORE</div><h1 class="title" id="storeTitle">Магазин</h1>
+<div class="store-layout"><article class="panel"><div class="eyebrow">ИНФОРМАЦИЯ</div><h2 id="storeNameCard"></h2><p class="muted" id="storeDescription"></p><div class="contacts" id="storeContacts"></div></article><div class="map"><iframe id="storeMap" title="Карта магазина" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div></div>
+<div class="store-products"><h2>Товары этого магазина</h2><div id="storeProductGrid" class="grid"></div></div></section>
+<section id="productView" class="view"><button class="btn back" id="backFromProduct">← Назад в каталог</button><div class="detail-layout">
+<div class="viewer"><model-viewer id="detailModel" alt="3D-модель выбранного товара" camera-controls touch-action="pan-y" interaction-prompt="auto" shadow-intensity=".9" shadow-softness=".9" exposure="1" environment-image="neutral" camera-orbit="0deg 75deg 2.8m" min-camera-orbit="auto 15deg .5m" max-camera-orbit="auto 165deg 8m" field-of-view="30deg"></model-viewer><div id="viewerEmpty" class="empty"><strong>3D-модель не указана</strong><span>Добавьте URL GLB в поле <code>glbUrl</code> товара.</span></div></div>
+<article class="panel detail-panel"><div class="eyebrow" id="detailBrand">BUTTON ROUGE</div><h1 id="detailName">Название товара</h1><p class="muted" id="detailDescription"></p><div class="detail-price" id="detailPrice"></div><div class="meta" id="detailMeta"></div><button class="btn" id="detailStoreBtn">Перейти в магазин</button><div class="controls" style="margin-top:16px"><button class="btn" id="detailFront">Вид спереди</button><button class="btn" id="detailBack">Вид сзади</button><button class="btn" id="detailZoomIn">＋ Приблизить</button><button class="btn" id="detailZoomOut">− Отдалить</button><button class="btn" id="detailReset">Сбросить вид</button><button class="btn" id="detailFullscreen">На весь экран</button></div><p class="muted" style="font-size:12px;margin-top:18px">Вращение: перетаскивайте модель мышью или пальцем. Масштабирование: колесо мыши или жест двумя пальцами.</p></article>
+</div></section>
+</main><footer><span>BUTTON ROUGE</span><span>Каталог · Магазины ·</span></footer>
+<script>
+/* 2. Данные о магазинах вынесены в отдельный объект (можно сохранить в stores.json) */
+const STORES_DATA = {
+ Boho:{title:"BUTTON ROUGE Boho",description:"Магазин BUTTON ROUGE. Описание магазина, ассортимент и особенности коллекции.",address:"Добавьте фактический адрес магазина Boho",phone:"Добавьте телефон",hours:"10:00–22:00",instagram:"https://www.instagram.com/button_rouge_vn/",mapQuery:"BUTTON ROUGE Boho Nha Trang"},
+ Urban:{title:"BUTTON ROUGE Urban",description:"Магазин BUTTON ROUGE Urban.",address:"Добавьте фактический адрес магазина Urban",phone:"Добавьте телефон",hours:"10:00–22:00",instagram:"https://www.instagram.com/button_rouge_vn/",mapQuery:"BUTTON ROUGE Urban Nha Trang"},
+ Vibe:{title:"BUTTON ROUGE Vibe",description:"Магазин BUTTON ROUGE Vibe.",address:"Добавьте фактический адрес магазина Vibe",phone:"Добавьте телефон",hours:"10:00–22:00",instagram:"https://www.instagram.com/button_rouge_vn/",mapQuery:"BUTTON ROUGE Vibe Nha Trang"},
+ Warehouse:{title:"BUTTON ROUGE Warehouse",description:"Складской магазин BUTTON ROUGE.",address:"Добавьте фактический адрес Warehouse",phone:"Добавьте телефон",hours:"Уточнить график",instagram:"https://www.instagram.com/button_rouge_vn/",mapQuery:"BUTTON ROUGE Warehouse Nha Trang"}
+};
+
+/* Массив товаров с добавленными priority и quantity */
+const CATALOG = [
+ {
+  num:"2313",
+  brand:28,
+  type:1,
+  subtype:1,
+  description:"брюки коричневые M BH2",
+  model:"",
+  name:"TROUSERS",
+  fabric:"100% cotton",
+  color:"brown",
+  size:["M","S","L"],
+  netprice:600000,
+  quantity:5, /* 1. Остаток ( > 0 ) */
+  priority:10, /* 4. Приоритет для сортировки (меньше = выше) */
+  price:950000,
+  article_short:"3412313",
+  brand_display:"Sea Time",
+  type_display:"одежда",
+  subtype_display:"брюки",
+  article:"341012313",
+  store:"Boho",
+  glbUrl:"assets/black_halter_dress_v2.glb"
+ },
+ {
+  num:"444",
+  brand:28,
+  type:1,
+  subtype:1,
+  description:"Кимоно черное M BH1",
+  model:"",
+  name:"KIMONO",
+  fabric:"100% cotton",
+  color:"black",
+  size:"M",
+  netprice:600000,
+  quantity:0, /* 1. Товар с нулевым остатком */
+  priority:5, /* Поднимется выше из-за приоритета 5 */
+  price:950000,
+  article_short:"3412314",
+  brand_display:"Sea Time",
+  type_display:"одежда",
+  subtype_display:"брюки",
+  article:"341012314",
+  store:"Boho",
+  glbUrl:"assets/Woman_in_Black_Halter_1011102232_image-to-3d-texture.glb"
+ }
+];
+
+const $=s=>document.querySelector(s),safe=v=>String(v??""),money=v=>Number(v)>0?new Intl.NumberFormat("ru-RU").format(Number(v))+" ₫":"Цена уточняется";
+const unique=a=>[...new Set(a.map(v=>safe(v).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ru",{numeric:true}));
+let currentProduct=null;
+
+function fillSelect(id,values,label){const el=$(id),old=el.value;el.replaceChildren();const first=new Option(label,"");el.add(first);unique(values).forEach(v=>el.add(new Option(v,v)));if([...el.options].some(o=>o.value===old))el.value=old;}
+function initFilters(){fillSelect("#storeFilter",CATALOG.map(p=>p.store),"Все магазины");fillSelect("#sizeFilter",CATALOG.map(p=>p.size),"Все размеры");fillSelect("#typeFilter",CATALOG.map(p=>p.type_display||p.type),"Все типы");fillSelect("#subtypeFilter",CATALOG.map(p=>p.subtype_display||p.subtype),"Все подтипы");}
+function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));window.scrollTo({top:0,behavior:"smooth"});}
+function searchText(p){return [p.num,p.article,p.article_short,p.brand_display,p.type_display,p.subtype_display,p.description,p.name,p.fabric,p.color,p.size,p.manufacturer,p.madein,p.store,p.model,p.Comments].map(safe).join(" ").toLocaleLowerCase("ru");}
+
+function productCard(p){
+ const card=document.createElement("article");
+ card.className="product";
+ 
+ const art=document.createElement("div");
+ art.className="art";
+ if(p.glbUrl){
+  const mv=document.createElement("model-viewer");
+  mv.src=p.glbUrl;
+  mv.alt=p.description||p.name||"3D-модель товара";
+  mv.setAttribute("camera-controls","");
+  mv.setAttribute("interaction-prompt","auto"); // Позволяет крутить модель прямо в карточке
+  art.append(mv);
+ }else{
+  art.textContent="BUTTON ROUGE";
+ }
+ 
+ const info=document.createElement("div");
+ info.className="info";
+ 
+ const sku=document.createElement("div");
+ sku.className="sku";
+ sku.textContent="АРТИКУЛ "+(p.article||p.article_short||p.num||"—");
+ 
+ /* 3. Клик по наименованию открывает детализацию */
+ const name=document.createElement("div");
+ name.className="pname";
+ name.textContent=(p.description||p.name||"Товар без названия").trim();
+ name.addEventListener("click",()=>openProduct(p));
+ 
+ const tags=document.createElement("div");
+ tags.className="tags";
+ [p.brand_display,p.subtype_display,p.color,p.size,p.store].filter(Boolean).forEach(v=>{
+  const t=document.createElement("span");
+  t.className="tag";
+  t.textContent=v;
+  tags.append(t);
+ });
+
+ /* 1. Отображение quantity / остатка */
+ const stockBadge=document.createElement("div");
+ const qty=Number(p.quantity);
+ if(qty > 0){
+  stockBadge.className="stock-badge available";
+  stockBadge.textContent=`Остаток: ${qty} шт.`;
+ }else{
+  stockBadge.className="stock-badge out";
+  stockBadge.textContent="Нет в наличии";
+ }
+
+ const bottom=document.createElement("div");
+ bottom.className="bottom";
+ const price=document.createElement("div");
+ price.className="price";
+ price.textContent=money(p.price);
+ 
+ const actionsGroup=document.createElement("div");
+ actionsGroup.className="actions-group";
+ 
+ /* 3. Дополнительная кнопка для открытия детализации */
+ const btnDetails=document.createElement("button");
+ btnDetails.className="btn-details";
+ btnDetails.textContent="Детали";
+ btnDetails.addEventListener("click",()=>openProduct(p));
+
+ const link=document.createElement("span");
+ link.className="link";
+ link.textContent="Магазин ↗";
+ link.addEventListener("click",e=>{e.stopPropagation();openStore(p.store);});
+ 
+ actionsGroup.append(btnDetails,link);
+ bottom.append(price,actionsGroup);
+ 
+ info.append(sku,name,tags,stockBadge,bottom);
+ card.append(art,info);
+ 
+ return card;
+}
+
+function renderGrid(id,items){
+ const grid=$(id);
+ grid.replaceChildren();
+ if(!items.length){
+  const e=document.createElement("div");
+  e.className="empty-result";
+  e.textContent="По выбранным условиям товары не найдены.";
+  grid.append(e);
+  return;
+ }
+ const frag=document.createDocumentFragment();
+ items.forEach(p=>frag.append(productCard(p)));
+ grid.append(frag);
+}
+
+function filtered(){
+ const q=$("#search").value.trim().toLocaleLowerCase("ru"),s=$("#storeFilter").value,z=$("#sizeFilter").value,t=$("#typeFilter").value,st=$("#subtypeFilter").value;
+ const result = CATALOG.filter(p=>(!q||searchText(p).includes(q))&&(!s||safe(p.store)===s)&&(!z||safe(p.size)===z)&&(!t||safe(p.type_display||p.type)===t)&&(!st||safe(p.subtype_display||p.subtype)===st));
+ 
+ /* 4. Автоматическая сортировка карточек по priority ( integer ) */
+ result.sort((a, b) => (Number(a.priority) || 0) - (Number(b.priority) || 0));
+ 
+ return result;
+}
+
+function renderCatalog(){const items=filtered();renderGrid("#productGrid",items);$("#resultCount").textContent="Найдено товаров: "+items.length;}
+
+/* Модифицированная функция открытия магазина */
+function openStore(store){
+ store = store || "Boho";
+ const s = STORES_DATA[store] || {title:"BUTTON ROUGE "+store,description:"Информация о магазине ещё не добавлена.",address:"Добавьте фактический адрес",phone:"Добавьте телефон",hours:"Уточнить график",instagram:"https://www.instagram.com/button_rouge_vn/",mapQuery:"BUTTON ROUGE "+store+" Nha Trang"};
+ 
+ $("#storeTitle").textContent = s.title;
+ $("#storeNameCard").textContent = s.title;
+ $("#storeIntro").textContent = "Магазин: "+store;
+ $("#storeDescription").textContent = s.description;
+ $("#storeContacts").replaceChildren();
+ 
+ [["Адрес", s.address], ["Телефон", s.phone], ["Часы работы", s.hours], ["Instagram", s.instagram]].forEach(([label, value]) => {
+  const row = document.createElement("div"), body = document.createElement("div"), b = document.createElement("b");
+  row.className = "contact";
+  b.textContent = label;
+  body.append(b);
+  if(label === "Instagram"){
+   const a = document.createElement("a");
+   a.href = value; a.target = "_blank"; a.rel = "noopener noreferrer";
+   a.textContent = value; a.style.color = "var(--red)";
+   body.append(a);
+  } else {
+   const span = document.createElement("span");
+   span.textContent = value;
+   body.append(span);
+  }
+  row.append(body);
+  $("#storeContacts").append(row);
+ });
+ 
+ $("#storeMap").src = "https://maps.google.com/maps?q="+encodeURIComponent(s.mapQuery || s.address)+"&output=embed";
+ renderGrid("#storeProductGrid", CATALOG.filter(p => safe(p.store) === safe(store)));
+ 
+ /* Добавляем запись в историю браузера при переходе в магазин */
+ history.pushState({view: 'store', storeName: store}, '', '');
+ showView("storeView");
+}
+
+/* Функция возврата */
+function back(){
+ history.back();
+}
+
+/* Расширенный обработчик кнопки «Назад» в браузере (поддерживает и товары, и магазины) */
+window.addEventListener('popstate', (event) => {
+ const state = event.state;
+ 
+ if (state && state.view === 'product') {
+  // Возврат к карточке товара
+  const product = CATALOG.find(p => p.article === state.article);
+  if (product) {
+   currentProduct = product;
+   $("#detailBrand").textContent = product.brand_display || "BUTTON ROUGE";
+   $("#detailName").textContent = (product.description || product.name || "Товар без названия").trim();
+   $("#detailDescription").textContent = [product.name, product.fabric, product.color].filter(Boolean).join(" · ");
+   $("#detailPrice").textContent = money(product.price);
+   showView("productView");
+   return;
+  }
+ } else if (state && state.view === 'store') {
+  // Возврат к странице магазина
+  openStore(state.storeName);
+  return;
+ }
+ 
+ // По умолчанию возвращаемся к каталогу
+ showView("catalogView");
+});
+
+/* Модифицированная функция открытия товара */
+function openProduct(p){
+ currentProduct=p;
+ $("#detailBrand").textContent=p.brand_display||"BUTTON ROUGE";
+ $("#detailName").textContent=(p.description||p.name||"Товар без названия").trim();
+ $("#detailDescription").textContent=[p.name,p.fabric,p.color].filter(Boolean).join(" · ");
+ $("#detailPrice").textContent=money(p.price);
+ $("#detailMeta").replaceChildren();
+ [["Артикул",p.article||p.article_short||p.num],["Размер",p.size],["Остаток",p.quantity !== undefined ? p.quantity + " шт." : "Уточняется"],["Тип",p.type_display||p.type],["Подтип",p.subtype_display||p.subtype],["Цвет",p.color],["Материал",p.fabric],["Магазин",p.store],["Производитель",p.madein||p.manufacturer]].forEach(([label,value])=>{
+  if(value==null||value==="")return;
+  const d=document.createElement("div"),s=document.createElement("span"),b=document.createElement("strong");
+  s.textContent=label;
+  b.textContent=value;
+  d.append(s,b);
+  $("#detailMeta").append(d);
+ });
+ const mv=$("#detailModel");
+ if(p.glbUrl){
+  mv.src=p.glbUrl;
+  mv.alt=p.description||p.name||"3D-модель товара";
+  $("#viewerEmpty").classList.add("hidden");
+ }else{
+  mv.removeAttribute("src");
+  $("#viewerEmpty").classList.remove("hidden");
+ }
+ $("#detailStoreBtn").textContent="Перейти в магазин "+(p.store||"");
+ 
+ /* Добавляем запись в историю браузера при переходе в детали */
+ history.pushState({view: 'product', article: p.article}, '', '');
+ showView("productView");
+}
+
+/* Функция возврата */
+function back(){
+ history.back();
+}
+
+/* Обработчик кнопки «Назад» в браузере */
+window.addEventListener('popstate', (event) => {
+ const state = event.state;
+ if (state && state.view === 'product') {
+  // Если в истории это карточка товара — открываем её
+  const product = CATALOG.find(p => p.article === state.article);
+  if (product) {
+   currentProduct = product;
+   // Заполняем данные без повторного вызова pushState
+   $("#detailBrand").textContent=product.brand_display||"BUTTON ROUGE";
+   $("#detailName").textContent=(product.description||product.name||"Товар без названия").trim();
+   $("#detailDescription").textContent=[product.name,product.fabric,product.color].filter(Boolean).join(" · ");
+   $("#detailPrice").textContent=money(product.price);
+   showView("productView");
+   return;
+  }
+ }
+ // Иначе возвращаемся к каталогу по умолчанию
+ showView("catalogView");
+});
+
+function back(){showView("catalogView");}
+
+$("#search").addEventListener("input",renderCatalog);
+["#storeFilter","#sizeFilter","#typeFilter","#subtypeFilter"].forEach(id=>$(id).addEventListener("change",renderCatalog));
+$("#clearFilters").addEventListener("click",()=>{$("#search").value="";["#storeFilter","#sizeFilter","#typeFilter","#subtypeFilter"].forEach(id=>$(id).value="");renderCatalog();});
+$("#navCatalog").addEventListener("click",back);
+$("#navStore").addEventListener("click",()=>openStore("Boho"));
+$("#backFromStore").addEventListener("click",back);
+$("#backFromProduct").addEventListener("click",back);
+$("#detailStoreBtn").addEventListener("click",()=>openStore(currentProduct?.store));
+
+function setOrbit(theta){const mv=$("#detailModel"),o=mv.getCameraOrbit();mv.cameraOrbit=`${theta}deg ${o.phi*180/Math.PI}deg ${o.radius}m`;}
+$("#detailFront").addEventListener("click",()=>setOrbit(0));
+$("#detailBack").addEventListener("click",()=>setOrbit(180));
+$("#detailZoomIn").addEventListener("click",()=>{const m=$("#detailModel"),o=m.getCameraOrbit();m.cameraOrbit=`${o.theta*180/Math.PI}deg ${o.phi*180/Math.PI}deg ${Math.max(.5,o.radius*.8)}m`;});
+$("#detailZoomOut").addEventListener("click",()=>{const m=$("#detailModel"),o=m.getCameraOrbit();m.cameraOrbit=`${o.theta*180/Math.PI}deg ${o.phi*180/Math.PI}deg ${Math.min(8,o.radius*1.25)}m`;});
+$("#detailReset").addEventListener("click",()=>{const m=$("#detailModel");m.cameraOrbit="0deg 75deg 2.8m";m.fieldOfView="30deg";m.cameraTarget="auto";});
+$("#detailFullscreen").addEventListener("click",async()=>{try{if(!document.fullscreenElement)await $(".viewer").requestFullscreen();else await document.exitFullscreen();}catch(e){console.warn("Fullscreen unavailable",e);}});
+
+initFilters();
+renderCatalog();
+</script></body></html>

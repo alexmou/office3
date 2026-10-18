@@ -1,0 +1,227 @@
+{
+  "domains": {
+    "runtime": {
+      "sourceFiles": [
+        "index.html",
+        "system/system.js",
+        "system/pageConfig.js",
+        "system/app.js"
+      ],
+      "docs": [
+        "docs/ARCHITECTURE.md",
+        "docs/PAGES.md"
+      ],
+      "verificationCommands": [
+        "node tools/generate-docs.mjs --check"
+      ]
+    },
+    "auth": {
+      "sourceFiles": [
+        "login/login.js",
+        "system/system.js",
+        "system/api.js"
+      ],
+      "docs": [
+        "docs/SECURITY.md",
+        "docs/API.md"
+      ],
+      "verificationCommands": [
+        "node --check system/api.js",
+        "node --check login/login.js"
+      ]
+    },
+    "api": {
+      "sourceFiles": [
+        "system/api.js",
+        "system/n8n.js"
+      ],
+      "docs": [
+        "docs/API.md"
+      ],
+      "verificationCommands": [
+        "node tools/generate-docs.mjs --check"
+      ]
+    },
+    "sale": {
+      "sourceFiles": [
+        "newsale/newsale.html",
+        "newsale/newsales_classes.js",
+        "newsale/newsale.js",
+        "shared/table.css",
+        "newsale/newsale.css"
+      ],
+      "docs": [
+        "docs/SALE_FLOW.md",
+        "docs/DATA_MODEL.md"
+      ],
+      "verificationCommands": [
+        "node --check newsale/newsale.js",
+        "node --check newsale/newsales_classes.js"
+      ]
+    },
+    "catalog": {
+      "sourceFiles": [
+        "catalog/catalog.html",
+        "catalog/catalog.js",
+        "shared/table.css",
+        "catalog/catalog.css"
+      ],
+      "docs": [
+        "docs/PAGES.md",
+        "docs/API.md"
+      ],
+      "verificationCommands": [
+        "node --check catalog/catalog.js"
+      ]
+    },
+    "warehouse": {
+      "sourceFiles": [
+        "admin_sklad/admin_sklad.html",
+        "admin_sklad/admin_sklad.js",
+        "admin_sklad/admin_sklad.css"
+      ],
+      "docs": [
+        "docs/PAGES.md",
+        "docs/API.md"
+      ],
+      "verificationCommands": [
+        "node --check admin_sklad/admin_sklad.js"
+      ]
+    },
+    "barcode": {
+      "sourceFiles": [
+        "barcode/barcode.html",
+        "barcode/barcode.js",
+        "barcode/barcode.css",
+        "vendor/jsbarcode-3.11.6.all.min.js",
+        "vendor/dom-to-image-2.6.0.min.js",
+        "vendor/jspdf-2.5.1.umd.min.js"
+      ],
+      "docs": [
+        "docs/PAGES.md"
+      ],
+      "verificationCommands": [
+        "node --check barcode/barcode.js"
+      ]
+    },
+    "sales": {
+      "sourceFiles": [
+        "sales/sales.html",
+        "sales/sales.js",
+        "shared/table.css",
+        "sales/sales.css"
+      ],
+      "docs": [
+        "docs/PAGES.md",
+        "docs/API.md"
+      ],
+      "verificationCommands": [
+        "node --check sales/sales.js"
+      ]
+    },
+    "cash": {
+      "sourceFiles": [
+        "cashRegister/cashRegister.html",
+        "cashRegister/table_li.js",
+        "cashRegister/cashRegister.js",
+        "shared/table.css",
+        "cashRegister/cache_budget_register.css"
+      ],
+      "docs": [
+        "docs/PAGES.md",
+        "docs/API.md"
+      ],
+      "verificationCommands": [
+        "node --check cashRegister/cashRegister.js"
+      ]
+    },
+    "budget": {
+      "sourceFiles": [
+        "budget/budget.html",
+        "budget/budget.js",
+        "budget/budget.css"
+      ],
+      "docs": [
+        "docs/PAGES.md",
+        "docs/API.md"
+      ],
+      "verificationCommands": [
+        "node --check budget/budget.js"
+      ]
+    },
+    "salary": {
+      "sourceFiles": [
+        "salary/salary.html",
+        "salary/salary.js",
+        "salary/salary.css"
+      ],
+      "docs": [
+        "docs/PAGES.md",
+        "docs/API.md"
+      ],
+      "verificationCommands": [
+        "node --check salary/salary.js"
+      ]
+    },
+    "schedule": {
+      "sourceFiles": [
+        "schedule/schedule.html",
+        "schedule/schedule.js",
+        "schedule/schedule.css"
+      ],
+      "docs": [
+        "docs/PAGES.md",
+        "docs/API.md"
+      ],
+      "verificationCommands": [
+        "node --check schedule/schedule.js"
+      ]
+    },
+    "statistics": {
+      "sourceFiles": [
+        "statistic/statistic.html",
+        "statistic/statistic.js",
+        "statistic/charts.css"
+      ],
+      "docs": [
+        "docs/PAGES.md",
+        "docs/API.md"
+      ],
+      "verificationCommands": [
+        "node --check statistic/statistic.js"
+      ]
+    },
+    "suppliers": {
+      "sourceFiles": [
+        "suppliers/suppliers.html",
+        "suppliers/suppliers.js",
+        "suppliers/suppliers.css"
+      ],
+      "docs": [
+        "docs/PAGES.md",
+        "docs/API.md"
+      ],
+      "verificationCommands": [
+        "node --check suppliers/suppliers.js"
+      ]
+    },
+    "sapo": {
+      "sourceFiles": [
+        "sapo/sapo.html",
+        "sapo/sapo.js",
+        "sapo/sapo.css"
+      ],
+      "docs": [
+        "docs/PAGES.md",
+        "docs/API.md"
+      ],
+      "verificationCommands": [
+        "node --check sapo/sapo.js"
+      ]
+    }
+  },
+  "counts": {
+    "pages": 16,
+    "routes": 60
+  }
+}

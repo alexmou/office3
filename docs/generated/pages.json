@@ -1,0 +1,421 @@
+{
+  "source": "system/pageConfig.js",
+  "pages": [
+    {
+      "id": "header",
+      "title": "Header",
+      "kind": "shared",
+      "html": "header/header.html",
+      "javascript": [
+        "header/header.js"
+      ],
+      "css": [
+        "header/header.css"
+      ],
+      "externalAssets": [],
+      "initializer": null,
+      "initializerRegistered": false,
+      "apiServices": [],
+      "sourceFiles": [
+        "header/header.html",
+        "header/header.js",
+        "header/header.css"
+      ]
+    },
+    {
+      "id": "admin_sklad",
+      "title": "Warehouse administration",
+      "kind": "page",
+      "html": "admin_sklad/admin_sklad.html",
+      "javascript": [
+        "admin_sklad/admin_sklad.js"
+      ],
+      "css": [
+        "admin_sklad/admin_sklad.css"
+      ],
+      "externalAssets": [],
+      "initializer": "bodyOnload",
+      "initializerRegistered": true,
+      "apiServices": [
+        "addSkladItem",
+        "deleteSkladItem",
+        "editSkladItem",
+        "getSkladData",
+        "getSkladHeader",
+        "getSkladVocabulary",
+        "getStores",
+        "saveSkladChanges"
+      ],
+      "sourceFiles": [
+        "admin_sklad/admin_sklad.html",
+        "admin_sklad/admin_sklad.js",
+        "admin_sklad/admin_sklad.css"
+      ]
+    },
+    {
+      "id": "login",
+      "title": "Login",
+      "kind": "page",
+      "html": "login/login.html",
+      "javascript": [
+        "login/login.js"
+      ],
+      "css": [],
+      "externalAssets": [],
+      "initializer": "anonymous callback",
+      "initializerRegistered": true,
+      "apiServices": [
+        "getStores",
+        "setToken"
+      ],
+      "sourceFiles": [
+        "login/login.html",
+        "login/login.js"
+      ]
+    },
+    {
+      "id": "newsale",
+      "title": "New sale",
+      "kind": "page",
+      "html": "newsale/newsale.html",
+      "javascript": [
+        "newsale/newsales_classes.js",
+        "newsale/newsale.js"
+      ],
+      "css": [
+        "shared/table.css",
+        "newsale/newsale.css"
+      ],
+      "externalAssets": [],
+      "initializer": "initNewsalePage",
+      "initializerRegistered": true,
+      "apiServices": [
+        "getHeader",
+        "getStores"
+      ],
+      "sourceFiles": [
+        "newsale/newsale.html",
+        "newsale/newsales_classes.js",
+        "newsale/newsale.js",
+        "shared/table.css",
+        "newsale/newsale.css"
+      ]
+    },
+    {
+      "id": "barcode",
+      "title": "Tag print",
+      "kind": "page",
+      "html": "barcode/barcode.html",
+      "javascript": [
+        "barcode/barcode.js"
+      ],
+      "css": [
+        "barcode/barcode.css"
+      ],
+      "externalAssets": [
+        "vendor/jsbarcode-3.11.6.all.min.js",
+        "vendor/dom-to-image-2.6.0.min.js",
+        "vendor/jspdf-2.5.1.umd.min.js"
+      ],
+      "initializer": "init",
+      "initializerRegistered": true,
+      "apiServices": [
+        "getTagsConfig",
+        "saveTagsConfig"
+      ],
+      "sourceFiles": [
+        "barcode/barcode.html",
+        "barcode/barcode.js",
+        "barcode/barcode.css",
+        "vendor/jsbarcode-3.11.6.all.min.js",
+        "vendor/dom-to-image-2.6.0.min.js",
+        "vendor/jspdf-2.5.1.umd.min.js"
+      ]
+    },
+    {
+      "id": "catalog",
+      "title": "Catalog",
+      "kind": "page",
+      "html": "catalog/catalog.html",
+      "javascript": [
+        "catalog/catalog.js"
+      ],
+      "css": [
+        "shared/table.css",
+        "catalog/catalog.css"
+      ],
+      "externalAssets": [],
+      "initializer": "initCatalogPage",
+      "initializerRegistered": true,
+      "apiServices": [
+        "getAllItemsFromCatalogByQuery",
+        "getStores"
+      ],
+      "sourceFiles": [
+        "catalog/catalog.html",
+        "catalog/catalog.js",
+        "shared/table.css",
+        "catalog/catalog.css"
+      ]
+    },
+    {
+      "id": "sales",
+      "title": "Sales",
+      "kind": "page",
+      "html": "sales/sales.html",
+      "javascript": [
+        "sales/sales.js"
+      ],
+      "css": [
+        "shared/table.css",
+        "sales/sales.css"
+      ],
+      "externalAssets": [],
+      "initializer": "initSalesPage",
+      "initializerRegistered": true,
+      "apiServices": [
+        "approveReturn",
+        "getEmployeeColorMap",
+        "getSalesData",
+        "requestReturn"
+      ],
+      "sourceFiles": [
+        "sales/sales.html",
+        "sales/sales.js",
+        "shared/table.css",
+        "sales/sales.css"
+      ]
+    },
+    {
+      "id": "statistic",
+      "title": "Свод",
+      "kind": "page",
+      "html": "statistic/statistic.html",
+      "javascript": [
+        "statistic/statistic.js"
+      ],
+      "css": [
+        "statistic/charts.css"
+      ],
+      "externalAssets": [
+        "https://cdn.jsdelivr.net/npm/chart.js"
+      ],
+      "initializer": "boot",
+      "initializerRegistered": true,
+      "apiServices": [
+        "getStatisticData"
+      ],
+      "sourceFiles": [
+        "statistic/statistic.html",
+        "statistic/statistic.js",
+        "statistic/charts.css"
+      ]
+    },
+    {
+      "id": "settings",
+      "title": "Settings",
+      "kind": "page",
+      "html": "settings/settings.html",
+      "javascript": [
+        "settings/settings.js"
+      ],
+      "css": [
+        "settings/settings.css"
+      ],
+      "externalAssets": [],
+      "initializer": "initSettingsPage",
+      "initializerRegistered": true,
+      "apiServices": [
+        "createUser",
+        "getSalaryPercent",
+        "getUsers",
+        "updateSalaryPercent",
+        "updateUser"
+      ],
+      "sourceFiles": [
+        "settings/settings.html",
+        "settings/settings.js",
+        "settings/settings.css"
+      ]
+    },
+    {
+      "id": "salary",
+      "title": "Salary",
+      "kind": "page",
+      "html": "salary/salary.html",
+      "javascript": [
+        "salary/salary.js"
+      ],
+      "css": [
+        "salary/salary.css"
+      ],
+      "externalAssets": [
+        "https://cdn.jsdelivr.net/npm/chart.js"
+      ],
+      "initializer": "bodyOnLoad",
+      "initializerRegistered": true,
+      "apiServices": [],
+      "sourceFiles": [
+        "salary/salary.html",
+        "salary/salary.js",
+        "salary/salary.css"
+      ]
+    },
+    {
+      "id": "cashregister",
+      "title": "Cash Register",
+      "kind": "page",
+      "html": "cashRegister/cashRegister.html",
+      "javascript": [
+        "cashRegister/table_li.js",
+        "cashRegister/cashRegister.js"
+      ],
+      "css": [
+        "shared/table.css",
+        "cashRegister/cache_budget_register.css"
+      ],
+      "externalAssets": [],
+      "initializer": "bodyOnLoad",
+      "initializerRegistered": true,
+      "apiServices": [
+        "getBudgetVocabulary"
+      ],
+      "sourceFiles": [
+        "cashRegister/cashRegister.html",
+        "cashRegister/table_li.js",
+        "cashRegister/cashRegister.js",
+        "shared/table.css",
+        "cashRegister/cache_budget_register.css"
+      ]
+    },
+    {
+      "id": "budget",
+      "title": "Budget",
+      "kind": "page",
+      "html": "budget/budget.html",
+      "javascript": [
+        "budget/budget.js"
+      ],
+      "css": [
+        "budget/budget.css"
+      ],
+      "externalAssets": [
+        "https://cdn.jsdelivr.net/npm/chart.js"
+      ],
+      "initializer": "initBudgetV2",
+      "initializerRegistered": true,
+      "apiServices": [
+        "getBudgetData",
+        "getBudgetVocabulary",
+        "getMonthsSummary",
+        "saveBudgetChanges",
+        "saveBudgetVocabulary"
+      ],
+      "sourceFiles": [
+        "budget/budget.html",
+        "budget/budget.js",
+        "budget/budget.css"
+      ]
+    },
+    {
+      "id": "suppliers",
+      "title": "Suppliers",
+      "kind": "page",
+      "html": "suppliers/suppliers.html",
+      "javascript": [
+        "suppliers/suppliers.js?v=20260404-5"
+      ],
+      "css": [
+        "suppliers/suppliers.css?v=20260404-1"
+      ],
+      "externalAssets": [
+        "https://cdn.jsdelivr.net/npm/chart.js"
+      ],
+      "initializer": "boot",
+      "initializerRegistered": true,
+      "apiServices": [
+        "getSuppliersData",
+        "markSupplierPaymentsDone"
+      ],
+      "sourceFiles": [
+        "suppliers/suppliers.html",
+        "suppliers/suppliers.js",
+        "suppliers/suppliers.css"
+      ]
+    },
+    {
+      "id": "schedule",
+      "title": "Schedule",
+      "kind": "page",
+      "html": "schedule/schedule.html",
+      "javascript": [
+        "schedule/schedule.js"
+      ],
+      "css": [
+        "schedule/schedule.css"
+      ],
+      "externalAssets": [],
+      "initializer": "initSchedulePage",
+      "initializerRegistered": true,
+      "apiServices": [
+        "getEmployeeColorMap",
+        "getSchedule",
+        "getScheduleMeta",
+        "getStores",
+        "upsertShifts"
+      ],
+      "sourceFiles": [
+        "schedule/schedule.html",
+        "schedule/schedule.js",
+        "schedule/schedule.css"
+      ]
+    },
+    {
+      "id": "salaryperiod",
+      "title": "Расчет зарплаты",
+      "kind": "page",
+      "html": "salaryPeriod/salaryPeriod.html",
+      "javascript": [
+        "salaryPeriod/salaryPeriod.js"
+      ],
+      "css": [
+        "salaryPeriod/salaryPeriod.css"
+      ],
+      "externalAssets": [],
+      "initializer": "initSalaryPeriod",
+      "initializerRegistered": true,
+      "apiServices": [
+        "getSalaryPeriod",
+        "getScheduleMeta"
+      ],
+      "sourceFiles": [
+        "salaryPeriod/salaryPeriod.html",
+        "salaryPeriod/salaryPeriod.js",
+        "salaryPeriod/salaryPeriod.css"
+      ]
+    },
+    {
+      "id": "sapo",
+      "title": "Sapo CRM",
+      "kind": "page",
+      "html": "sapo/sapo.html",
+      "javascript": [
+        "sapo/sapo.js"
+      ],
+      "css": [
+        "sapo/sapo.css"
+      ],
+      "externalAssets": [],
+      "initializer": "sapoBoot",
+      "initializerRegistered": true,
+      "apiServices": [
+        "getSapoOrders"
+      ],
+      "sourceFiles": [
+        "sapo/sapo.html",
+        "sapo/sapo.js",
+        "sapo/sapo.css"
+      ]
+    }
+  ]
+}

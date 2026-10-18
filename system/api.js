@@ -58,6 +58,12 @@
     sendSalesToSheet:{ source: "n8n", method: "POST", webhook: "prod", webhookAction: "newSale" },
 
     getMenu: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "Menu" },
+    // User administration services (n8n webhook: /users)
+    getUsers: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "users" },
+    updateUser: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "users" },
+    createUser: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "users" },
+    getSalaryPercent: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "users" },
+    updateSalaryPercent: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "users" },
     // Localization services (n8n workflow: localization, id: fJVdhXr3rGXg0TsB, webhook: /localization)
     getLocalizationDictionary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "localization" },
     getMySalary:{ source: "n8n", method: "GET", webhook: "prod", webhookAction: "Salary" },
@@ -93,6 +99,7 @@
     getBudgetData: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "budget" },
     getMonthsSummary: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "budget" },
     saveBudgetChanges: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "budget", rawBody: true },
+    saveBudgetVocabulary: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "budget", rawBody: true },
 
     // Tags services (n8n webhook: /tags)
     // NOTE: backend action can be overridden via params.action.
@@ -113,6 +120,7 @@
     getScheduleMeta: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
     getSchedule: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
     getEmployeeColorMap: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
+    getSalaryPeriod: { source: "n8n", method: "GET", webhook: "prod", webhookAction: "schedule" },
     upsertShifts: { source: "n8n", method: "POST", webhook: "prod", webhookAction: "schedule"},
 
     // Sapo CRM integration services (n8n webhook: /sapo)
@@ -133,14 +141,16 @@
   // 1 = legacy (GET uses `data={"query":...}` wrapper; some POST routes may still rely on raw body/query-action)
   // 2 = universal (GET uses plain query params; POST uses `{ action, token, payload }` envelope; no rawBody)
   let API_CONTRACT_VERSION = 1;
+  let overlayRequestId = 0;
 
-  async function callN8n(action, paramsWithToken, timeout = DEFAULT_TIMEOUT, mode) {
+  async function callN8n(action, paramsWithToken, timeout = DEFAULT_TIMEOUT, mode, opts = {}) {
     const resp = await postDataToN8n(
       `${action}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(paramsWithToken),
+        body: JSON.stringify({ ...(window.token ? { token: window.token } : {}), ...paramsWithToken }),
+        signal: opts.signal,
       },
       timeout,
       mode
@@ -168,7 +178,8 @@
     const dataOnly = !!opts.dataOnly;
     const webhook = getWebHook(mode);
     const qs = new URLSearchParams();
-    const payload = paramsWithToken || {};
+    const payload = { ...(paramsWithToken || {}) };
+    if (!payload.token && window.token) payload.token = window.token;
     if (!dataOnly) {
       Object.entries(payload).forEach(([key, value]) => {
         if (value === undefined) return;
@@ -187,7 +198,7 @@
     const url = `${webhook}${action}${qs.toString() ? `?${qs.toString()}` : ""}`;
 
     const resp = await Promise.race([
-      fetch(url),
+      fetch(url, { signal: opts.signal }),
       new Promise((_, rej) =>
         setTimeout(() => rej(new Error("Превышено время ожидания")), timeout)
       )
@@ -364,6 +375,13 @@
   }
 
   async function requestViaN8nOrMock(action, paramsWithToken = {}, opts = {}) {
+    const navigation = window.__NAVIGATION;
+    const scope = opts.scope || (navigation?.pageId ? "page" : "global");
+    opts = {
+      ...opts,
+      scope,
+      signal: opts.signal || (scope === "page" ? navigation?.controller?.signal : undefined),
+    };
     const route = API_ROUTES[action] || {};
     const method = (opts.method || route.method || "POST").toUpperCase();
     const mode = normalizeWebhookMode(
@@ -462,11 +480,21 @@
       ? { ...basePayload, action: basePayload?.action || action }
       : basePayload;
     const actionName = payload?.action || basePayload?.action || action;
+    // Токен добавляется централизованно для всех сервисных вызовов (кроме выдачи токена).
+    const authToken = payload.token || window.token;
+    if (authToken && action !== "setToken" && action !== "getToken") payload.token = authToken;
     const endpointLabel = method === "GET" ? endpoint : (isV2 ? endpoint : targetAction);
    // console.info(`[API] ${method} ${endpointLabel} action=${actionName}`);
 
-    const overlayId = opts.overlayId || `n8n-${action}-${Date.now()}`;
+    const overlayId = opts.overlayId || `n8n-${action}-${++overlayRequestId}`;
     hidePage(overlayId);
+    const throwIfAborted = () => {
+      if (opts.signal?.aborted) {
+        const error = new Error("Page request belongs to an inactive navigation");
+        error.name = "AbortError";
+        throw error;
+      }
+    };
 
     try {
       if (method === "GET") {
@@ -478,6 +506,7 @@
           contractVersion,
           opts
         );
+        throwIfAborted();
         showPage(overlayId);
         return ensureServiceResponse(res, action);
       }
@@ -499,12 +528,14 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
+            signal: opts.signal,
           },
           opts.timeout || DEFAULT_TIMEOUT,
           mode
         );
         if (!resp.ok) throw new Error(await resp.text());
         const json = await parseResponseByMode(resp, opts);
+        throwIfAborted();
         showPage(overlayId);
         return ensureServiceResponse(json, action);
       }
@@ -513,7 +544,7 @@
       if (opts.rawBody !== undefined) {
         const hasActionQuery = String(targetAction).includes("action=");
         const rawAction = payload?.action;
-        const actionSuffix =
+        let actionSuffix =
           !hasActionQuery && rawAction
             ? `${targetAction}${String(targetAction).includes("?") ? "&" : "?"}action=${encodeURIComponent(rawAction)}`
             : targetAction;
@@ -521,22 +552,30 @@
           `${actionSuffix}`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            // Тело raw-запроса фиксировано, поэтому токен уходит заголовком.
+            headers: {
+              "Content-Type": "application/json",
+              ...(payload.token ? { "X-Auth-Token": payload.token } : {}),
+            },
             body: JSON.stringify(opts.rawBody),
+            signal: opts.signal,
           },
           opts.timeout || DEFAULT_TIMEOUT,
           mode
         );
         if (!resp.ok) throw new Error(await resp.text());
         const json = await parseResponseByMode(resp, opts);
+        throwIfAborted();
         showPage(overlayId);
         return ensureServiceResponse(json, action);
       }
 
-      const res = await callN8n(targetAction, payload, opts.timeout || DEFAULT_TIMEOUT, mode);
+      const res = await callN8n(targetAction, payload, opts.timeout || DEFAULT_TIMEOUT, mode, opts);
+      throwIfAborted();
       showPage(overlayId);
       return ensureServiceResponse(res, action);
     } catch (error) {
+      if (error?.name === "AbortError") throw error;
       console.error(`Ошибка при выполнении ${action} через n8n:`, error);
       showPage(overlayId);
       if (error?.code === "EMPTY_SERVICE_RESPONSE") throw error;

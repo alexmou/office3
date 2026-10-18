@@ -1,13 +1,12 @@
-# Project README
+# Historical project context (superseded)
 
-This file is the canonical project context for AI-assisted work in `/home/l_murygin/www`.
+This file contains archived paths, workflow ownership assumptions, deployment notes, and test-mirror guidance from an earlier repository layout. None of the instructions below are active. Historical paths, workflow synchronization commands, host details, and infrastructure assumptions must not override source or canonical documentation.
 
-Read order for non-trivial tasks:
-- `AGENTS.md`
-- `local/README.md`
-- `.memory_bank/active-context.md`
-- the most relevant domain note in `.memory_bank/`
-- only then the target code files
+Current guidance: [AGENTS.md](../AGENTS.md), [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md), [docs/API.md](../docs/API.md), [docs/OPERATIONS.md](../docs/OPERATIONS.md), and [docs/TESTING.md](../docs/TESTING.md). No local workflow source or ownership map exists in this repository.
+
+## Archived notes
+
+The following material is retained for historical context only. Do not execute old commands or infer that referenced files, workflow trees, or deployment procedures still exist.
 
 ## Purpose
 

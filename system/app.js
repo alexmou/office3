@@ -1,9 +1,11 @@
+
 const DEFAULT_NAV_ITEMS = [
   { id: "newsale", label: "New sale", type: "page", level: 0 },
   { id: "barcode", label: "Tag print", type: "page", level: 0 },
   { id: "catalog", label: "Catalog", type: "page", level: 0 },
   { id: "sales", label: "Sales", type: "page", level: 0 },
   { id: "salary", label: "Salary", type: "page", level: 0 },
+  { id: "salaryperiod", label: "Расчет зарплаты", type: "page", level: 0 },
   { id: "cashregister", label: "Cash Register", type: "page", level: 0 },
   { id: "budget", label: "Budget", type: "page", level: 0 },
   { id: "statistic", label: "Statistic", type: "page", level: 0 },
@@ -40,12 +42,83 @@ const HEADER_FALLBACK_HTML = `
   </header>
 `;
 
+
+//------- сброс логина (переадрессация в корень)------начало-------
+function initDailyAppReset() {
+  const startedDate = getLocalDateKey();
+  let resetTimer = null;
+
+  function getLocalDateKey() {
+    const now = new Date();
+
+    return [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, "0"),
+      String(now.getDate()).padStart(2, "0")
+    ].join("-");
+  }
+
+  function redirectToAppRoot() {
+    window.location.replace("/office/");
+  }
+
+  function checkDateChanged() {
+    if (getLocalDateKey() !== startedDate) {
+      redirectToAppRoot();
+      return true;
+    }
+
+    return false;
+  }
+
+  function scheduleNextMidnight() {
+    if (resetTimer) {
+      clearTimeout(resetTimer);
+    }
+
+    if (checkDateChanged()) {
+      return;
+    }
+
+    const now = new Date();
+
+    const nextMidnight = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1,
+      0, 0, 0, 0
+    );
+
+    const delay = nextMidnight.getTime() - now.getTime();
+
+    resetTimer = setTimeout(
+      redirectToAppRoot,
+      delay
+    );
+  }
+
+  scheduleNextMidnight();
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      scheduleNextMidnight();
+    }
+  });
+
+  window.addEventListener("focus", scheduleNextMidnight);
+}
+
+//------- сброс логина (переадрессация в корень)-------конец------
+
+
+
 const loadedAssets = {
   css: new Map(),
   js: new Map(),
 };
 
 const pageInitializers = {};
+const pageCleanupHandlers = new Map();
 
 window.registerPageInit = function(pageId, fn) {
   if (pageId && typeof fn === "function") {
@@ -53,27 +126,112 @@ window.registerPageInit = function(pageId, fn) {
   }
 };
 
-async function runPageInit(pageId) {
-  const fn = pageInitializers[pageId];
-  if (typeof fn === "function") {
+window.registerPageCleanup = function(pageId, fn) {
+  if (!pageId || typeof fn !== "function") return;
+  const handlers = pageCleanupHandlers.get(pageId) || new Set();
+  handlers.add(fn);
+  pageCleanupHandlers.set(pageId, handlers);
+};
+
+async function runPageCleanup(context) {
+  if (!context) return;
+  const handlers = [...context.cleanups];
+  context.cleanups.clear();
+  for (const cleanup of handlers) {
     try {
-      const res = fn();
-      if (res && typeof res.then === "function") {
-        await res;
+      const result = cleanup();
+      if (result && typeof result.then === "function") {
+        result.catch((err) => console.error(`Failed to cleanup page ${context.pageId}`, err));
       }
     } catch (err) {
-      console.error(`Failed to init page ${pageId}`, err);
+      console.error(`Failed to cleanup page ${context.pageId}`, err);
+    }
+  }
+  for (const cleanup of pageCleanupHandlers.get(context.pageId) || []) {
+    try {
+      cleanup();
+    } catch (err) {
+      console.error(`Failed to cleanup page ${context.pageId}`, err);
     }
   }
 }
 
-let currentPageScripts = [];
+async function runPageInit(pageId, context) {
+  const fn = pageInitializers[pageId];
+  if (typeof fn !== "function" || !context?.isActive()) return;
+  console.debug("[PAGE INIT START]", {
+    pageId,
+    navVersion: context.navVersion,
+    currentPage: window.__NAVIGATION?.pageId,
+    currentVersion: window.__NAVIGATION?.version,
+  });
+  try {
+    await fn(context);
+  } catch (err) {
+    if (err?.name !== "AbortError" && !context.signal.aborted) {
+      console.error(`Failed to init page ${pageId}`, err);
+    }
+  } finally {
+    console.debug("[PAGE INIT END]", {
+      pageId,
+      navVersion: context.navVersion,
+      currentPage: window.__NAVIGATION?.pageId,
+      currentVersion: window.__NAVIGATION?.version,
+    });
+  }
+}
+
 let currentPageStyles = [];
 const CORE_SCRIPTS = [
   "system/n8n.js",
   "system/api.js",
   "shared/class_TableUI.js",
 ];
+
+// Monotonic navigation generation: only the latest navigateTo()/loadPage() call may touch the DOM/state.
+let navigationVersion = 0;
+window.__NAVIGATION = { version: 0, pageId: null, controller: null };
+let activePageContext = null;
+
+function createPageContext(pageId, navVersion, controller) {
+  const cleanups = new Set();
+  return {
+    pageId,
+    navVersion,
+    controller,
+    signal: controller.signal,
+    cleanups,
+    isActive() {
+      return window.__NAVIGATION?.pageId === pageId &&
+        window.__NAVIGATION?.version === navVersion &&
+        !controller.signal.aborted;
+    },
+    onCleanup(fn) {
+      if (typeof fn === "function") cleanups.add(fn);
+    },
+  };
+}
+
+function beginNavigation(pageId) {
+  const previous = activePageContext;
+  navigationVersion += 1;
+  const controller = new AbortController();
+  if (previous) {
+    console.debug("[NAV INVALIDATE]", {
+      oldPageId: previous.pageId,
+      oldNavVersion: previous.navVersion,
+      newPageId: pageId,
+      newNavVersion: navigationVersion,
+    });
+    previous.controller?.abort();
+    runPageCleanup(previous);
+  }
+  window.__NAVIGATION = { version: navigationVersion, pageId, controller };
+  const context = createPageContext(pageId, navigationVersion, controller);
+  activePageContext = context;
+  currentPageName = pageId;
+  return context;
+}
 
 function extractBodyHtml(htmlText) {
   const parsed = new DOMParser().parseFromString(htmlText, "text/html");
@@ -94,7 +252,7 @@ function extractBodyHtml(htmlText) {
 }
 
 async function loadCoreScripts() {
-  await ensureScripts(CORE_SCRIPTS, { persistent: true });
+  await ensureScripts(CORE_SCRIPTS);
 }
 
 async function loadHeader() {
@@ -104,7 +262,7 @@ async function loadHeader() {
   if (!cfg) return;
 
   ensureCss(cfg.css);
-  await ensureScripts(cfg.js, { persistent: true });
+  await ensureScripts(cfg.js);
 
   let htmlText = null;
   // `fetch()` for local files is blocked in most browsers; fall back to an inline template.
@@ -185,7 +343,10 @@ function ensureExtraNavItems(navItems) {
   if (!items.some((it) => it?.id === "sapo")) {
     items.push({ id: "sapo", label: "Sapo CRM", type: "page", level: 0 });
   }
-  return items;
+  if (!items.some((it) => it?.id === "salaryperiod")) {
+    items.push({ id: "salaryperiod", label: "Расчет зарплаты", type: "page", level: 0 });
+  }
+return items;
 }
 
 async function refreshMenu() {
@@ -200,10 +361,12 @@ async function refreshMenu() {
   }
 
   try {
-    const raw = await API.getMenu({ username });
+    const raw = await API.getMenu({ username }, { scope: "global" });
     const items = normalizeMenuItems(unwrapMenuResponse(raw));
     const filtered = items.filter((it) => it.type !== "page" || !!it.id);
-    currentNavItems = ensureExtraNavItems(filtered.length > 0 ? filtered : DEFAULT_NAV_ITEMS.slice());
+    // Only fall back to the hardcoded defaults (with forced extra items) when the backend
+    // returns nothing; otherwise respect its role-filtered list as-is.
+    currentNavItems = filtered.length > 0 ? filtered : ensureExtraNavItems(DEFAULT_NAV_ITEMS.slice());
     applyNavToHeader(currentNavItems);
     if (typeof window.setMenuEnabled === "function") {
       window.setMenuEnabled(true);
@@ -237,41 +400,36 @@ function ensureCss(cssList = []) {
   });
 }
 
-function ensureScripts(scriptList = [], opts = {}) {
-  // Загружаем последовательно, чтобы сохранить порядок зависимостей
-  return scriptList.reduce((prev, src) => {
-    return prev.then(
-      () =>
-        new Promise((resolve, reject) => {
-          // Если уже загружали этот скрипт, просто резолвим.
-          if (loadedAssets.js.has(src)) {
-            return resolve(loadedAssets.js.get(src));
-          }
+function ensureScripts(scriptList = []) {
+  // Share in-flight loads so concurrent navigation cannot add duplicate scripts.
+  return scriptList.reduce((prev, src) => prev.then(() => loadScriptOnce(src)), Promise.resolve());
+}
 
-          const script = document.createElement("script");
-          script.src = src;
-          script.onload = () => {
-            loadedAssets.js.set(src, script);
-            resolve(script);
-          };
-          script.onerror = (err) => reject(err);
-          document.body.appendChild(script);
-          currentPageScripts.push(script);
-        })
-    );
-  }, Promise.resolve());
+function loadScriptOnce(src) {
+  if (loadedAssets.js.has(src)) {
+    return loadedAssets.js.get(src);
+  }
+  const promise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = () => resolve(script);
+    script.onerror = (err) => reject(err);
+    document.body.appendChild(script);
+  });
+  loadedAssets.js.set(src, promise);
+  return promise;
 }
 
 function cleanupPageAssets() {
-  currentPageScripts.forEach((s) => s.remove());
-  currentPageScripts = [];
+  // Page scripts stay loaded so their registerPageInit hooks remain available.
   currentPageStyles.forEach((s) => s.remove());
   currentPageStyles = [];
 }
 
-async function loadPage(pageId) {
+async function loadPage(pageId, context) {
   const cfg = window.PAGE_CONFIG?.[pageId];
-  if (!cfg) return;
+  if (!cfg || !context?.isActive()) return;
+  const isStale = () => !context.isActive();
 
   setPageTitle(cfg.title || pageId);
   cleanupPageAssets();
@@ -300,6 +458,7 @@ async function loadPage(pageId) {
   }
 
   if (window.location.protocol === "file:") {
+    if (isStale()) return;
     const pageRoot = document.getElementById("page-root");
     if (pageRoot) {
       pageRoot.innerHTML =
@@ -316,8 +475,19 @@ async function loadPage(pageId) {
     return;
   }
 
-  const res = await fetch(cfg.html);
-  const htmlText = await res.text();
+  let htmlText;
+  try {
+    const res = await fetch(cfg.html, { signal: context.signal });
+    htmlText = await res.text();
+  } catch (err) {
+    if (err?.name === "AbortError") {
+      console.debug(`[NAV] aborted page fetch: ${pageId}`);
+      return;
+    }
+    throw err;
+  }
+  if (isStale()) return;
+
   const pageRoot = document.getElementById("page-root");
   pageRoot.innerHTML = extractBodyHtml(htmlText);
   if (typeof window.localizeDomTree === "function") {
@@ -332,7 +502,11 @@ async function loadPage(pageId) {
     scriptsToLoad.push(...cfg.js);
   }
   await ensureScripts(scriptsToLoad);
-  await runPageInit(pageId);
+  if (isStale()) return;
+
+  await runPageInit(pageId, context);
+  if (isStale()) return;
+
   if (typeof window.localizeDomTree === "function") {
     window.localizeDomTree(pageRoot);
   }
@@ -361,25 +535,37 @@ async function loadPage(pageId) {
 }
 
 function navigateTo(pageId) {
+  const context = beginNavigation(pageId);
+  console.debug("[NAV START]", {
+    pageId,
+    navVersion: context.navVersion,
+    time: performance.now(),
+  });
+
   if (pageId !== "login" && !window.token) {
     redirectToLogin();
     return;
   }
   const requiresAuthCheck = pageId !== "login" && !!window.token && !window.__authVerified;
-  const load = () => loadPage(pageId);
+  const load = () => loadPage(pageId, context);
   if (!requiresAuthCheck) {
     load().catch((err) => {
       console.error("Failed to load page", pageId, err);
-      showPage(pageId);
+      if (context.isActive()) showPage(pageId);
     });
     return;
   }
   ensureValidToken(pageId)
     .then((ok) => {
       if (!ok) return;
+      if (!context.isActive()) {
+        console.debug(`[NAV] ignored stale navigation: ${pageId}`, context.navVersion, navigationVersion);
+        return;
+      }
       return load();
     })
     .catch((err) => {
+      if (err?.name === "AbortError" || !context.isActive()) return;
       console.error("Failed to load page", pageId, err);
       showPage(pageId);
     });
@@ -435,7 +621,7 @@ async function preloadLocalizationDictionary() {
       token: window.token,
       lang: window.APP_LANG || window.CONFIG?.APP_LANG || "en",
       scope: "ui",
-    });
+    }, { scope: "global" });
   } catch (e) {
     console.warn("Не удалось загрузить словарь локализации из n8n", e);
     return null;
@@ -443,6 +629,7 @@ async function preloadLocalizationDictionary() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  initDailyAppReset();
   const url = new URL(window.location.href);
   const urlToken = url.searchParams.get("token");
   if (urlToken) {
@@ -472,7 +659,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const fallbackFirst = currentNavItems[0]?.id || DEFAULT_NAV_ITEMS[0]?.id;
       const initial = (window.token ? (preferred || fallbackFirst) : "login") || "login";
       if (window.token) {
-        return loadPage(initial);
+        return loadPage(initial, beginNavigation(initial));
       }
       navigateTo(initial);
     })
@@ -490,7 +677,7 @@ async function ensureValidToken(pageId) {
     return false;
   }
   try {
-    const res = await API.getAuthData({ token: window.token });
+    const res = await API.getAuthData({ token: window.token }, { scope: "global" });
     const parsed = typeof res === "string" ? JSON.parse(res) : res;
     const respToken = parsed?.token;
     if (respToken && respToken === window.token) {
@@ -553,7 +740,7 @@ async function getStoreNameById(storeId) {
 
   let stores = [];
   try {
-    const resp = await API.getStores({ token: window.token });
+    const resp = await API.getStores({ token: window.token }, { scope: "global" });
     const parsed = typeof resp === "string" ? JSON.parse(resp) : resp;
     stores = parsed?.data || parsed || [];
   } catch (e) {

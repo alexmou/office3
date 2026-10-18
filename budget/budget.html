@@ -1,97 +1,107 @@
-
-<body>
-<div id="global">
-  <div id="main">
-    <div id="myDiv" class="animate-bottom">
-	       <button id="save-btn" disabled data-i18n="Сохранить изменения">Сохранить изменения</button>
-      <div id="content" class="animate-bottom" style="display: inline-grid; max-width: 1600px;">
-   
-	          <nav id="summary" aria-label="Сводные данные по месяцам" data-i18n-attrs="aria-label:Сводные данные по месяцам" tabindex="0">
-
-       
-
-          </nav>
-
-
-<div id="main-container" role="main">
-
-
-	  <section id="right-container" aria-label="Управление статьями и детализация" data-i18n-attrs="aria-label:Управление статьями и детализация">
-    <div id="articles-container">
-      <div id="articles" aria-label="Список статей расходов и доходов">
-        <h3>Статьи расходов / доходов</h3>
-        <table>
-          <thead>
-            <tr><th>Статья</th><th>Факт</th><th>Прогноз</th></tr>
-          </thead>
-          <tbody id="articles-tbody"></tbody>
-        </table>
-        <button id="add-article-btn" title="Добавить статью" aria-label="Добавить статью">+</button>
-      </div>
-
-
+<main id="bv2-root" class="bv2">
+  <header class="bv2-toolbar">
+    <nav class="bv2-tabs" role="tablist" aria-label="Разделы бюджета">
+      <button type="button" class="bv2-tab is-active" role="tab" data-tab="overview">Обзор</button>
+      <button type="button" class="bv2-tab" role="tab" data-tab="compare">Сравнение по месяцам</button>
+      <button type="button" class="bv2-tab" role="tab" data-tab="analytics">Аналитика <span id="bv2-alert-count" class="bv2-badge" hidden></span></button>
+    </nav>
+    <div class="bv2-actions">
+      <button type="button" id="bv2-vocab-btn" class="bv2-btn">Справочник статей</button>
+      <button type="button" id="bv2-save-btn" class="bv2-btn bv2-btn--primary" disabled>Сохранить изменения</button>
     </div>
+  </header>
 
-
-
-      <div id="article-detail" aria-label="Детализация статьи" hidden>
-        <h3>Детализация статьи</h3>
-        <form id="article-form" onsubmit="return false;">
-                 <span id="detail-article-name" style="font-weight:600;"></span>
-          
-          <label for="outcome-value">Расходы</label>
-          <input type="text" id="outcome-value" step="100000" aria-describedby="fact-desc" style="    font-size: larger; color: crimson;"/>
-          <span id="fact-desc" style="display:none">Значение расходов</span>
-     
-          <div class="checkbox-group">
-            <input type="checkbox" id="paid-checkbox" />
-            <label for="paid-checkbox" style="margin:0; user-select:none; cursor:pointer;">Оплачено</label>
-          </div>
-                          <p></p>
-            <div id="commentField" contenteditable="true" style="border: 1px solid #ccc; min-height: 100px;">
-        
-            </div>
-          
-          <button type="button" id="close-detail">Закрыть</button>
-        </form>
-      </div>
-
-
-
-
+  <section class="bv2-months-wrap" aria-label="Сводные данные по месяцам">
+    <button type="button" class="bv2-arrow" id="bv2-prev" aria-label="Прокрутить к прошлым">&#9664;</button>
+    <div id="bv2-months" class="bv2-months" tabindex="0"></div>
+    <button type="button" class="bv2-arrow" id="bv2-next" aria-label="Прокрутить к будущим">&#9654;</button>
   </section>
 
+  <section class="bv2-panel" data-panel="overview">
+    <div id="bv2-suggest" class="bv2-hint" hidden></div>
 
-</div>
-
-
-<div id="pnlChartDiv1" class="chart-wrap">
-          <canvas id="pnlChart1" >  </canvas>
-    </div>
-
-
-<!-- Модальное окно для добавления статьи -->
-<div id="modal-background" role="dialog" aria-modal="true" aria-labelledby="modal-label" tabindex="-1">
-  <div id="modal-window">
-    <label id="modal-label" for="modal-article-select">Выберите статью для добавления</label>
-    <select id="modal-article-select" aria-required="true" ></select>
-    <div>
-      <button id="modal-add-btn" disabled>Добавить</button>
-      <button id="modal-cancel-btn">Отмена</button>
-    </div>
-  </div>
-</div>
-
-            <div id="pnlchart2" height="600" width="800">
-          <canvas id="pnlChart2" height="600"></canvas>
+    <div class="bv2-split">
+      <div class="bv2-card bv2-articles">
+        <div class="bv2-card__head">
+          <h3>Статьи расходов</h3>
+          <select id="bv2-filter" aria-label="Фильтр по статье"></select>
+        </div>
+        <table class="bv2-table">
+          <thead><tr><th>Статья</th><th class="num">Сумма</th><th>Комментарий</th></tr></thead>
+          <tbody id="bv2-articles"></tbody>
+        </table>
+        <button type="button" id="bv2-add-btn" class="bv2-btn bv2-btn--round" title="Добавить статью" aria-label="Добавить статью">+</button>
       </div>
+
+      <form id="bv2-detail" class="bv2-card bv2-detail" hidden onsubmit="return false;">
+        <div class="bv2-card__head"><h3 id="bv2-detail-title">Детализация</h3></div>
+        <label for="bv2-amount">Расход</label>
+        <input id="bv2-amount" type="text" inputmode="decimal" autocomplete="off">
+        <label class="bv2-check"><input id="bv2-paid" type="checkbox"> Оплачено</label>
+        <label for="bv2-comment">Комментарий</label>
+        <textarea id="bv2-comment" rows="4"></textarea>
+        <button type="button" id="bv2-detail-close" class="bv2-btn">Закрыть</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="bv2-panel" data-panel="compare" hidden>
+    <div class="bv2-card">
+      <div class="bv2-card__head">
+        <h3>Траты по статьям за последние месяцы</h3>
+        <span class="bv2-muted">Подсветка: изменение к прошлому месяцу больше порога</span>
+      </div>
+      <div class="bv2-scroll"><table class="bv2-table bv2-matrix" id="bv2-matrix"></table></div>
+    </div>
+    <div class="bv2-card bv2-chart">
+      <div class="bv2-card__head"><h3 id="bv2-compare-title">Выберите статью в таблице</h3></div>
+      <canvas id="bv2-compare-chart"></canvas>
+    </div>
+  </section>
+
+  <section class="bv2-panel" data-panel="analytics" hidden>
+    <div id="bv2-analytics" class="bv2-analytics"></div>
+    <div class="bv2-card bv2-chart"><canvas id="bv2-pnl-chart"></canvas></div>
+  </section>
+
+  <div id="bv2-modal-add" class="bv2-modal" hidden role="dialog" aria-modal="true" aria-labelledby="bv2-add-label">
+    <div class="bv2-modal__box">
+      <h3 id="bv2-add-label">Добавить статью</h3>
+      <div id="bv2-add-tree" class="bv2-tree"></div>
+      <div class="bv2-modal__actions">
+        <button type="button" id="bv2-add-confirm" class="bv2-btn bv2-btn--primary">Добавить</button>
+        <button type="button" id="bv2-add-cancel" class="bv2-btn">Отмена</button>
+      </div>
+    </div>
   </div>
-</div>
-</div>
 
+  <div id="bv2-modal-suggest" class="bv2-modal" hidden role="dialog" aria-modal="true" aria-labelledby="bv2-suggest-label">
+    <div class="bv2-modal__box bv2-modal__box--wide">
+      <h3 id="bv2-suggest-label">Статьи из прошлых месяцев</h3>
+      <div id="bv2-suggest-list" class="bv2-tree"></div>
+      <div class="bv2-modal__actions">
+        <button type="button" id="bv2-suggest-apply" class="bv2-btn bv2-btn--primary">Добавить выбранные</button>
+        <button type="button" id="bv2-suggest-cancel" class="bv2-btn">Отмена</button>
+      </div>
+    </div>
+  </div>
 
+  <div id="bv2-modal-vocab" class="bv2-modal" hidden role="dialog" aria-modal="true" aria-labelledby="bv2-vocab-label">
+    <div class="bv2-modal__box bv2-modal__box--wide">
+      <h3 id="bv2-vocab-label">Справочник статей</h3>
+      <input id="bv2-vocab-search" type="text" placeholder="Поиск по группам и статьям" autocomplete="off">
+      <ul id="bv2-vocab-list" class="bv2-vocab"></ul>
+      <div class="bv2-vocab__new">
+        <input id="bv2-vocab-new" type="text" placeholder="Новая группа" autocomplete="off">
+        <button type="button" id="bv2-vocab-add" class="bv2-btn">Добавить группу</button>
+      </div>
+      <p id="bv2-vocab-status" class="bv2-vocab__status" role="alert"></p>
+      <div class="bv2-modal__actions">
+        <button type="button" id="bv2-vocab-save" class="bv2-btn bv2-btn--primary">Сохранить справочник</button>
+        <button type="button" id="bv2-vocab-cancel" class="bv2-btn">Закрыть</button>
+      </div>
+    </div>
+  </div>
 
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
-</div>
-
-</body>
+</main>

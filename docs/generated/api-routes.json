@@ -1,0 +1,1026 @@
+{
+  "source": "system/api.js",
+  "routes": [
+    {
+      "service": "addBudgetRecord",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": null,
+      "rawBody": false,
+      "callers": []
+    },
+    {
+      "service": "getAllItemsFromCatalogByQuery",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "getCatalogData",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "catalog/catalog.js",
+          "forms": [
+            "API.getAllItemsFromCatalogByQuery"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getAllItemsFromSalesByQuery",
+      "method": "POST",
+      "source": "auto",
+      "webhookMode": "prod",
+      "webhookAction": null,
+      "rawBody": false,
+      "callers": []
+    },
+    {
+      "service": "getAllSalesStatistic",
+      "method": "POST",
+      "source": "auto",
+      "webhookMode": "prod",
+      "webhookAction": null,
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "temp_aug_2026/statistic._UI.js",
+          "forms": [
+            "googleFuncName",
+            "runGSfunction"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getBudget",
+      "method": "POST",
+      "source": "auto",
+      "webhookMode": "prod",
+      "webhookAction": null,
+      "rawBody": false,
+      "callers": []
+    },
+    {
+      "service": "getBudgetRecords",
+      "method": "POST",
+      "source": "auto",
+      "webhookMode": "prod",
+      "webhookAction": null,
+      "rawBody": false,
+      "callers": []
+    },
+    {
+      "service": "getCash",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "CashRegister",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "cashRegister/cashRegister.js",
+          "forms": [
+            "googleFuncName",
+            "runGSfunction"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getCashRegisterRecords",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "CashRegister",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "cashRegister/cashRegister.js",
+          "forms": [
+            "googleFuncName",
+            "runGSfunction"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "addCacheRegisterRecord",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "CashRegister",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "cashRegister/cashRegister.js",
+          "forms": [
+            "googleFuncName",
+            "runGSfunction"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getConfig",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "config",
+      "rawBody": false,
+      "callers": []
+    },
+    {
+      "service": "updateConfig",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "config",
+      "rawBody": true,
+      "callers": []
+    },
+    {
+      "service": "getDistinctBrandNames",
+      "method": "POST",
+      "source": "auto",
+      "webhookMode": "prod",
+      "webhookAction": null,
+      "rawBody": false,
+      "callers": []
+    },
+    {
+      "service": "getHeader",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "getCatalogData",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "newsale/newsales_classes.js",
+          "forms": [
+            "API.getHeader"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getItemByArticleName",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "getCatalogData",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "barcode/barcode.js",
+          "forms": [
+            "googleFuncName",
+            "runGSfunction"
+          ]
+        },
+        {
+          "file": "newsale/newsales_classes.js",
+          "forms": [
+            "googleFuncName",
+            "runGSfunction"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "sendSalesToSheet",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "newSale",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "newsale/newsales_classes.js",
+          "forms": [
+            "googleFuncName",
+            "runGSfunction"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getMenu",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Menu",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "system/app.js",
+          "forms": [
+            "API.getMenu"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getUsers",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "users",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "settings/settings.js",
+          "forms": [
+            "API.getUsers"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "updateUser",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "users",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "settings/settings.js",
+          "forms": [
+            "API.updateUser"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "createUser",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "users",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "settings/settings.js",
+          "forms": [
+            "API.createUser"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getSalaryPercent",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "users",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "settings/settings.js",
+          "forms": [
+            "API.getSalaryPercent"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "updateSalaryPercent",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "users",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "settings/settings.js",
+          "forms": [
+            "API.updateSalaryPercent"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getLocalizationDictionary",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "localization",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "system/system.js",
+          "forms": [
+            "API.getLocalizationDictionary"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getMySalary",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Salary",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "salary/salary.js",
+          "forms": [
+            "googleFuncName",
+            "runGSfunction"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getPivot",
+      "method": "POST",
+      "source": "auto",
+      "webhookMode": "prod",
+      "webhookAction": null,
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "temp_aug_2026/statistic._UI.js",
+          "forms": [
+            "googleFuncName",
+            "runGSfunction"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getPnl",
+      "method": "POST",
+      "source": "auto",
+      "webhookMode": "prod",
+      "webhookAction": null,
+      "rawBody": false,
+      "callers": []
+    },
+    {
+      "service": "getSalesFilterOptions",
+      "method": "POST",
+      "source": "auto",
+      "webhookMode": "prod",
+      "webhookAction": null,
+      "rawBody": false,
+      "callers": []
+    },
+    {
+      "service": "getVocabulary",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "CashRegister",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "cashRegister/cashRegister.js",
+          "forms": [
+            "googleFuncName",
+            "runGSfunction"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getStatisticData",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "statistic",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "statistic/statistic.js",
+          "forms": [
+            "API.getStatisticData"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getStatisticSummary",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "test",
+      "webhookAction": "statistic",
+      "rawBody": false,
+      "callers": []
+    },
+    {
+      "service": "getSuppliersData",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Suppliers",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "suppliers/suppliers.js",
+          "forms": [
+            "API.getSuppliersData"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "markSupplierPaymentsDone",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Suppliers",
+      "rawBody": true,
+      "callers": [
+        {
+          "file": "suppliers/suppliers.js",
+          "forms": [
+            "API.markSupplierPaymentsDone"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getSalesData",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "sales",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "sales_test/sales_test.js",
+          "forms": [
+            "API.getSalesData"
+          ]
+        },
+        {
+          "file": "sales/legacy/sales.js",
+          "forms": [
+            "API.getSalesData"
+          ]
+        },
+        {
+          "file": "sales/sales.js",
+          "forms": [
+            "API.getSalesData"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "requestReturn",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "return",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "sales_test/sales_test.js",
+          "forms": [
+            "API.requestReturn"
+          ]
+        },
+        {
+          "file": "sales/legacy/sales.js",
+          "forms": [
+            "API.requestReturn"
+          ]
+        },
+        {
+          "file": "sales/sales.js",
+          "forms": [
+            "API.requestReturn"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "approveReturn",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "return",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "sales_test/sales_test.js",
+          "forms": [
+            "API.approveReturn"
+          ]
+        },
+        {
+          "file": "sales/legacy/sales.js",
+          "forms": [
+            "API.approveReturn"
+          ]
+        },
+        {
+          "file": "sales/sales.js",
+          "forms": [
+            "API.approveReturn"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getBudgetVocabulary",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "budget",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "budget_old/budget.js",
+          "forms": [
+            "API.getBudgetVocabulary"
+          ]
+        },
+        {
+          "file": "budget/budget.js",
+          "forms": [
+            "API.getBudgetVocabulary"
+          ]
+        },
+        {
+          "file": "cashRegister/cashRegister.js",
+          "forms": [
+            "API.getBudgetVocabulary"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getBudgetData",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "budget",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "budget_old/budget.js",
+          "forms": [
+            "API.getBudgetData"
+          ]
+        },
+        {
+          "file": "budget/budget.js",
+          "forms": [
+            "API.getBudgetData"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getMonthsSummary",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "budget",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "budget_old/budget.js",
+          "forms": [
+            "API.getMonthsSummary"
+          ]
+        },
+        {
+          "file": "budget/budget.js",
+          "forms": [
+            "API.getMonthsSummary"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "saveBudgetChanges",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "budget",
+      "rawBody": true,
+      "callers": [
+        {
+          "file": "budget_old/budget.js",
+          "forms": [
+            "API.saveBudgetChanges"
+          ]
+        },
+        {
+          "file": "budget/budget.js",
+          "forms": [
+            "API.saveBudgetChanges"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "saveBudgetVocabulary",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "budget",
+      "rawBody": true,
+      "callers": [
+        {
+          "file": "budget/budget.js",
+          "forms": [
+            "API.saveBudgetVocabulary"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getTagsConfig",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "tags",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "barcode/barcode.js",
+          "forms": [
+            "API.getTagsConfig"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "saveTagsConfig",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "tags",
+      "rawBody": true,
+      "callers": [
+        {
+          "file": "barcode/barcode.js",
+          "forms": [
+            "API.saveTagsConfig"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getSkladHeader",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Warehouse",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "admin_sklad/admin_sklad.js",
+          "forms": [
+            "API.getSkladHeader"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getSkladData",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Warehouse",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "admin_sklad/admin_sklad.js",
+          "forms": [
+            "API.getSkladData"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getSkladVocabulary",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Warehouse",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "admin_sklad/admin_sklad.js",
+          "forms": [
+            "API.getSkladVocabulary"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "saveSkladChanges",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Warehouse",
+      "rawBody": true,
+      "callers": [
+        {
+          "file": "admin_sklad/admin_sklad.js",
+          "forms": [
+            "API.saveSkladChanges"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "deleteSkladItem",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Warehouse",
+      "rawBody": true,
+      "callers": [
+        {
+          "file": "admin_sklad/admin_sklad.js",
+          "forms": [
+            "API.deleteSkladItem"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "addSkladItem",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Warehouse",
+      "rawBody": true,
+      "callers": [
+        {
+          "file": "admin_sklad/admin_sklad.js",
+          "forms": [
+            "API.addSkladItem"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "editSkladItem",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Warehouse",
+      "rawBody": true,
+      "callers": [
+        {
+          "file": "admin_sklad/admin_sklad.js",
+          "forms": [
+            "API.editSkladItem"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getScheduleMeta",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "schedule",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "salaryPeriod/salaryPeriod.js",
+          "forms": [
+            "API.getScheduleMeta"
+          ]
+        },
+        {
+          "file": "schedule/schedule.js",
+          "forms": [
+            "API.getScheduleMeta"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getSchedule",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "schedule",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "schedule/schedule.js",
+          "forms": [
+            "API.getSchedule"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getEmployeeColorMap",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "schedule",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "sales_test/sales_test.js",
+          "forms": [
+            "API.getEmployeeColorMap"
+          ]
+        },
+        {
+          "file": "sales/sales.js",
+          "forms": [
+            "API.getEmployeeColorMap"
+          ]
+        },
+        {
+          "file": "schedule/schedule.js",
+          "forms": [
+            "API.getEmployeeColorMap"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getSalaryPeriod",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "schedule",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "salaryPeriod/salaryPeriod.js",
+          "forms": [
+            "API.getSalaryPeriod"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "upsertShifts",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "schedule",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "schedule/schedule.js",
+          "forms": [
+            "API.upsertShifts"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getSapoOrders",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "sapo",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "sapo/sapo.js",
+          "forms": [
+            "API.getSapoOrders"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "setStatisticBrandName",
+      "method": "POST",
+      "source": "auto",
+      "webhookMode": "prod",
+      "webhookAction": null,
+      "rawBody": false,
+      "callers": []
+    },
+    {
+      "service": "setToken",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Auth",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "login/login.js",
+          "forms": [
+            "API.setToken"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getToken",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": null,
+      "rawBody": false,
+      "callers": []
+    },
+    {
+      "service": "updateBudgetData",
+      "method": "POST",
+      "source": "auto",
+      "webhookMode": "prod",
+      "webhookAction": null,
+      "rawBody": false,
+      "callers": []
+    },
+    {
+      "service": "getStores",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "stores",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "admin_sklad/admin_sklad.js",
+          "forms": [
+            "API.getStores"
+          ]
+        },
+        {
+          "file": "catalog/catalog.js",
+          "forms": [
+            "API.getStores"
+          ]
+        },
+        {
+          "file": "login/login.js",
+          "forms": [
+            "API.getStores"
+          ]
+        },
+        {
+          "file": "newsale/newsales_classes.js",
+          "forms": [
+            "API.getStores"
+          ]
+        },
+        {
+          "file": "schedule/schedule.js",
+          "forms": [
+            "API.getStores"
+          ]
+        },
+        {
+          "file": "system/app.js",
+          "forms": [
+            "API.getStores"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "getAuthData",
+      "method": "GET",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "Auth",
+      "rawBody": false,
+      "callers": [
+        {
+          "file": "system/app.js",
+          "forms": [
+            "API.getAuthData"
+          ]
+        }
+      ]
+    }
+  ],
+  "unresolvedCalls": [
+    {
+      "service": "printbill",
+      "sourceFile": "newsale/newsale.js",
+      "invocationType": "legacy",
+      "active": true,
+      "resolutionStatus": "no explicit API_ROUTES declaration; runtime config or frontend fallback may resolve it",
+      "staticallyVerified": true,
+      "verificationScope": "frontend call/fallback only; backend behavior is unverified"
+    }
+  ],
+  "inactiveReferences": [
+    {
+      "service": "computePayroll",
+      "sourceFile": "schedule/schedule.js",
+      "invocationType": "dynamic/proxy",
+      "active": false,
+      "resolutionStatus": "commented-out reference; not an active invocation",
+      "staticallyVerified": true,
+      "verificationScope": "comment text only; no runtime behavior asserted"
+    }
+  ]
+}

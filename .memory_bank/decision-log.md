@@ -1,5 +1,19 @@
 # Decision Log
 
+Historical record only. Entries below describe past decisions and operating assumptions; they are not current instructions. Verify paths and behavior against source and canonical `docs/`. In particular, old workflow synchronization, publication, deployment, and live-check commands are not approved procedures. Current n8n instance work must be explicitly requested and use the configured n8n MCP instructions and approval gates.
+
+## 2026-09-22 - Make source-derived docs canonical
+
+Decision:
+- use `docs/` and `docs/generated/` as the current architecture, page, API, security, and operations reference
+- treat prior memory-bank architecture and workflow maps as superseded historical context
+- do not claim local workflow ownership because this tree contains no workflow source
+
+Implications:
+- refresh generated inventories with `node tools/generate-docs.mjs`
+- load task-specific repository skills through `AGENTS.md`
+- keep secrets out of browser configuration and git; production writes require explicit approval
+
 ## 2026-03-13 - Adopt local project context and memory bank
 
 Decision:

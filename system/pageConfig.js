@@ -54,7 +54,7 @@ window.PAGE_CONFIG = {
     title: "Sales",
     html: "sales/sales.html",
     js: ["sales/sales.js"],
-    css: ["shared/table.css"]
+    css: ["shared/table.css", "sales/sales.css"]
   },
   /*
   statistic: {
@@ -84,7 +84,7 @@ window.PAGE_CONFIG = {
     js: ["salary/salary.js"],
     css: ["salary/salary.css"],
     externalJs: [
-      "vendor/chartjs-4.4.1.umd.min.js"
+      "https://cdn.jsdelivr.net/npm/chart.js"
     ]
   },
   cashregister: {
@@ -112,6 +112,12 @@ window.PAGE_CONFIG = {
     html: "schedule/schedule.html",
     js: ["schedule/schedule.js"],
     css: ["schedule/schedule.css"]
+  },
+  salaryperiod: {
+    title: "Расчет зарплаты",
+    html: "salaryPeriod/salaryPeriod.html",
+    js: ["salaryPeriod/salaryPeriod.js"],
+    css: ["salaryPeriod/salaryPeriod.css"]
   },
   sapo: {
     title: "Sapo CRM",
