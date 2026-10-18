@@ -1,26 +1,28 @@
 # API
 
-The machine-readable inventory is [generated/api-routes.json](generated/api-routes.json), generated from `system/api.js`. It contains all 57 current `API_ROUTES` entries and, for each route, service, method, source, webhook mode, webhook action, raw-body flag, and source callers.
+## Evidence boundaries
 
-## Contract
+`system/api.js` is the source of truth for explicit frontend route declarations and serialization. [generated/api-routes.json](generated/api-routes.json) keeps those declarations in `routes`; `unresolvedCalls` lists active calls with no explicit local declaration, and `inactiveReferences` records matches found only in comments. The explicit route count comes from the source and excludes both other sections. This repository has no workflow source, so frontend calls and payload shapes do not prove backend behavior, authorization, persistence, or production availability.
 
-`API.*` methods are generated from `API_ROUTES` and call `requestViaN8nOrMock`. Contract v1 is the current default: GET requests may include `data={query: payload}` and ordinary POST requests send the service payload. Contract v2 sends `{ action, token, payload }`; raw-body routes preserve their body shape. Route configuration can also be merged from runtime `CONFIG.API_ROUTES`.
+## Currently observed frontend transport
 
-`source: "n8n"` means the frontend selects n8n transport; `source: "auto"` is legacy/automatic behavior and has no local workflow ownership. `webhookMode` is `prod` or `test`; `webhookAction` is the transport endpoint suffix when declared. `rawBody` means the route sends the supplied body without the ordinary wrapper.
+`API.*` methods are generated from `API_ROUTES` and call `requestViaN8nOrMock`. The frontend defaults to contract v1, which adds `data={query: payload}` to GET requests and sends ordinary POST payloads with an action. Contract v2 is supported and wraps ordinary POST data as `{ action, token, payload }`; raw-body routes retain their body shape. Runtime configuration may override route settings and contract version. These are frontend behaviors, not confirmation of a remote backend's current configuration.
+
+`source: "n8n"` means the frontend selects n8n transport; `source: "auto"` is legacy/automatic behavior and has no local workflow ownership. `webhookMode` selects `prod` or `test`; `webhookAction` is the endpoint suffix when declared. In v1, raw-body routes POST the supplied object/array as-is, append the service action as a query parameter, and send the session token in `X-Auth-Token` when present. In v2, ordinary routes use the envelope above. Runtime overrides and older callers may differ.
 
 ## Caller classes
 
 Preferred callers use `API.<service>()`. Legacy callers construct `{ googleFuncName, params }` and pass through `runGSfunction` or `runGSfunctionPromise`; current examples include cash register, salary, catalog barcode/newsale lookup, statistics scratch UI, and sale submission. `requestViaN8nOrMock` is the shared transport used by generated API methods. Direct `fetch` also exists for runtime page HTML, auth fallbacks, and Amelie payment endpoints.
 
-The route inventory intentionally does not claim workflow ownership. No workflow source or workflow map is present in this repository.
+The route inventory intentionally does not claim workflow ownership. Calls without `API_ROUTES` entries may use the `API` proxy or legacy `runGSfunction*` fallback; their frontend fallback is source-verifiable, but remote resolution and backend behavior are not. Comment-only references are not active calls. No workflow source or workflow map is present in this repository.
 
 ## Change rule
 
 When an API route changes, update the source first, regenerate JSON, inspect callers in the generated record, and run the checks in `docs/TESTING.md`. Read-only verification is preferred; mutating webhook checks require explicit approval.
 
-## User administration (proposed backend contract)
+## User administration (frontend expectations; backend unverified)
 
-The settings page calls the `/users` webhook. The backend must authorize every action from the session token and restrict `createUser`/`updateUser` to administrators. Passwords must never be included in `getUsers` or `updateUser` responses. `createUser` creates a random temporary password server-side and returns it once; the frontend displays it once and does not persist it.
+The settings page calls `getUsers`, `createUser`, and `updateUser` on the `users` route. Read calls include `{ visible: true, token }`; writes include `{ token, user }`. The frontend unwraps several possible list/result wrappers and requires a password-like field (`password`, `generatedPassword`, or `temporaryPassword`) after create. No backend source is available to verify these response shapes or authorization behavior. The examples below are proposed expectations, not a verified contract. Any backend must authorize from the session token and restrict user writes; password handling and response exposure require backend verification.
 
 Read users:
 
@@ -87,11 +89,11 @@ const result = await window.API.updateUser({
 });
 ```
 
-`Name` is both the login and display name. `Available` is sent as string `"1"` or `null`; `role` and `salaryFixHour` are numbers; both color fields are hex strings or empty strings. POST body uses the same structure with `"action": "updateUser"`. Responses should use `{ "success": true, "user": { ... } }` or `{ "success": false, "message": "..." }`. Passwords must never be returned by `getUsers` or `updateUser`.
+The frontend submits the fields shown above, but backend meanings and accepted value types are unverified. In particular, earlier claims that `Name` is both login and display name and that responses have the exact shapes shown here are proposals, not confirmed behavior. Passwords must never be returned by `getUsers` or `updateUser`; this is a security requirement, not a verified backend property.
 
-## Salary percentages
+## Salary percentages (frontend expectations; backend unverified)
 
-The settings page uses the existing `/users` webhook. `getSalaryPercent` reads one user's brand percentages; `updateSalaryPercent` saves the complete set of that user's records.
+The settings page calls `getSalaryPercent({ token, username })` and `updateSalaryPercent({ token, username, records })` on the `users` route. Each submitted record contains a username, brand, optional `Id`, and numeric `Cash`, `Transfer`, `Terminal`, and `RUB_QR` values. The frontend accepts several array response wrappers when reading and handles a false/error result on write. Backend response shape, replacement semantics, and persistence are unverified. The examples below are illustrative proposals only.
 
 Read through the frontend API:
 
@@ -123,41 +125,14 @@ const result = await window.API.updateSalaryPercent({
 });
 ```
 
-The service should return `{ "success": true }` or `{ "success": false, "message": "..." }`. For API contract v2, the POST body is `{ "action": "updateSalaryPercent", "token": "...", "payload": { "username": "Анна", "records": [...] } }`. The `records` array replaces the full set for the specified user.
+Proposed response: `{ "success": true }` or `{ "success": false, "message": "..." }`. For API contract v2, the frontend serializer wraps the request as `{ "action": "updateSalaryPercent", "token": "...", "payload": { "username": "Анна", "records": [...] } }`. Whether the backend replaces the full set for the specified user is unverified.
 
-## Budget vocabulary (proposed backend contract)
+## Budget (observed frontend payload; backend unverified)
 
-The `budget` page always sends object bodies to the `budget` webhook: `saveBudgetChanges` is `{ "changes": [{ "month", "article", "outcome", "paid", "newArticle", "comment", "id"? }] }` (the previous page, kept in `budget_old/`, posted the bare array).
+The active `budget` page calls `API.saveBudgetChanges({ changes: payload }, ...)` and `API.saveBudgetVocabulary({ add, delete: del }, ...)`. Both routes are configured as v1 raw-body POSTs to the `budget` webhook: the first body is an object containing `changes`, and the second contains `add` and `delete` arrays. The transport adds `?action=<service>` and sends the session token in `X-Auth-Token` when available. This verifies only the frontend request, not backend acceptance or persistence. The previous implementation in `budget_old/` posted a bare array for changes.
 
-`getBudgetVocabulary` returns records `{ "Id": 1, "title": "Google, chatgpt", "category": "Маркетинг" }`; a record with an empty `title` is a category without articles. Titles may repeat, category names may not. `saveBudgetVocabulary` (POST, `budget` webhook, raw body, `?action=saveBudgetVocabulary`) is used by the `budget` page. Body: `{ "add": [{ "title": "Новая статья", "category": "Маркетинг" }, { "title": "", "category": "Новая категория" }], "delete": [{ "id": 5 }] }`. `delete` items carry the record `id` (deleting a category removes its empty-title record and the page also deletes its articles); `add` items need `title` and `category` (empty `title` creates a category). The page re-reads the vocabulary afterwards to obtain new ids. Budget records may carry a `group`/`category` field. The token is sent in the `X-Auth-Token` header. Respond with any non-empty JSON on success; an empty response is treated as failure.
+The frontend builds `add` entries as `{ title, category }`, including `{ title: "", category }` for a new category, and `delete` entries as `{ id }`. It rereads the vocabulary after saving. Read methods use actions `getVocabulary`, `getBudgetData`, and `getMonthsSummary`. Required response fields and persistence behavior remain unverified.
 
-### Test endpoint `budget-test`
+### Experimental endpoint override
 
-Source: `workflows/n8n/Budget_Test.workflow.ts` (inactive until pushed and activated). It serves generated data relative to today (3 past months, current, next) and does not persist anything. Open `budget` with `?budgetEndpoint=budget-test` to route all of its requests there. Base URL: `https://n8n.buttonrouge.org/webhook/budget-test`. The token may be a `token` query/body field or the `X-Auth-Token` header; a missing token returns `{ "success": false, "message": "token required" }`.
-
-```bash
-# vocabulary
-curl -G "$BASE/budget-test" --data-urlencode "action=getVocabulary" --data-urlencode "token=$TOKEN"
-# -> [ { "Id": 1, "title": "", "category": "Недвижимость" }, { "Id": 2, "title": "Аренда", "category": "Недвижимость" }, ... ]
-
-# records per month (keys are month starts)
-curl -G "$BASE/budget-test" --data-urlencode "action=getBudgetData" --data-urlencode "token=$TOKEN"
-# -> { "2026-07-01": [ { "id": 101, "title": "Аренда", "group": "Недвижимость", "income": 0,
-#                        "outcome": 20000000, "paid": true, "editable": true, "comment": "" }, ... ], "2026-08-01": [...], ... }
-
-# income/outcome per month (outcome is recomputed by the page)
-curl -G "$BASE/budget-test" --data-urlencode "action=getMonthsSummary" --data-urlencode "token=$TOKEN"
-# -> { "2026-07-01": { "income": 90000000, "outcome": 0 }, ... }
-
-# save record changes (body is an array)
-curl -X POST "$BASE/budget-test?action=saveBudgetChanges" -H "Content-Type: application/json" -H "X-Auth-Token: $TOKEN" \
-  -d '[{ "month": "2026-10-01", "article": "Логистика", "outcome": 2500000, "paid": false, "newArticle": true, "comment": "" }]'
-# -> { "success": true, "saved": 1, "changes": [ ... ] }
-
-# save vocabulary
-curl -X POST "$BASE/budget-test?action=saveBudgetVocabulary" -H "Content-Type: application/json" -H "X-Auth-Token: $TOKEN" \
-  -d '{ "changes": [{ "action": "delete", "id": 3 }, { "action": "add", "title": "Аренда склада", "category": "Недвижимость" }] }'
-# -> { "success": true, "added": 1, "deleted": 1 }
-```
-
-Error examples: `{ "success": false, "message": "body must be an object with a changes array" }`, `{ "success": false, "message": "unknown action: foo" }`. The test data deliberately contains a >20% spike (Маркетинг, Коммунальные услуги in the current month) and a missing regular article (Логистика) to exercise analytics and suggestions.
+The page accepts `?budgetEndpoint=<webhook>` and passes that value as a route override for budget calls. This frontend switch is present in `budget/budget.js`; no corresponding `workflows/n8n/Budget_Test.workflow.ts` or other budget test backend source exists in this repository. Backend availability, test data, token handling, non-persistence, and response behavior are unverified. Earlier examples claiming a bare-array `saveBudgetChanges` body and a `{ changes: [...] }` vocabulary body conflict with the active frontend calls and must not be used as contract truth.

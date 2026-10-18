@@ -1,67 +1,41 @@
 # Button Rouge agent context
 
-This is a static browser SPA. The active runtime entrypoint is `index.html`; boot order and loader ownership are documented in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Do not assume paths from historical notes: verify source paths and refresh [docs/generated/](docs/generated/) when page or API structure changes.
+## Project
+Button Rouge is a static browser SPA. `index.html` is the runtime entrypoint; vanilla JavaScript loads page HTML, CSS, and JavaScript dynamically and initializes pages through `registerPageInit`. Existing third-party libraries are loaded from configured local or external assets. The frontend calls n8n webhooks; those workflows and Grist-backed data workflows are not source-controlled in this repository. There is no local build pipeline.
 
-Load focused context by task:
-- Page work: `.agents/skills/frontend-page/SKILL.md`, then [docs/PAGES.md](docs/PAGES.md).
-- Checkout or pricing work: `.agents/skills/sale-checkout/SKILL.md`, then [docs/SALE_FLOW.md](docs/SALE_FLOW.md) and [docs/DATA_MODEL.md](docs/DATA_MODEL.md).
-- API or transport work: `.agents/skills/api-contract/SKILL.md`, then [docs/API.md](docs/API.md).
-- Production or security-sensitive work: `.agents/skills/production-change/SKILL.md`, then [docs/SECURITY.md](docs/SECURITY.md) and [docs/OPERATIONS.md](docs/OPERATIONS.md).
-- Verification: `.agents/skills/code-change-verification/SKILL.md`, then [docs/TESTING.md](docs/TESTING.md).
-- Documentation maintenance: `.agents/skills/documentation-sync/SKILL.md`.
+Use [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for verified runtime boundaries. Use [docs/generated/context-index.json](docs/generated/context-index.json) only as a navigation aid; verify behavior in active source.
 
-Repository rules:
-- Keep application behavior unchanged for documentation-only tasks.
-- Never put secrets in browser configuration or git. The tracked `.vscode/settings.json` currently contains a credential-shaped `n8n.apiKey`; do not print or reuse it.
-- Do not make live mutating webhook requests without explicit approval.
-- This repository contains no `workflows/`, `test/`, `index/`, `budget2/`, `charts/`, `n8nac-config.json`, or `system/n8n-service-workflow-map.json`; do not document or edit them as local sources.
-- No n8n workflow-editing skill is defined here because no workflow source is present.
+## Change Workflow
+For every development task:
+1. Identify the relevant domain.
+2. Load only its skill and required documentation.
+3. Inspect the implementation and direct dependencies.
+4. Identify behavior and contracts that must remain unchanged.
+5. Make the smallest correct change; avoid unrelated refactoring.
+6. Run the narrowest relevant verification.
+7. Inspect the final diff.
+8. Report changes, checks, and remaining risks.
 
-Для фронт-разработки используй следующий skill:
-The Skill: impeccable
-The skill installs as one command:
+Make a short implementation plan before nontrivial changes. Do not require documentation-only diffs for ordinary code tasks.
 
-/impeccable <command> <target>
-Start every new project with:
+## Task Routing
+- Page/runtime work: [.agents/skills/frontend-page/SKILL.md](.agents/skills/frontend-page/SKILL.md), [docs/PAGES.md](docs/PAGES.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+- Checkout/pricing work: [.agents/skills/sale-checkout/SKILL.md](.agents/skills/sale-checkout/SKILL.md), [docs/SALE_FLOW.md](docs/SALE_FLOW.md), [docs/DATA_MODEL.md](docs/DATA_MODEL.md).
+- Frontend API/transport work: [.agents/skills/api-contract/SKILL.md](.agents/skills/api-contract/SKILL.md), [docs/API.md](docs/API.md).
+- Production/security-sensitive work: [.agents/skills/production-change/SKILL.md](.agents/skills/production-change/SKILL.md), [docs/SECURITY.md](docs/SECURITY.md), [docs/OPERATIONS.md](docs/OPERATIONS.md).
+- Verification: [.agents/skills/code-change-verification/SKILL.md](.agents/skills/code-change-verification/SKILL.md), [docs/TESTING.md](docs/TESTING.md).
+- Documentation maintenance: [.agents/skills/documentation-sync/SKILL.md](.agents/skills/documentation-sync/SKILL.md).
+- Explicit n8n instance/artifact work: use the configured n8n MCP server and its task-specific instructions. Before creating or modifying an n8n artifact, read user preferences first, distinguish a first-class Agent from a workflow, then follow the matching reference, schema discovery, validation, and approval requirements. Do not use MCP for routine frontend/API work or treat this repository as workflow source.
+- UX/UI, CSS/layout, accessibility, responsive behavior, or visual polish: use Impeccable only if its installation is verified. Do not invoke it for backend, pricing, API transport, or generic JavaScript debugging; do not run `/impeccable init` on every task. Use [PRODUCT.md](PRODUCT.md) and [DESIGN.md](DESIGN.md).
 
-/impeccable init
-init inspects the project, asks only for material gaps in durable product truth, and writes PRODUCT.md. Visitor mode and visual direction are chosen later for each surface; incumbent or newly built visual systems are recorded separately in DESIGN.md.
+## Business Invariants
+Preserve sale source fields; cart and draft restoration; username/store propagation; currency and payment-method consistency; item `finalPrice` and `finalPriceVND`; basket totals and rounding; API request/response shapes; authentication/authorization boundaries; async navigation and page initialization; and persisted data formats. Changes to financial formulas, rounding, data structures, or external contracts require explicit task scope and focused regression checks.
 
-24 Commands
-All commands are accessed through /impeccable:
+## Safety
+- Never print, copy, use, or commit credentials. A tracked credential-shaped `n8n.apiKey` is documented in [docs/SECURITY.md](docs/SECURITY.md); rotation remains an owner action.
+- Do not make live mutating webhook requests, publish workflows, deploy, restart services, or modify production data without explicit approval.
+- `tools/publish_n8n_workflow.mjs` is hazardous legacy tooling: it reads local n8n credentials, writes the n8n SQLite database, changes activation state, restarts `n8n.service`, and probes webhooks. Never execute it automatically.
+- This repository has no local `workflows/`, `test/`, `index/`, `budget2/`, `charts/`, `n8nac-config.json`, or workflow ownership map. Historical documents never override source or canonical docs.
 
-Command	What it does
-/impeccable craft	Full shape-then-build flow with visual iteration
-/impeccable init	One-time setup: gather durable product context, write PRODUCT.md, configure live mode when applicable, recommend next steps
-/impeccable document	Generate root DESIGN.md from existing project code
-/impeccable extract	Pull reusable components and tokens into the design system
-/impeccable shape	Plan UX/UI before writing code
-/impeccable critique	UX design review: hierarchy, clarity, emotional resonance
-/impeccable audit	Run technical quality checks (a11y, performance, responsive)
-/impeccable polish	Final pass, design system alignment, and shipping readiness
-/impeccable bolder	Amplify boring designs
-/impeccable quieter	Tone down overly bold designs
-/impeccable distill	Strip to essence
-/impeccable harden	Error handling, i18n, text overflow, edge cases
-/impeccable onboard	First-run flows, empty states, activation paths
-/impeccable animate	Add purposeful motion
-/impeccable colorize	Introduce strategic color
-/impeccable typeset	Fix font choices, hierarchy, sizing
-/impeccable layout	Fix layout, spacing, visual rhythm
-/impeccable delight	Add moments of joy
-/impeccable overdrive	Add technically extraordinary effects
-/impeccable clarify	Improve unclear UX copy
-/impeccable adapt	Adapt for different devices
-/impeccable optimize	Performance improvements
-/impeccable live	Visual variant mode: iterate on elements in the browser
-/impeccable generate	Generate variants of a named element in the live browser, no manual picking
-Use /impeccable pin <command> to create standalone shortcuts (e.g., pin audit creates /audit).
-
-Usage Examples
-/impeccable audit blog           # Audit blog hub + post pages
-/impeccable critique landing     # UX design review
-/impeccable polish settings      # Final pass before shipping
-/impeccable harden checkout      # Add error handling + edge cases
-Or use /impeccable directly with a description:
-
-/impeccable redo this hero section
+## Efficiency
+Search symbols before opening large files; read the smallest useful source set; load only the relevant skill; do not reread unchanged files; prefer focused patches; and keep implementation reports brief and factual.

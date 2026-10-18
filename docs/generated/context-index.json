@@ -1,5 +1,4 @@
 {
-  "generatedAt": "2026-10-03",
   "domains": {
     "runtime": {
       "sourceFiles": [
@@ -140,8 +139,7 @@
       "sourceFiles": [
         "budget/budget.html",
         "budget/budget.js",
-        "budget/budget.css",
-        "https://cdn.jsdelivr.net/npm/chart.js"
+        "budget/budget.css"
       ],
       "docs": [
         "docs/PAGES.md",
@@ -155,8 +153,7 @@
       "sourceFiles": [
         "salary/salary.html",
         "salary/salary.js",
-        "salary/salary.css",
-        "https://cdn.jsdelivr.net/npm/chart.js"
+        "salary/salary.css"
       ],
       "docs": [
         "docs/PAGES.md",
@@ -184,8 +181,7 @@
       "sourceFiles": [
         "statistic/statistic.html",
         "statistic/statistic.js",
-        "statistic/charts.css",
-        "https://cdn.jsdelivr.net/npm/chart.js"
+        "statistic/charts.css"
       ],
       "docs": [
         "docs/PAGES.md",
@@ -198,9 +194,8 @@
     "suppliers": {
       "sourceFiles": [
         "suppliers/suppliers.html",
-        "suppliers/suppliers.js?v=20260404-5",
-        "suppliers/suppliers.css?v=20260404-1",
-        "https://cdn.jsdelivr.net/npm/chart.js"
+        "suppliers/suppliers.js",
+        "suppliers/suppliers.css"
       ],
       "docs": [
         "docs/PAGES.md",
@@ -227,6 +222,6 @@
   },
   "counts": {
     "pages": 16,
-    "routes": 57
+    "routes": 60
   }
 }

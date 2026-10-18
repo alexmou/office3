@@ -1,5 +1,4 @@
 {
-  "generatedAt": "2026-10-03",
   "source": "system/api.js",
   "routes": [
     {
@@ -537,6 +536,12 @@
       "rawBody": false,
       "callers": [
         {
+          "file": "budget_old/budget.js",
+          "forms": [
+            "API.getBudgetVocabulary"
+          ]
+        },
+        {
           "file": "budget/budget.js",
           "forms": [
             "API.getBudgetVocabulary"
@@ -559,6 +564,12 @@
       "rawBody": false,
       "callers": [
         {
+          "file": "budget_old/budget.js",
+          "forms": [
+            "API.getBudgetData"
+          ]
+        },
+        {
           "file": "budget/budget.js",
           "forms": [
             "API.getBudgetData"
@@ -574,6 +585,12 @@
       "webhookAction": "budget",
       "rawBody": false,
       "callers": [
+        {
+          "file": "budget_old/budget.js",
+          "forms": [
+            "API.getMonthsSummary"
+          ]
+        },
         {
           "file": "budget/budget.js",
           "forms": [
@@ -591,9 +608,31 @@
       "rawBody": true,
       "callers": [
         {
+          "file": "budget_old/budget.js",
+          "forms": [
+            "API.saveBudgetChanges"
+          ]
+        },
+        {
           "file": "budget/budget.js",
           "forms": [
             "API.saveBudgetChanges"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "saveBudgetVocabulary",
+      "method": "POST",
+      "source": "n8n",
+      "webhookMode": "prod",
+      "webhookAction": "budget",
+      "rawBody": true,
+      "callers": [
+        {
+          "file": "budget/budget.js",
+          "forms": [
+            "API.saveBudgetVocabulary"
           ]
         }
       ]
@@ -960,6 +999,28 @@
           ]
         }
       ]
+    }
+  ],
+  "unresolvedCalls": [
+    {
+      "service": "printbill",
+      "sourceFile": "newsale/newsale.js",
+      "invocationType": "legacy",
+      "active": true,
+      "resolutionStatus": "no explicit API_ROUTES declaration; runtime config or frontend fallback may resolve it",
+      "staticallyVerified": true,
+      "verificationScope": "frontend call/fallback only; backend behavior is unverified"
+    }
+  ],
+  "inactiveReferences": [
+    {
+      "service": "computePayroll",
+      "sourceFile": "schedule/schedule.js",
+      "invocationType": "dynamic/proxy",
+      "active": false,
+      "resolutionStatus": "commented-out reference; not an active invocation",
+      "staticallyVerified": true,
+      "verificationScope": "comment text only; no runtime behavior asserted"
     }
   ]
 }

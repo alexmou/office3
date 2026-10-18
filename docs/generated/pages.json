@@ -1,5 +1,4 @@
 {
-  "generatedAt": "2026-10-03",
   "source": "system/pageConfig.js",
   "pages": [
     {
@@ -15,6 +14,7 @@
       ],
       "externalAssets": [],
       "initializer": null,
+      "initializerRegistered": false,
       "apiServices": [],
       "sourceFiles": [
         "header/header.html",
@@ -35,6 +35,7 @@
       ],
       "externalAssets": [],
       "initializer": "bodyOnload",
+      "initializerRegistered": true,
       "apiServices": [
         "addSkladItem",
         "deleteSkladItem",
@@ -61,7 +62,8 @@
       ],
       "css": [],
       "externalAssets": [],
-      "initializer": "(",
+      "initializer": "anonymous callback",
+      "initializerRegistered": true,
       "apiServices": [
         "getStores",
         "setToken"
@@ -86,6 +88,7 @@
       ],
       "externalAssets": [],
       "initializer": "initNewsalePage",
+      "initializerRegistered": true,
       "apiServices": [
         "getHeader",
         "getStores"
@@ -115,6 +118,7 @@
         "vendor/jspdf-2.5.1.umd.min.js"
       ],
       "initializer": "init",
+      "initializerRegistered": true,
       "apiServices": [
         "getTagsConfig",
         "saveTagsConfig"
@@ -142,6 +146,7 @@
       ],
       "externalAssets": [],
       "initializer": "initCatalogPage",
+      "initializerRegistered": true,
       "apiServices": [
         "getAllItemsFromCatalogByQuery",
         "getStores"
@@ -167,6 +172,7 @@
       ],
       "externalAssets": [],
       "initializer": "initSalesPage",
+      "initializerRegistered": true,
       "apiServices": [
         "approveReturn",
         "getEmployeeColorMap",
@@ -195,14 +201,14 @@
         "https://cdn.jsdelivr.net/npm/chart.js"
       ],
       "initializer": "boot",
+      "initializerRegistered": true,
       "apiServices": [
         "getStatisticData"
       ],
       "sourceFiles": [
         "statistic/statistic.html",
         "statistic/statistic.js",
-        "statistic/charts.css",
-        "https://cdn.jsdelivr.net/npm/chart.js"
+        "statistic/charts.css"
       ]
     },
     {
@@ -218,9 +224,12 @@
       ],
       "externalAssets": [],
       "initializer": "initSettingsPage",
+      "initializerRegistered": true,
       "apiServices": [
         "createUser",
+        "getSalaryPercent",
         "getUsers",
+        "updateSalaryPercent",
         "updateUser"
       ],
       "sourceFiles": [
@@ -244,12 +253,12 @@
         "https://cdn.jsdelivr.net/npm/chart.js"
       ],
       "initializer": "bodyOnLoad",
+      "initializerRegistered": true,
       "apiServices": [],
       "sourceFiles": [
         "salary/salary.html",
         "salary/salary.js",
-        "salary/salary.css",
-        "https://cdn.jsdelivr.net/npm/chart.js"
+        "salary/salary.css"
       ]
     },
     {
@@ -267,6 +276,7 @@
       ],
       "externalAssets": [],
       "initializer": "bodyOnLoad",
+      "initializerRegistered": true,
       "apiServices": [
         "getBudgetVocabulary"
       ],
@@ -292,18 +302,19 @@
       "externalAssets": [
         "https://cdn.jsdelivr.net/npm/chart.js"
       ],
-      "initializer": null,
+      "initializer": "initBudgetV2",
+      "initializerRegistered": true,
       "apiServices": [
         "getBudgetData",
         "getBudgetVocabulary",
         "getMonthsSummary",
-        "saveBudgetChanges"
+        "saveBudgetChanges",
+        "saveBudgetVocabulary"
       ],
       "sourceFiles": [
         "budget/budget.html",
         "budget/budget.js",
-        "budget/budget.css",
-        "https://cdn.jsdelivr.net/npm/chart.js"
+        "budget/budget.css"
       ]
     },
     {
@@ -320,13 +331,16 @@
       "externalAssets": [
         "https://cdn.jsdelivr.net/npm/chart.js"
       ],
-      "initializer": null,
-      "apiServices": [],
+      "initializer": "boot",
+      "initializerRegistered": true,
+      "apiServices": [
+        "getSuppliersData",
+        "markSupplierPaymentsDone"
+      ],
       "sourceFiles": [
         "suppliers/suppliers.html",
-        "suppliers/suppliers.js?v=20260404-5",
-        "suppliers/suppliers.css?v=20260404-1",
-        "https://cdn.jsdelivr.net/npm/chart.js"
+        "suppliers/suppliers.js",
+        "suppliers/suppliers.css"
       ]
     },
     {
@@ -342,8 +356,8 @@
       ],
       "externalAssets": [],
       "initializer": "initSchedulePage",
+      "initializerRegistered": true,
       "apiServices": [
-        "computePayroll",
         "getEmployeeColorMap",
         "getSchedule",
         "getScheduleMeta",
@@ -369,6 +383,7 @@
       ],
       "externalAssets": [],
       "initializer": "initSalaryPeriod",
+      "initializerRegistered": true,
       "apiServices": [
         "getSalaryPeriod",
         "getScheduleMeta"
@@ -392,6 +407,7 @@
       ],
       "externalAssets": [],
       "initializer": "sapoBoot",
+      "initializerRegistered": true,
       "apiServices": [
         "getSapoOrders"
       ],

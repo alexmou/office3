@@ -1,29 +1,19 @@
 # Product
 
-<!-- impeccable:product-schema 1 -->
+## Platform and users
 
-## Platform
+Button Rouge is a browser-based operations SPA used by store employees, managers, and administrators across multiple stores.
 
-web
+## Verified product areas
 
-## Users
+- Catalog and inventory: catalog browsing, warehouse administration, and barcode/tag printing.
+- Sales and checkout: creating sales, browsing sales records, and handling return-related actions.
+- Financial operations: budget and cash-register pages.
+- Employee operations: schedules, salary views, and period-based salary calculations.
+- Administration: user settings, suppliers, statistics, and Sapo CRM integration surfaces.
 
-Store employees, managers, and administrators use the application for day-to-day store operations.
+These areas reflect active or configured pages in `system/pageConfig.js`; they do not establish backend implementation details. The frontend is a static SPA with dynamic page loading and accesses application data through its API and external integrations.
 
-## Product Purpose
+## Constraints
 
-Button Rouge brings together store operations, including sales, catalog and stock work, employee schedules, and salary-related tasks.
-
-## Positioning
-
-Not established. Do not invent market or differentiation claims.
-
-## Operating Context
-
-Users work with store and employee records. The schedule surface organizes working hours by store, employee, and date.
-
-## Capabilities and Constraints
-
-- The frontend is a static browser SPA that loads page modules dynamically.
-- Page data is accessed through the application's API layer and backend services.
-- For the schedule task in scope, a day may contain multiple work intervals; planned and actual hours are not separate user-facing concepts.
+Do not infer market positioning, target segments beyond observed users, or unimplemented capabilities from this context.

@@ -4,9 +4,9 @@
 
 `index.html` creates `#app`, `#header-root`, `#page-root`, and `#overlay`, sets TEST mode only when the URL path contains `/test/`, then loads `system/system.js`, `system/pageConfig.js`, and `system/app.js`.
 
-`system/app.js` loads core `system/n8n.js`, `system/api.js`, and `shared/class_TableUI.js`; fetches the header; fetches the selected page HTML; loads configured CSS and JavaScript in order; and calls the page's `registerPageInit` callback. `window.PAGE_CONFIG` in `system/pageConfig.js` is the runtime page registry. The active registry contains 15 entries including `header` and 14 page records.
+`system/app.js` loads core `system/n8n.js`, `system/api.js`, and `shared/class_TableUI.js`; fetches the header and selected page HTML; loads configured CSS and JavaScript; and calls the page's `registerPageInit` callback. `window.PAGE_CONFIG` in `system/pageConfig.js` is the runtime page registry. It has 16 entries: 15 page records and the shared `header`.
 
-The app is a static SPA with runtime globals including `window.PAGE_CONFIG`, `window.CONFIG`, `window.token`, `window.USER_STORE`, and `window.API`. It has no local build pipeline in this repository.
+The app is a static SPA with runtime globals including `window.PAGE_CONFIG`, `window.CONFIG`, `window.token`, `window.USER_STORE`, and `window.API`. `window.registerPageInit(pageId, callback)` stores callbacks that `system/app.js` invokes after the page HTML and scripts load. There is no local build pipeline in this repository.
 
 ## Transport
 

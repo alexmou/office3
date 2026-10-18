@@ -1,5 +1,7 @@
 # Decision Log
 
+Historical record only. Entries below describe past decisions and operating assumptions; they are not current instructions. Verify paths and behavior against source and canonical `docs/`. In particular, old workflow synchronization, publication, deployment, and live-check commands are not approved procedures. Current n8n instance work must be explicitly requested and use the configured n8n MCP instructions and approval gates.
+
 ## 2026-09-22 - Make source-derived docs canonical
 
 Decision:

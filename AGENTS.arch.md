@@ -1,11 +1,3 @@
-# AGENTS.arch.md
+# Architecture routing (superseded summary)
 
-Architecture summary.
-
-Canonical architecture notes live in `local/README.md` and `.memory_bank/frontend-architecture.md`.
-
-- Static SPA with page HTML/JS/CSS loaded via `fetch()` (see `system/app.js`).
-- Auth token is passed via URL query and kept in `window.token`.
-- Config comes from `API.getConfig()` and is stored in `window.CONFIG`.
-- Store context is resolved via `API.getStores()` and `fetchUserStoreFromToken()`.
-- Data access is routed through `system/api.js` (n8n webhooks, legacy contract v1/v2).
+Canonical architecture is [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Verify implementation in `index.html`, `system/system.js`, `system/pageConfig.js`, `system/app.js`, `system/api.js`, and `system/n8n.js`. Historical notes do not define current paths or runtime behavior.

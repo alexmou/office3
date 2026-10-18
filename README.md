@@ -1,7 +1,7 @@
-# Button Rouge frontend
+# Button Rouge
 
-Static operations SPA for production branch `2026_09`.
+Static browser SPA for multi-store operations. Serve this directory over HTTP because the runtime loads page assets with `fetch()`.
 
-Serve this directory over HTTP; page HTML, CSS, and JavaScript are loaded with `fetch()`. Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) first, then use [docs/PAGES.md](docs/PAGES.md), [docs/API.md](docs/API.md), or [docs/SALE_FLOW.md](docs/SALE_FLOW.md) for focused work.
+Agent entrypoint: [AGENTS.md](AGENTS.md). Canonical documentation: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/PAGES.md](docs/PAGES.md), [docs/API.md](docs/API.md), and [docs/TESTING.md](docs/TESTING.md). Product and visual context: [PRODUCT.md](PRODUCT.md), [DESIGN.md](DESIGN.md).
 
-Generated inventories live in [docs/generated/](docs/generated/). Refresh or verify them with `node tools/generate-docs.mjs` and `node tools/generate-docs.mjs --check`.
+Generated inventories live in [docs/generated/](docs/generated/). Run `node tools/generate-docs.mjs` to refresh and `node tools/generate-docs.mjs --check` to verify them.

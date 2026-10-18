@@ -1,9 +1,11 @@
-# API contract (frontend ↔ n8n)
+# API contract notes (migration proposal and historical operations)
+
+This file combines frontend migration design and dated operational notes. It is not evidence of current live n8n behavior. The canonical, source-verified frontend route and serialization reference is [docs/API.md](../docs/API.md); backend behavior is unverified because workflow source is absent here.
 
 Фронт работает в двух режимах (переключается настройкой в `CONFIG`):
 
-- **v1 (legacy)** — текущий прод: GET через `?data={"query":...}`; часть POST использует raw-body и `?action=...`.
-- **v2 (universal)** — целевой режим: единый формат, без `data.query.*`, без raw-body, без `webhookAction` с `?action=...`.
+- **v1 (legacy frontend default)** — `system/api.js` defaults to GET requests with a `data={"query":...}` wrapper; some POST routes use raw bodies and `?action=...`. Live backend compatibility is not verified.
+- **v2 (proposed migration target)** — a unified format without `data.query.*` and raw-body routes. This design has not been applied or verified against backend workflows.
 
 ## Что должен отдавать бэк в `getConfig`
 
@@ -63,7 +65,7 @@
   - `POST /supliers` body (current legacy raw-body route): `{ "action":"markSupplierPaymentsDone", "token":"...", "supplier":"...", "monthISO":"YYYY-MM", "sales":[...], "unpaidSales":[...] }`
   - `POST /supliers` response for `markSupplierPaymentsDone`: binary file (supplier report, downloadable attachment)
 
-## Что нужно изменить в n8n (обязательное)
+## Proposed backend migration notes (not active instructions)
 
 1) **Webhook nodes**: разрешить методы, которые использует фронт:
    - для чтения — хотя бы GET (v2), лучше GET+POST
@@ -89,7 +91,9 @@
    - сейчас workflow пишет ключ `action`, если он приходит в body
    - в v2 надо писать **только `payload`**, а `action` использовать только для роутинга
 
-## Localization dictionary (added 2026-03-09)
+## Dated localization notes (live state unverified)
+
+The workflow ID, webhook registration details, endpoint behavior, and reactivation advice below are historical claims, not current operational guidance. Verify live state through an explicitly requested, read-only n8n MCP inspection before taking action; publication or reactivation requires approval.
 
 - n8n workflow: `localization` (`fJVdhXr3rGXg0TsB`)
 - Webhook: `GET /localization`

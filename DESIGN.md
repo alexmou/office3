@@ -89,7 +89,7 @@ The shared shell is magenta, white, and charcoal. Individual modules retain loca
 
 ## Layout
 
-The shared shell places a fixed brand bar above a light page-title strip, then loads one of 14 active page modules. Work surfaces favor wide tables and filter toolbars; dialogs contain editing forms. Existing responsive breakpoints are page-specific (roughly 480–1024px), not a single system scale. Several table views intentionally scroll inside their wrappers; the schedule's seven-column month grid has no mobile-specific layout.
+The shared shell places a fixed brand bar above a light page-title strip, then loads 15 active page modules from `system/pageConfig.js`, alongside the shared header. Work surfaces favor wide tables and filter toolbars; dialogs contain editing forms. Existing responsive breakpoints are page-specific (roughly 480–1024px), not a single system scale. Several table views intentionally scroll inside their wrappers; the schedule's seven-column month grid has no mobile-specific layout.
 
 ## Elevation & Depth
 

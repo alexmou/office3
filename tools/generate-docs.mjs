@@ -1,16 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const pageConfigPath = path.join(repoRoot, "system", "pageConfig.js");
-const apiPath = path.join(repoRoot, "system", "api.js");
-const generatedDir = path.join(repoRoot, "docs", "generated");
 
 const read = (file) => fs.readFileSync(file, "utf8");
-const trackedSourceFiles = () => fs.readdirSync(repoRoot, { withFileTypes: true })
+const trackedSourceFiles = (root) => fs.readdirSync(root, { withFileTypes: true })
   .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
-  .flatMap((entry) => walk(path.join(repoRoot, entry.name)))
+  .flatMap((entry) => walk(path.join(root, entry.name)))
   .filter((file) => /\.(js|html|css)$/.test(file) && !file.includes(`${path.sep}vendor${path.sep}`));
 
 function walk(dir) {
@@ -72,8 +69,41 @@ function stringValue(block, property) {
   return block.match(new RegExp(`${property}\\s*:\\s*["']([^"']*)["']`))?.[1] || null;
 }
 
-function parsePageConfig() {
-  const source = stripComments(read(pageConfigPath));
+function getInitializer(source, id) {
+  source = stripComments(source);
+  const registrations = [...source.matchAll(/\bregisterPageInit\(\s*(?:(["'])([^"']+)\1|PAGE_ID)\s*,/g)];
+  const matching = registrations.filter((item) => !item[2] || item[2] === id);
+  const names = matching.map((item) => {
+    let callback = source.slice(item.index + item[0].length).trimStart();
+    callback = callback.replace(/^async\s+/, "");
+    if (callback.startsWith("function")) {
+      return callback.match(/^function\s+([A-Za-z_$][\w$]*)\s*\(/)?.[1] || "anonymous callback";
+    }
+    if (/^(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>/.test(callback)) return "anonymous callback";
+    return callback.match(/^([A-Za-z_$][\w$]*)\b/)?.[1] || null;
+  });
+  return { registered: matching.length > 0, name: names.find(Boolean) || null };
+}
+
+function localSourcePath(asset) {
+  const value = String(asset || "").trim();
+  if (!value || value.startsWith("//") || /^[A-Za-z][A-Za-z\d+.-]*:/.test(value)) return null;
+  const pathname = value.split(/[?#]/, 1)[0].replace(/\\/g, "/");
+  if (!pathname) return null;
+  return path.posix.normalize(pathname).replace(/^\.\//, "");
+}
+
+function existingLocalPath(root, asset) {
+  const relative = localSourcePath(asset);
+  if (!relative) return null;
+  const absolute = path.resolve(root, relative);
+  const fromRoot = path.relative(root, absolute);
+  if (fromRoot === ".." || fromRoot.startsWith(`..${path.sep}`) || path.isAbsolute(fromRoot)) return null;
+  return fs.existsSync(absolute) ? relative : null;
+}
+
+function parsePageConfig(root) {
+  const source = stripComments(read(path.join(root, "system", "pageConfig.js")));
   const object = getObject(source, "window.PAGE_CONFIG =");
   const pages = [];
   const entryPattern = /(?:^|\n)\s{2,}([A-Za-z][A-Za-z0-9_]*):\s*\{/g;
@@ -87,16 +117,13 @@ function parsePageConfig() {
     const css = stringList(block, "css");
     const externalJs = stringList(block, "externalJs");
     const externalCss = stringList(block, "externalCss");
-    const sourceFiles = [html, ...js, ...css, ...externalJs, ...externalCss].filter(Boolean);
-    const initializerFiles = js.filter((file) => fs.existsSync(path.join(repoRoot, file)));
-    const initializerMatches = initializerFiles.flatMap((file) => {
-      const text = read(path.join(repoRoot, file));
-      return [...text.matchAll(/registerPageInit\(\s*(?:["']([^"']+)["']|PAGE_ID)\s*,\s*([^\)\n]+)/g)]
-        .filter((item) => !item[1] || item[1] === id)
-        .map((item) => item[2].trim());
-    });
+    const configuredAssets = [html, ...js, ...css, ...externalJs, ...externalCss].filter(Boolean);
+    const sourceFiles = [...new Set(configuredAssets.map(localSourcePath).filter(Boolean))];
+    const initializerFiles = js.map((file) => existingLocalPath(root, file)).filter(Boolean);
+    const initializerMatches = initializerFiles.map((file) => getInitializer(read(path.join(root, file)), id))
+      .filter((item) => item.registered);
     const callers = initializerFiles.flatMap((file) => {
-      const text = read(path.join(repoRoot, file));
+      const text = stripComments(read(path.join(root, file)));
       return [...text.matchAll(/\bAPI\.([A-Za-z0-9_]+)/g)].map((item) => item[1]);
     });
     pages.push({
@@ -107,7 +134,8 @@ function parsePageConfig() {
       javascript: js,
       css,
       externalAssets: [...externalJs, ...externalCss],
-      initializer: initializerMatches[0] || null,
+      initializer: initializerMatches[0]?.name || null,
+      initializerRegistered: initializerMatches.length > 0,
       apiServices: [...new Set(callers)].sort(),
       sourceFiles
     });
@@ -116,12 +144,102 @@ function parsePageConfig() {
   return pages;
 }
 
-function stripComments(source) {
-  return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+function stripComments(source, comments = []) {
+  let result = "";
+  let quote = "";
+  let escaped = false;
+  let lineComment = false;
+  let blockComment = false;
+  let commentText = "";
+
+  for (let index = 0; index < source.length; index += 1) {
+    const char = source[index];
+    const next = source[index + 1];
+    if (lineComment) {
+      if (char === "\n") {
+        lineComment = false;
+        comments.push(commentText);
+        commentText = "";
+        result += char;
+      } else {
+        commentText += char;
+      }
+      continue;
+    }
+    if (blockComment) {
+      if (char === "*" && next === "/") {
+        blockComment = false;
+        comments.push(commentText);
+        commentText = "";
+        index += 1;
+      } else if (char === "\n") {
+        result += char;
+        commentText += char;
+      } else {
+        commentText += char;
+      }
+      continue;
+    }
+    if (quote) {
+      result += char;
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === quote) quote = "";
+      continue;
+    }
+    if (char === "/" && next === "/") {
+      lineComment = true;
+      commentText = "";
+      index += 1;
+      continue;
+    }
+    if (char === "/" && next === "*") {
+      blockComment = true;
+      commentText = "";
+      index += 1;
+      continue;
+    }
+    if (char === "\"" || char === "'" || char === "`") quote = char;
+    result += char;
+  }
+  if (lineComment || blockComment) comments.push(commentText);
+  return result;
 }
 
-function parseRoutes() {
-  const source = read(apiPath);
+function scanServiceCalls(root, explicitRoutes) {
+  const references = new Map();
+  const helperNames = new Set(["call", "getRoutes", "setRoutes", "getContractVersion", "setContractVersion"]);
+  for (const file of trackedSourceFiles(root)) {
+    const relative = path.relative(root, file).split(path.sep).join("/");
+    if (relative === "system/api.js") continue;
+    const comments = [];
+    const source = stripComments(read(file), comments);
+    const add = (service, invocationType, form, active) => {
+      const key = `${service}\0${relative}\0${invocationType}\0${active}`;
+      const reference = references.get(key) || { service, file: relative, invocationType, active, forms: new Set() };
+      reference.forms.add(form);
+      references.set(key, reference);
+    };
+    const collect = (text, active) => {
+      for (const match of text.matchAll(/\b(?:window\s*\.\s*)?API\s*\.\s*([A-Za-z_$][\w$]*)/g)) {
+        if (!helperNames.has(match[1])) add(match[1], "dynamic/proxy", `API.${match[1]}`, active);
+      }
+      for (const match of text.matchAll(/googleFuncName\s*:\s*["']([^"']+)["']/g)) {
+        add(match[1], "legacy", "googleFuncName", active);
+      }
+    };
+    collect(source, true);
+    comments.forEach((comment) => collect(comment, false));
+  }
+  return [...references.values()].map((item) => ({
+    ...item,
+    forms: [...item.forms],
+    explicit: explicitRoutes.has(item.service),
+  }));
+}
+
+function parseRoutes(root) {
+  const source = stripComments(read(path.join(root, "system", "api.js")));
   const object = getObject(source, "let API_ROUTES =");
   const routes = [];
   const entryPattern = /(?:^|\n)\s{4}([A-Za-z][A-Za-z0-9_]*):\s*\{([^{}]*)\}/g;
@@ -139,21 +257,37 @@ function parseRoutes() {
       callers: []
     });
   }
-  const files = trackedSourceFiles();
+  const references = scanServiceCalls(root, new Set(routes.map((route) => route.service)));
   for (const route of routes) {
-    for (const file of files) {
-      const relative = path.relative(repoRoot, file).split(path.sep).join("/");
-      if (relative === "system/api.js") continue;
-      const text = read(file);
-      const calls = [
-        ...[...text.matchAll(new RegExp(`\\bAPI\\.${route.service}\\b`, "g"))].map(() => "API." + route.service),
-        ...[...text.matchAll(new RegExp(`googleFuncName\\s*:\\s*["']${route.service}["']`, "g"))].flatMap(() => ["googleFuncName", "runGSfunction"]),
-      ];
-      if (calls.length) route.callers.push({ file: relative, forms: [...new Set(calls)] });
-    }
+    route.callers = references.filter((item) => item.service === route.service)
+      .reduce((callers, item) => {
+        const existing = callers.find((caller) => caller.file === item.file);
+        const forms = item.invocationType === "legacy" ? ["googleFuncName", "runGSfunction"] : item.forms;
+        if (existing) existing.forms = [...new Set([...existing.forms, ...forms])];
+        else callers.push({ file: item.file, forms: [...new Set(forms)] });
+        return callers;
+      }, []);
     route.callers.sort((a, b) => a.file.localeCompare(b.file));
   }
-  return routes;
+  const unresolvedCalls = references.filter((item) => !item.explicit && item.active).map((item) => ({
+    service: item.service,
+    sourceFile: item.file,
+    invocationType: item.invocationType,
+    active: true,
+    resolutionStatus: "no explicit API_ROUTES declaration; runtime config or frontend fallback may resolve it",
+    staticallyVerified: true,
+    verificationScope: "frontend call/fallback only; backend behavior is unverified",
+  })).sort((a, b) => a.service.localeCompare(b.service) || a.sourceFile.localeCompare(b.sourceFile));
+  const inactiveReferences = references.filter((item) => !item.explicit && !item.active).map((item) => ({
+    service: item.service,
+    sourceFile: item.file,
+    invocationType: item.invocationType,
+    active: false,
+    resolutionStatus: "commented-out reference; not an active invocation",
+    staticallyVerified: true,
+    verificationScope: "comment text only; no runtime behavior asserted",
+  })).sort((a, b) => a.service.localeCompare(b.service) || a.sourceFile.localeCompare(b.sourceFile));
+  return { routes, unresolvedCalls, inactiveReferences };
 }
 
 function buildContextIndex(pages, routes) {
@@ -176,38 +310,45 @@ function buildContextIndex(pages, routes) {
     suppliers: { sourceFiles: pageFiles(["suppliers"]), docs: ["docs/PAGES.md", "docs/API.md"], verificationCommands: ["node --check suppliers/suppliers.js"] },
     sapo: { sourceFiles: pageFiles(["sapo"]), docs: ["docs/PAGES.md", "docs/API.md"], verificationCommands: ["node --check sapo/sapo.js"] }
   };
-  return { generatedAt: new Date().toISOString().slice(0, 10), domains, counts: { pages: pages.length, routes: routes.length } };
+  return { domains, counts: { pages: pages.length, routes: routes.length } };
 }
 
-function build() {
-  const pages = parsePageConfig();
-  const routes = parseRoutes();
+export function buildDocumentation(root = repoRoot) {
+  const pages = parsePageConfig(root);
+  const { routes, unresolvedCalls, inactiveReferences } = parseRoutes(root);
   return {
-    pages: { generatedAt: new Date().toISOString().slice(0, 10), source: "system/pageConfig.js", pages },
-    routes: { generatedAt: new Date().toISOString().slice(0, 10), source: "system/api.js", routes },
+    pages: { source: "system/pageConfig.js", pages },
+    routes: { source: "system/api.js", routes, unresolvedCalls, inactiveReferences },
     context: buildContextIndex(pages, routes)
   };
 }
 
-const output = build();
-const files = {
-  "pages.json": output.pages,
-  "api-routes.json": output.routes,
-  "context-index.json": output.context
-};
+function main() {
+  const output = buildDocumentation();
+  const generatedDir = path.join(repoRoot, "docs", "generated");
+  const files = {
+    "pages.json": output.pages,
+    "api-routes.json": output.routes,
+    "context-index.json": output.context
+  };
 
-if (process.argv.includes("--check")) {
-  for (const [name, value] of Object.entries(files)) {
-    const target = path.join(generatedDir, name);
-    if (!fs.existsSync(target) || JSON.stringify(JSON.parse(read(target)), null, 2) !== JSON.stringify(value, null, 2)) {
-      throw new Error(`Generated file is stale: docs/generated/${name}`);
+  if (process.argv.includes("--stdout")) {
+    process.stdout.write(`${JSON.stringify(files, null, 2)}\n`);
+  } else if (process.argv.includes("--check")) {
+    for (const [name, value] of Object.entries(files)) {
+      const target = path.join(generatedDir, name);
+      if (!fs.existsSync(target) || JSON.stringify(JSON.parse(read(target)), null, 2) !== JSON.stringify(value, null, 2)) {
+        throw new Error(`Generated file is stale: docs/generated/${name}`);
+      }
+    }
+  } else {
+    fs.mkdirSync(generatedDir, { recursive: true });
+    for (const [name, value] of Object.entries(files)) {
+      fs.writeFileSync(path.join(generatedDir, name), `${JSON.stringify(value, null, 2)}\n`);
     }
   }
-} else {
-  fs.mkdirSync(generatedDir, { recursive: true });
-  for (const [name, value] of Object.entries(files)) {
-    fs.writeFileSync(path.join(generatedDir, name), `${JSON.stringify(value, null, 2)}\n`);
-  }
+
+  console.log(`Documentation context ${process.argv.includes("--check") ? "is current" : process.argv.includes("--stdout") ? "built" : "generated"}: ${output.context.counts.pages} pages, ${output.context.counts.routes} routes`);
 }
 
-console.log(`Documentation context ${process.argv.includes("--check") ? "is current" : "generated"}: ${output.context.counts.pages} pages, ${output.context.counts.routes} routes`);
+if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) main();

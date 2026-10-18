@@ -1,6 +1,6 @@
 # Refactor Plan
 
-No refactor is performed in this documentation phase. Each stage is small, reversible, and must preserve current production behavior.
+Status: proposed backlog, not an approved implementation plan. No refactor is performed in this documentation phase. Any stage requires its own explicit task scope and focused regression checks; current production behavior must remain unchanged unless the task authorizes it.
 
 ## 1. Remove exposed credentials and reduce token exposure
 
